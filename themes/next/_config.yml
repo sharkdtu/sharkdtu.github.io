@@ -272,7 +272,7 @@ duoshuo_info:
   user_id: 7001956
   #admin_nickname: Author
 
-duoshuo_hotartical: true
+# duoshuo_hotartical: true
 
 
 # Facebook SDK Support.
