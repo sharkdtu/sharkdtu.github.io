@@ -13,7 +13,8 @@ timezone:
 # URL
 url: http://sharkdtu.com
 root: /
-permalink: :year/:month/:day/:title.html
+# permalink: :year/:month/:day/:title.html
+permalink: posts/:title.html
 permalink_defaults:
 
 # Directory
