@@ -2,42 +2,27 @@ The source of [http://sharkdtu.com](http://sharkdtu.com).
 
 Powered by [hexo](https://hexo.io/zh-cn/). Themed by [next](https://github.com/iissnan/hexo-theme-next).
 
-INSTALL
 
-### Install nodejs
+### INSTALL GUIDE
 
+#### Install nodejs
 Follow [nodejs](https://nodejs.org/en/) docs.
 
-### Install hexo
-
-```shell
-npm install -g hexo-cli
-```
-
+#### Install hexo
+    npm install -g hexo-cli
 See more information at [hexo docs](https://hexo.io/docs/).
 
-### Clone this branch
+#### Clone this branch
+    git clone -b source https://github.com/sharkdtu/sharkdtu.github.io.git
 
-```shell
-git clone -b source https://github.com/sharkdtu/sharkdtu.github.io.git
-```
+#### Install node modules
+    cd sharkdtu.github.io
+    npm install
 
-### Install node modules
+#### Generate pages
+    hexo generate
 
-```shell
-cd sharkdtu.github.io
-npm install
-```
+#### Browse the pages
 
-### Generate pages
-
-```shell
-hexo generate
-```
-
-### Browse the pages
-
-```shell
-hexo server
-```
+    hexo server
 See http://localhost:4000/ .
