@@ -8,7 +8,7 @@ tags:
   - actor
 ---
 
-学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐[Akka的官方文档](http://doc.akka.io/docs/akka/2.3.7/general/actor-systems.html)，里面讲的很清晰，另外，[国外一个人的笔记](http://rerun.me/2014/09/11/introducing-actors-akka-notes-part-1/)写的相当不错，原理加上其配图讲的非常形象。
+学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐[Akka的官方文档](http://doc.akka.io/docs/akka/2.3.7/general/actor-systems.html)，里面讲的很清晰，另外，[国外一个人的笔记](http://rerun.me/2014/09/11/introducing-actors-akka-notes-part-1/)写的相当不错，原理加上其配图讲的非常形象。<!--more-->
 
 下面我通过一个简单例子来阐述akka-actor的使用，假如我们需要编写一个程序，利用[蒙特卡洛算法](https://zh.wikipedia.org/wiki/%E8%92%99%E5%9C%B0%E5%8D%A1%E7%BE%85%E6%96%B9%E6%B3%95)求圆周率π，我们知道蒙特卡洛算法是采用统计模拟方法，在一个边长为2的正方形内，一个点落在其内切圆内的概率为π/4（圆的面积/正方形的面积），编写程序时，假设有多个actor同时随机在正方形内掷点，统计所有actor掷的点，把那些落在内切圆内的点的个数加起来再除以所有actor掷的总次数，即为一个点落在内切圆内概率的近似值，进而可以得到π的近似值。
 
