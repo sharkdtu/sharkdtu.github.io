@@ -80,6 +80,12 @@ category_generator:
 tag_generator:
   per_page: 20
 
+feed:
+  type: rss2
+  path: rss2.xml
+  limit: 20
+  hub:
+
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
