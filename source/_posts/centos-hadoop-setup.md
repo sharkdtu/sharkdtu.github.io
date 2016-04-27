@@ -10,7 +10,7 @@ tags:
 
 对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hadoop-2.2.0 的集群安装（其他Linux发行版无太大差别），最后运行WordCount程序以验证Hadoop集群安装是否成功。<!--more-->
 
-### 一、机器准备
+### 机器准备
 
 假设集群中有三台机器，机器可以为三台物理机或虚拟机，保证三台机器可以互相通信，其中一台机器作为master（运行NameNode和ResourceManager），另外两台机器作为slave或worker（运行DataNode和NodeManager）。下面我准备的机器相关配置如下，注意每台机器要保证用户名一致。
 
@@ -20,7 +20,7 @@ tags:
 | slave1	| hadoop	| 192.168.100.11 |
 | slave2	| hadoop	| 192.168.100.12 |
 
-### 二、工具准备
+### 工具准备
 
 为了避免在三台机器中重复安装配置工作，我们可以只在master机器上做安装配置，然后直接将配置好的软件打包发到每台slave机器上解压即可，首先我们应配置master机器到其他机器ssh免密码登陆，这是所有后续安装工作的前提。
 
@@ -54,7 +54,7 @@ tags:
 
 完成上述操作后，切换回hadoop用户，现在master机器可以ssh免密码的登录集群中每台机器，下面我们开始现在master机器中开始安装配置hadoop。
 
-### 三、JDK安装
+### JDK安装
 
 从[oracle官网](http://www.oracle.com/technetwork/articles/javase/index-jsp-138363.html)下载jdk，放到`/home/hadoop`目录下（后续所有安装包默认安装在`/home/hadoop`目录下），我下载的版本为jdk1.7.0_40，解压后设置jdk的环境变量，环境变量最好不要设置为全局的（在/etc/profile中），只设置当前用户的环境变量即可.
 
@@ -67,7 +67,7 @@ tags:
      export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
     [hadoop@master ~]$ source .bash_proflie
 
-### 四、Hadoop安装
+### Hadoop安装
 
 从[Apache官网](http://hadoop.apache.org/releases.html)下载hadoop发行版，放到`/home/hadoop`目录下，我下载的版本为hadoop-2.2.0，解压软件包后，首先设置hadoop的环境变量。
 
