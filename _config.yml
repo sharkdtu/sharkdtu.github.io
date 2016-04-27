@@ -53,6 +53,7 @@ category_map:
 tag_map:
   分布式计算: distributed-computation
   大数据: big-data
+  反射: reflect
 
 
 # Date / Time format

@@ -20,7 +20,7 @@ tags:
     [hadoop@master ~]$ mkdir -p akka-actor-pi/src/main/resources
     [hadoop@master ~]$ mkdir -p akka-actor-pi/src/test/scala
 
-在项目根目录akka-actor-pi下新建sbt项目描述文件build.sbt，注意每行之间有一个空行:
+在项目根目录akka-actor-pi下新建sbt项目描述文件`build.sbt`，注意每行之间有一个空行:
 
     name := "akka-actor-pi"
     [空行]
@@ -30,11 +30,11 @@ tags:
     [空行]
     libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.7"
 
-在project目录里添加build.properties文件，在其中声明sbt的版本信息：
+在project目录里添加`build.properties`文件，在其中声明sbt的版本信息：
 
     sbt.version=0.13.6
 
-如下图所示为程序求π的actor系统结构图，程序入口通过向Master发起计算请求，Master将任务分发到许多Worker上运行（类似于启动多个线程并行计算），中间通过一个路由actor来间接的分发任务，把路由actor看成网络中的路由器，当其收到任务请求后，它会按某种调度方式来分发到它关联的那些actor上，在我们的程序实现中，采用轮询的方式挨个分发任务。
+如下图所示为程序求π的actor系统结构图，程序入口通过向master发起计算请求，master将任务分发到许多worker上运行（类似于启动多个线程并行计算），中间通过一个路由actor来间接的分发任务，把路由actor看成网络中的路由器，当其收到任务请求后，它会按某种调度方式来分发到它关联的那些actor上，在我们的程序实现中，采用轮询的方式挨个分发任务。
 
 ![akka-actor](/images/akka-actor.png)
 
@@ -45,7 +45,7 @@ tags:
 * Result： 从worker发送给master，包含worker的计算结果；
 * PiApproximation： 从master返回给调用端，包含π的最终计算结果和整个计算耗费的时间；
 
-发送给actor的消息应该永远是不可变的，在scala里有‘case classes’来构造完美的消息，下面是用‘case class’创建四种消息，其中创建一个通用的基础trait(定义为sealed以防止在其他地方创建消息)。
+发送给actor的消息应该永远是不可变的，在scala里有`case classes`来构造完美的消息，下面是用`case class`创建四种消息，其中创建一个通用的基础`trait`(定义为`sealed`以防止在其他地方创建消息)。
 
 ```scala
 sealed trait PiMessage
@@ -60,7 +60,7 @@ case class PiApproximation(pi: Double, duration: Duration)
     extends PiMessage
 ```
 
-下面定义Worker actor，收到分发的任务后，通过随机掷点的方法统计落在内切圆中点个数。
+下面定义 worker actor，收到分发的任务后，通过随机掷点的方法统计落在内切圆中点个数。
 
 ```scala
 class Worker extends Actor {
@@ -82,7 +82,7 @@ class Worker extends Actor {
 }
 ```
 
-下面定义Master actor，主要是给一些Worker分发计算任务，收集Worker的计算结果，然后计算出π的近似值，Master包含三个参数，nrOfWorkers表示一共有几个Worker同时运行，nrOfMessages表示要发多少任务下去（一个Worker有可能会运行多个任务），times表示Worker运行一次任务需要掷几次点。
+下面定义 master actor，主要是给一些worker分发计算任务，收集Worker的计算结果，然后计算出π的近似值，master包含三个参数，`nrOfWorkers`表示一共有几个Worker同时运行，`nrOfMessages`表示要发多少任务下去（一个worker有可能会运行多个任务），`times`表示Worker运行一次任务需要掷几次点。
 
 ```scala
 class Master(nrOfWorkers: Int, nrOfMessages: Int, times: Int)
@@ -115,7 +115,7 @@ class Master(nrOfWorkers: Int, nrOfMessages: Int, times: Int)
 }
 ```
 
-定义完所有actor的功能后，我们可以开始编写入口程序，来使用这些actor完成π的近似计算了，程序首先创建master actor的引用，发送计算请求消息，等待计算结果，注意这里是通过ask的方式（？标识符）发送消息，前面我们是通过tell（！标识符）方式发送消息，这两种方式的区别在于，tell方式发送消息时发出后不管的，一般在actor之间用这种方式发消息，reply消息可以通过tell方式发回来，而ask方式发送消息是期望得到一个结果的，其返回类型是Future类型，最后做一个转换，得到所期望的消息，如下代码是通过Await阻塞等待结果。
+定义完所有actor的功能后，我们可以开始编写入口程序，来使用这些actor完成π的近似计算了，程序首先创建 master actor的引用，发送计算请求消息，等待计算结果，注意这里是通过ask的方式（？标识符）发送消息，前面我们是通过tell（！标识符）方式发送消息，这两种方式的区别在于，tell方式发送消息时发出后不管的，一般在actor之间用这种方式发消息，reply消息可以通过tell方式发回来，而ask方式发送消息是期望得到一个结果的，其返回类型是`Future`类型，最后做一个转换，得到所期望的消息，如下代码是通过`Await`阻塞等待结果。
 
 ```scala
 object Pi {
@@ -140,7 +140,7 @@ object Pi {
 }
 ```
 
-我们再把上述代码重新整理一遍，在项目代码目录src/main/scala中新建文件Pi.scala。
+我们再把上述代码重新整理一遍，在项目代码目录`src/main/scala`中新建文件`Pi.scala`。
 
 ```scala
 import scala.math.random
