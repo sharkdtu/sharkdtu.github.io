@@ -48,6 +48,7 @@ default_category: uncategorized
 category_map:
   程序语言: programming-language
   分布式计算: distributed-computation
+  机器学习: machine-learning
   读书笔记: reading-notes
   随笔: essay
   其他: other
@@ -55,6 +56,8 @@ tag_map:
   分布式计算: distributed-computation
   大数据: big-data
   反射: reflect
+  决策树: decision-tree
+  随机森林: random-forest
 
 
 # Date / Time format
