@@ -8,7 +8,8 @@ categories: 问题总结
 date: 2016-05-12 21:45:11
 ---
 
-在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现：
+
+在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现。<!--more-->
 
 ```scala
 val conf = new JobConf(rdd.context.hadoopConfiguration)
