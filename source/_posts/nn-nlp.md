@@ -218,10 +218,13 @@ session.run(train)
 
 #### 验证词向量
 
-经过以上步骤后，即可得到词向量矩阵，即 embedding matrix，那么如何验证得到的词向量矩阵的好坏呢，Mikolov等人发现，如果一对关系差不多的词，其词向量在空间中的连线近乎平行，如下图所示。
+经过以上步骤后，即可得到词向量矩阵，即上述代码中的变量`embeddings`，那么如何验证得到的词向量矩阵的好坏呢，Mikolov等人发现[2]，如果一对关系差不多的词，其词向量在空间中的连线近乎平行，如下图所示。
 
 <img src="/images/nlp-word2vec-analogical.jpg" width="400" height="230" alt="nlp-word2vec-analogical" align=center />
 
+为此，给定基准测试集，其每行包含4个词组成一个四元组 $(w_1, w_2, w_3, w_4)$ ，对于一个较好的词向量结果，每个四元组大致会有如下关系：
+
+$$ Vector(w_1) - Vector(w_2) + Vector(w_4) = Vector(w_3) $$
 
 ## 循环神经网络(RNN)
 
@@ -229,10 +232,10 @@ session.run(train)
 
 ## 参考文献
 
-1. Bengio Y, Schwenk H, Senécal J S, et al. Neural probabilistic language models[M]//Innovations in Machine Learning. Springer Berlin Heidelberg, 2006: 137-186.MLA.
-2. Mikolov T, Sutskever I, Chen K, et al. Distributed representations of words and phrases and their compositionality[C]//Advances in neural information processing systems. 2013: 3111-3119.
-3. Mikolov T, Le Q V, Sutskever I. Exploiting similarities among languages for machine translation[J]. arXiv preprint arXiv:1309.4168, 2013.
-4. Gutmann M U, Hyvärinen A. Noise-contrastive estimation of unnormalized statistical models, with applications to natural image statistics[J]. The Journal of Machine Learning Research, 2012, 13(1): 307-361.
-5. Vector Representations of Words. https://www.tensorflow.org/versions/r0.8/tutorials/word2vec/index.html#vector-representations-of-words
-6. word2vec 中的数学原理详解. http://www.cnblogs.com/peghoty/p/3857839.html
-7. Understanding LSTM Networks. http://colah.github.io/posts/2015-08-Understanding-LSTMs/
+[1]. Bengio Y, Schwenk H, Senécal J S, et al. Neural probabilistic language models[M]//Innovations in Machine Learning. Springer Berlin Heidelberg, 2006: 137-186.MLA.     
+[2]. Mikolov T, Sutskever I, Chen K, et al. Distributed representations of words and phrases and their compositionality[C]//Advances in neural information processing systems. 2013: 3111-3119.                          
+[3]. Mikolov T, Le Q V, Sutskever I. Exploiting similarities among languages for machine translation[J]. arXiv preprint arXiv:1309.4168, 2013.                      
+[4]. Gutmann M U, Hyvärinen A. Noise-contrastive estimation of unnormalized statistical models, with applications to natural image statistics[J]. The Journal of Machine Learning Research, 2012, 13(1): 307-361.      
+[5]. [Vector Representations of Words](https://www.tensorflow.org/versions/r0.8/tutorials/word2vec/index.html#vector-representations-of-words)               
+[6]. [word2vec 中的数学原理详解](http://www.cnblogs.com/peghoty/p/3857839.html)          
+[7]. [Understanding LSTM Networks](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)
