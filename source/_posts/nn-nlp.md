@@ -220,6 +220,7 @@ session.run(train)
 
 经过以上步骤后，即可得到词向量矩阵，即 embedding matrix，那么如何验证得到的词向量矩阵的好坏呢，Mikolov等人发现，如果一对关系差不多的词，其词向量在空间中的连线近乎平行，如下图所示。
 
+<img src="/images/nlp-word2vec-analogical.jpg" width="400" height="230" alt="nlp-word2vec-analogical" align=center />
 
 
 ## 循环神经网络(RNN)
