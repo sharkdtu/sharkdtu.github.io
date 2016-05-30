@@ -120,7 +120,8 @@ font:
 social:
   weibo: http://weibo.com/tuxiaogang
   github: https://github.com/sharkdtu
-  linkedin: https://cn.linkedin.com/in/sharkd
+
+# linkedin: https://cn.linkedin.com/in/sharkd
 
 
 # Social Links Icons
@@ -214,7 +215,7 @@ auto_excerpt:
   #description: ex. subscribe to my blog by scanning my public wechat account
 
 
-  
+
 
 # ---------------------------------------------------------------
 # Third Party Services Settings
@@ -274,7 +275,7 @@ duoshuo_info:
 
 # duoshuo_hotartical: true
 
-reward_comment: 
+reward_comment:
 wechatpay: /images/wechat.png
 alipay: /images/alipay.png
 

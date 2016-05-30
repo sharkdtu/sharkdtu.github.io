@@ -31,7 +31,7 @@ date: 2016-05-29 22:25:17
 
 $$ P(W) = P(w_1 w_2 ... w_t) = P(w_1) P(w_2|w_1) P(w_3|w_1 w_2) \cdots P(w_t|w_1 w\_2 \cdots  w_{t-1}) \tag{2-1}$$
 
-上述公式的意义是：一个句子出现的概率等于给定前面的词情况下，紧接着后面的词出现的概率。它是通过条件概率公式展开得到。其中条件概率 $P({w_2|w_1}), P({w_3|w_1 w_2}), \cdots, P({w_t|w_1 w\_2 \cdots w_{t-1}})$ 就是创建语言模型所需要的参数，每个条件概率的意义解释为:根据前面的词预测下一个词的概率。有了这些条件概率参数，给定一个句子，就可以通过以上公式得到一个句子出现的概率。例如有一句话“php是最好的语言”，假设已经分词为“php”、“是”、“最好的”、“语言”，那么它出现的概率为P(“php”，“是”，“最好的”，“语言”)=P(“php”)P(“是”|“php”)P(“最好的”|“php”，“是”)P(“语言”|“php”，“是”，“最好的”)，如果这个概率较大，那么判断为正常的一句话。以上这些条件概率通过如下贝叶斯公式得到：
+上述公式的意义是：一个句子出现的概率等于给定前面的词情况下，紧接着后面的词出现的概率。它是通过条件概率公式展开得到。其中条件概率 $P({w_2|w_1}), P({w_3|w_1 w_2}), \cdots, P({w_t|w_1 w\_2 \cdots w_{t-1}})$ 就是创建语言模型所需要的参数，每个条件概率的意义解释为:根据前面的词预测下一个词的概率。有了这些条件概率参数，给定一个句子，就可以通过以上公式得到一个句子出现的概率。例如有一句话“php是最好的语言”（我不确定这是不是自然语言），假设已经分词为“php”、“是”、“最好的”、“语言”，那么它出现的概率为P(“php”，“是”，“最好的”，“语言”)=P(“php”)P(“是”|“php”)P(“最好的”|“php”，“是”)P(“语言”|“php”，“是”，“最好的”)，如果这个概率较大，那么判断为正常的一句话。以上这些条件概率通过如下贝叶斯公式得到：
 
 $$ P(w_t|w_1 w\_2 \cdots w_{t-1}) = \frac {P(w_1 w_2 \cdots w_t)} {P(w_1 w\_2 \cdots w_{t-1})} \tag{2-2}$$
 
@@ -128,7 +128,7 @@ $$ P(w_i) = 1 - \sqrt{\frac{t}{f(w_i)}} \tag{3-5}$$
 
 ### TensorFlow实现
 
-根据以上实现原理，下面结合代码阐述利用TensorFlow实现一个简易的word2vec模型，借助TensorFlow丰富的api以及强大的计算引擎，我们可以非常方便地表达模型。给定语料库作为训练数据，首先扫描语料库建立字典，为每个词编号，同时将那些词频低于min_count的词过滤掉，即不对那些陌生词生成词向量。对于一个样本(“世界上”, “php”)，利用负采样得到若干负实例，分别计算输入词为“世界上”到“php”以及若干负样本的logit值，最后通过交叉熵公式得到目标函数(3-3)。
+根据以上实现原理，下面结合代码阐述利用TensorFlow实现一个简易的word2vec模型[5]，借助TensorFlow丰富的api以及强大的计算引擎，我们可以非常方便地表达模型。给定语料库作为训练数据，首先扫描语料库建立字典，为每个词编号，同时将那些词频低于min_count的词过滤掉，即不对那些陌生词生成词向量。对于一个样本(“世界上”, “php”)，利用负采样得到若干负实例，分别计算输入词为“世界上”到“php”以及若干负样本的logit值，最后通过交叉熵公式得到目标函数(3-3)。
 
 <img src="/images/nlp-word2vec-forward.jpg" width="400" height="230" alt="nlp-word2vec-forward" align=center />
 
@@ -228,14 +228,142 @@ $$ Vector(w_1) - Vector(w_2) + Vector(w_4) = Vector(w_3) $$
 
 ## 循环神经网络(RNN)
 
+人类不是从脑子一片空白开始思考，当你读一篇文章的时候，你会根据前文去理解下文，而不是每次看到一个词后就忘掉它，理解下一个词的时候又从头开始。传统的神经网络模型是从输入层到隐藏层再到输出层，每层之间的节点是无连接的，这种普通的神经网络不具备记忆功能，而循环神经网络(Recurrent Neural Network，RNN)就是来解决这类问题，它具备记忆性，通常用于处理时间序列问题，在众多NLP问题中，RNN取得了巨大成功以及广泛应用。
+
+在RNN网络中，一个序列当前的输出除了与当前输入有关以外，还与前面的输出也有关，下图为RNN中一个单元的结构示意图，图片来源于文[7]。
+
+<img src="/images/nlp-rnn-cell.jpg" width="400" height="230" alt="nlp-rnn-cell" align=center />
+
+上图理解起来可能还不是很形象，根据时间序列将上图平铺展开得到如下图，其链式的特征揭示了 RNN 本质上是与序列相关的，所以 RNN 对于这类数据来说是最自然的神经网络架构。
+
+<img src="/images/nlp-rnn-unrolled.jpg" width="400" height="230" alt="nlp-rnn-unrolled" align=center />
+
+然而 RNN 有一个缺点，虽然它可以将之前的信息连接到当前的输入上，但是如果当前输入与之前的信息时间跨度很大，由于梯度衰减等原因，RNN 学习如此远的信息的能力会下降，这个问题称之为长时间依赖（Long-Term Dependencies）问题。例如预测一句话“飞机在天上”下一个词，可能不需要太多的上下文就可以预测到下一个词为“飞”，这种情况下，相关信息与要预测的词之间的时间跨度很小，RNN 可以很容易学到之前的信息。再比如预测“他来自法国，...，他会讲”的下一个词，从当前的信息来看，下一个词可能是一种语言，但是要想准确预测哪种语言，就需要再去前文找信息了，由于前文的“法国”离当前位置的时间跨度较大，RNN很难学到如此远的信息。更多长时间依赖细节参考文[8]。幸运的是，有一种 RNN 变种，叫做长短时记忆网络(Long Short Term Memory networks, LSTM)，可以解决这个问题。
+
 ## 长短时记忆网络(LSTM)
+
+LSTM 是一种带有选择性记忆功能的 RNN，它可以有效的解决长时间依赖问题，并能学习到之前的关键信息。如下图所示为 LSTM 展开后的示意图。
+
+<img src="/images/nlp-lstm-unrolled.jpg" width="600" height="300" alt="nlp-lstm-unrolled" align=center />
+
+相对于 RNN , LSTM 只是在每个单元结构上做了改进，在 RNN 中，每个单元结构只有单个激活函数，而 LSTM 中每个单元结构更为复杂，它增加了一条状态线（图中最上面的水平线），以记住从之前的输入学到的信息，另外增加三个门(gate)来控制其该状态，分别为忘记门、输入门和输出门。忘记门的作用是选择性地将之前不重要的信息丢掉，以便存储新信息；输入门是根据当前输入学习到新信息然后更新当前状态；输出门则是结合当前输入和当前状态得到一个输出，该输出除了作为基本的输出外，还会作为下一个时刻的输入。下面用数学的方式表达每个门的意思。
+
+忘记门，要丢掉的信息如下：
+
+$$ f_t = \sigma (W\_f[h\_{t-1}, x_t] + b_f) \tag{5-1}$$
+
+输入门，要增加的信息如下：
+$$
+\begin{split}
+i_t &= \sigma (W\_i[h\_{t-1}, x_t] + b_i)\\\
+\tilde{C_t} &= tanh(W\_C[h\_{t-1}, x_t] + b_C)
+\end{split} \tag{5-2}
+$$
+
+那么根据忘记门和输入门，状态更新如下：
+
+$$ C_t = f\_t \* C\_{t-1} + i_t \* \tilde{C_t} \tag{5-3}$$
+
+输出门，得到输出信息如下：
+
+$$
+\begin{split}
+o_t &= \sigma (W\_o[h\_{t-1}, x_t] + b_o)\\\
+h_t &= o_t \* tanh(C_t)
+\end{split} \tag{5-4}
+$$
+
+LSTM 单元输入都是上一个时刻的输出与当前时刻的输入通过向量concat连接而得到，基于这个输入，利用sigmoid函数作为三个门的筛选器，分别得到 $f_t$ 、$i_t$ 、$o_t$，这三个筛选器分别选择部分分量对状态进行选择性忘记、对输入进行选择性输入、对输出进行选择性输出。以上是 LSTM 基本结构原理，在这基础上，根据不同的实际应用场景，演变出很多 LSTM 的变体，更多关于 LSTM 的详细解释请参考文[7]。下面介绍一种深层次 LSTM 网络[9]，该结构也是 TensorFlow 中 LSTM 所实现的根据[10]。
+
+### 深层LSTM网络
+
+深度学习，其特点在于深，前面已经讲述单层 LSTM 网络结构，深层 LSTM 网络其实就是将多层 LSTM 叠加，形成多个隐藏层，如下图所示。
+
+<img src="/images/nlp-lstm-multilayer.jpg" width="400" height="230" alt="nlp-lstm-multilayer" align=center />
+
+上图中每个 LSTM 单元内部结构如下图所示，对于 $l$ 层 $t$ 时刻来说，$h_{t-1}^l$ 为 $l$ 层 $t-1$ 时刻（即上一个时刻）的输出，$h_t^{l-1}$ 为 $l-1$ 层（即上一层） $t$ 时刻的输出，这两个输出叠加作为 $l$ 层 $t$ 时刻的输入。
+
+<img src="/images/nlp-lstm-multilayer-cell.jpg" width="400" height="230" alt="nlp-lstm-multilayer-cell" align=center />
+
+根据上面的结构，可以得到 $l$ 层 LSTM 数学表达, $h\_t^{l-1}, h\_{t-1}^l, c_{t-1}^l \rightarrow h_t^l, c_t^l$：
+
+$$
+\begin{split}
+f &= \sigma (W_f[h\_t^{l-1}, h_{t-1}^l] + b_f) \\\
+i &= \sigma (W_i[h\_t^{l-1}, h_{t-1}^l] + b_i) \\\
+o &= \sigma (W_o[h\_t^{l-1}, h_{t-1}^l] + b_o) \\\
+g &= tanh(W_g[h\_t^{l-1}, h_{t-1}^l] + b_g) \\\
+\ \notag \\\
+c\_t^l &= f \* c\_{t-1}^l + i \* g \\\
+h_t^l &= o \* tanh(c_t^l)
+\end{split} \tag{5-5}
+$$
+
+其中 $c_{t-1}^l$ 表示上一时刻的状态，$c_t^l$ 表示由当前输入更新后的状态。
+
+### 正则化
+
+然而，实践证明大规模的 LSTM 网络很容易过拟合，实际应用中，需要采取正则化方法来避免过拟合，神经网络中常见的正则化方法是Dropout方法[11]，文[12]提出一种简单高效的Dropout方法运用于 RNN/LTSM 网络。如下图所示，Dropout仅应用于虚线方向的输入，即仅针对于上一层的输出做Dropout。
+
+<img src="/images/nlp-lstm-multilayer-dropout.jpg" width="400" height="230" alt="nlp-lstm-multilayer-dropout" align=center />
+
+根据上图的Dropout策略，公式(5-5)可以改写成如下形式：
+
+$$
+\begin{split}
+f &= \sigma (W_f[D(h\_t^{l-1}), h_{t-1}^l] + b_f) \\\
+i &= \sigma (W_i[D(h\_t^{l-1}), h_{t-1}^l] + b_i) \\\
+o &= \sigma (W_o[D(h\_t^{l-1}), h_{t-1}^l] + b_o) \\\
+g &= tanh(W_g[D(h\_t^{l-1}), h_{t-1}^l] + b_g) \\\
+\ \notag \\\
+c\_t^l &= f \* c\_{t-1}^l + i \* g \\\
+h_t^l &= o \* tanh(c_t^l)
+\end{split} \tag{5-6}
+$$
+
+其中 $D$ 表示Dropout操作符，会随机地将 $h_t^{l-1}$ 的中的分量设置为零。如下图所示，黑色粗实线表示从 $t-2$ 时刻的信息作为 $t+2$ 时刻预测的输出参考，它经历了 $L+1$ 次的Dropout，其中 $L$ 表示网络的层数。
+
+<img src="/images/nlp-lstm-multilayer-dropout-event-flow.jpg" width="400" height="230" alt="nlp-lstm-multilayer-dropout-event-flow" align=center />
+
+### TensorFlow实现
+
+根据前面所述的 LSTM 模型原理，实现之前提到的语言模型，即根据前文预测下一个词，例如输入“飞机在天上”预测下一个词“飞”，使用 TensorFlow 来实现 LSTM 非常的方便，因为 TensorFlow 已经提供了基本的 LSTM 单元结构的Operation，其实现原理就是基于文[12]提出的带Dropout的 LSTM 模型。
+
+#### 单层LSTM网络应用
+
+利用TensorFlow提供的Operation，实现单层的LSTM网络很简单，定义一个基本的 LSTM 单元，初始化状态为0，每次给定一个batch的输入，经过LSTM单元处理后，得到输出，并通过softmax归一化为概率形式，进而计算损失函数。大致的代码如下：
+```python
+lstm = rnn_cell.BasicLSTMCell(lstm_size)
+# Initial state of the LSTM memory.
+state = tf.zeros([batch_size, lstm.state_size])
+
+loss = 0.0
+for current_batch_of_words in words_in_dataset:
+    # The value of state is updated after processing each batch of words.
+    output, state = lstm(current_batch_of_words, state)
+
+    # The LSTM output can be used to make next word predictions
+    logits = tf.matmul(output, softmax_w) + softmax_b
+    probabilities = tf.nn.softmax(logits)
+    loss += loss_function(probabilities, target_words)
+```
+
+#### 多层LSTM网络应用
+
+假如要用
+
 
 ## 参考文献
 
 [1]. Bengio Y, Schwenk H, Senécal J S, et al. Neural probabilistic language models[M]//Innovations in Machine Learning. Springer Berlin Heidelberg, 2006: 137-186.MLA.     
-[2]. Mikolov T, Sutskever I, Chen K, et al. Distributed representations of words and phrases and their compositionality[C]//Advances in neural information processing systems. 2013: 3111-3119.                          
+[2]. Mikolov T, Sutskever I, Chen K, et al. Distributed representations of words and phrases and their compositionality[C]//Advances in neural information processing systems. 2013: 3111-3119.                         
 [3]. Mikolov T, Le Q V, Sutskever I. Exploiting similarities among languages for machine translation[J]. arXiv preprint arXiv:1309.4168, 2013.                      
 [4]. Gutmann M U, Hyvärinen A. Noise-contrastive estimation of unnormalized statistical models, with applications to natural image statistics[J]. The Journal of Machine Learning Research, 2012, 13(1): 307-361.      
-[5]. [Vector Representations of Words](https://www.tensorflow.org/versions/r0.8/tutorials/word2vec/index.html#vector-representations-of-words)               
-[6]. [word2vec 中的数学原理详解](http://www.cnblogs.com/peghoty/p/3857839.html)          
-[7]. [Understanding LSTM Networks](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)
+[5]. Vector Representations of Words. https://www.tensorflow.org/versions/r0.8/tutorials/word2vec/index.html#vector-representations-of-words               
+[6]. word2vec 中的数学原理详解. http://www.cnblogs.com/peghoty/p/3857839.html         
+[7]. Understanding LSTM Networks. http://colah.github.io/posts/2015-08-Understanding-LSTMs/                             
+[8]. Bengio Y, Simard P, Frasconi P. Learning long-term dependencies with gradient descent is difficult[J]. Neural Networks, IEEE Transactions on, 1994, 5(2): 157-166.                
+[9]. Graves A. Generating sequences with recurrent neural networks[J]. arXiv preprint arXiv:1308.0850, 2013.                                                                                          
+[10]. Recurrent Neural Networks. https://www.tensorflow.org/versions/r0.8/tutorials/recurrent/index.html#recurrent-neural-networks                                                                                        
+[11]. Srivastava N. Improving neural networks with dropout[D]. University of Toronto, 2013.                                                                                                            
+[12]. Zaremba W, Sutskever I, Vinyals O. Recurrent neural network regularization[J]. arXiv preprint arXiv:1409.2329, 2014.                                                                                    
