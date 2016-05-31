@@ -1,5 +1,5 @@
 ---
-title: TensorFlow在自然语言处理中的简单应用
+title: 使用TensorFlow处理简单的自然语言处理问题
 tags:
   - NLP
   - TensorFlow
@@ -327,31 +327,67 @@ $$
 
 ### TensorFlow实现
 
-根据前面所述的 LSTM 模型原理，实现之前提到的语言模型，即根据前文预测下一个词，例如输入“飞机在天上”预测下一个词“飞”，使用 TensorFlow 来实现 LSTM 非常的方便，因为 TensorFlow 已经提供了基本的 LSTM 单元结构的Operation，其实现原理就是基于文[12]提出的带Dropout的 LSTM 模型。
+根据前面所述的 LSTM 模型原理，实现之前提到的语言模型，即根据前文预测下一个词，例如输入“飞机在天上”预测下一个词“飞”，使用 TensorFlow 来实现 LSTM 非常的方便，因为 TensorFlow 已经提供了基本的 LSTM 单元结构的Operation，其实现原理就是基于文[12]提出的带Dropout的 LSTM 模型。完整代码请参考[ptb_word_lm.py](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/ptb_word_lm.py)
 
-#### 单层LSTM网络应用
+#### 构建LSTM模型
 
-利用TensorFlow提供的Operation，实现单层的LSTM网络很简单，定义一个基本的 LSTM 单元，初始化状态为0，每次给定一个batch的输入，经过LSTM单元处理后，得到输出，并通过softmax归一化为概率形式，进而计算损失函数。大致的代码如下：
+利用TensorFlow提供的Operation，实现 LSTM 网络很简单，首先定义一个基本的 LSTM 单元，其中`size`为 LSTM 单元的输出维度，再对其添加Dropout，根据 LSTM 的层数`num_layers`得到多层的 RNN 结构单元。
 ```python
-lstm = rnn_cell.BasicLSTMCell(lstm_size)
-# Initial state of the LSTM memory.
-state = tf.zeros([batch_size, lstm.state_size])
-
-loss = 0.0
-for current_batch_of_words in words_in_dataset:
-    # The value of state is updated after processing each batch of words.
-    output, state = lstm(current_batch_of_words, state)
-
-    # The LSTM output can be used to make next word predictions
-    logits = tf.matmul(output, softmax_w) + softmax_b
-    probabilities = tf.nn.softmax(logits)
-    loss += loss_function(probabilities, target_words)
+lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=0.0)
+lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
+    lstm_cell, output_keep_prob=keep_prob)
+cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_layers)
 ```
 
-#### 多层LSTM网络应用
+每次给定一个batch的输入，将 LSTM 网络的状态初始化为0。词的输入由词向量表示，所以先定义一个embedding矩阵，不要关心它一开始有没有，它会在训练过程中的慢慢得到的，仅作为训练的副产品。假设LSTM网络展开num_steps步，每一步给定一个batch的词作为输入，经过 LSTM 单元处理后，状态更新并得到输出，并通过softmax归一化后计算损失函数。
 
-假如要用
+```python
+initial_state = cell.zero_state(batch_size, tf.float32)
+embedding = tf.get_variable("embedding", [vocab_size, size])
+# input_data: [batch_size, num_steps]
+# targets： [batch_size, num_steps]
+input_data = tf.placeholder(tf.int32, [batch_size, num_steps])
+targets = tf.placeholder(tf.int32, [batch_size, num_steps])
+inputs = tf.nn.embedding_lookup(embedding, input_data)
+outputs = []
+for time_step in range(num_steps):
+  (cell_output, state) = cell(inputs[:, time_step, :], state)
+  outputs.append(cell_output)
 
+output = tf.reshape(tf.concat(1, outputs), [-1, size])
+softmax_w = tf.get_variable("softmax_w", [size, vocab_size])
+softmax_b = tf.get_variable("softmax_b", [vocab_size])
+logits = tf.matmul(output, softmax_w) + softmax_b
+
+loss = tf.nn.seq2seq.sequence_loss_by_example(
+    [logits],
+    [tf.reshape(targets, [-1])],
+    [tf.ones([batch_size * num_steps])])
+```
+
+#### 训练模型
+
+简单采用梯度下降优化上述损失函数，逐步迭代，直至最大迭代次数，得到`final_state`，即为LSTM所要学习的参数。
+```python
+optimizer = tf.train.GradientDescentOptimizer(lr)
+train_op = optimizer.minimize(loss)
+for i in range(max_epoch):
+  _, final_state = session.run([train_op, state],
+                               {input_data: x,
+                                targets: y})
+```
+
+#### 验证测试模型
+
+模型训练完毕后，我们已经得到LSTM网络的状态，给定输入，经过LSTM网络后即可得到输出了。
+```python
+(cell_output, _) = cell(inputs, state)
+session.run(cell_output)
+```
+
+## 小结
+
+在使用TensorFlow处理深度学习相关问题时，我们不需要太关注其内部实现细节，只需把精力放到模型的构建上，利用TensorFlow已经提供的抽象单元结构就可以构建灵活的模型。也恰恰正是因为TensorFlow的高度抽象化，有时让人理解起来颇费劲。所以在我们使用TensorFlow的过程中，不要把问题细化的太深，一切数据看成Tensor即可，利用Tensor的操作符对其进行运算，不要在脑海里想如何如何的运算细节等等，不然就会身陷囹圄。
 
 ## 参考文献
 
