@@ -1,9 +1,10 @@
 ---
-title: Spark 常见问题指引
+title: Spark 常见问题处理
+categories: Spark
 tags:
   - spark
-  - 常见问题
-categories: 分布式计算
+  - 大数据
+  - stackoverflow
 date: 2016-05-13 22:15:10
 ---
 
@@ -15,4 +16,4 @@ date: 2016-05-13 22:15:10
 
 ### 累加变量
 
-### 
+###
