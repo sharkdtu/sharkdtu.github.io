@@ -1,7 +1,7 @@
 ---
 title: Spark源码编译并在YARN上运行WordCount实例
 date: 2014-11-06 20:33:25
-categories: 分布式计算
+categories: Spark
 tags:
   - spark
   - 大数据
