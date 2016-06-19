@@ -1,7 +1,7 @@
 ---
 title: Spark 应用程序调优
 date: 2015-06-17  14:22:33
-categories: Spark
+categories: spark
 tags:
   - spark
   - 大数据

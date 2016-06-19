@@ -1,7 +1,7 @@
 ---
 title: CentOS下Hadoop-2.2.0集群安装配置
 date: 2014-10-25 19:54:25
-categories: Hadoop
+categories: hadoop
 tags:
   - hadoop
   - 大数据

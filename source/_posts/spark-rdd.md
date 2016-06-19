@@ -1,7 +1,7 @@
 ---
 title: 深入理解Spark(一)：Spark核心概念RDD
 date: 2016-06-18  20:12:03
-categories: Spark
+categories: spark
 tags:
   - spark
   - rdd
