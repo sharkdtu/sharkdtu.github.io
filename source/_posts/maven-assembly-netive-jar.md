@@ -7,10 +7,10 @@ categories: 问题总结
 date: 2016-06-24 21:45:11
 ---
 
-通常maven管理的项目中的依赖都是在远程仓库中的，假如我需要在maven项目中添加一个本地的jar包依赖，该jar包在仓库中是不存在的，可能是项目组前人开发的一个库，但是没发布到maven仓库中。遇到这种情况我们可以通过在pom中指定本地的依赖，如：
+通常maven管理的项目中的依赖都是在远程仓库中的，假如我需要在maven项目中添加一个本地的jar包依赖，该jar包在仓库中是不存在的，可能是项目组前人开发的一个库，但是没发布到maven仓库中。遇到这种情况我们可以通过在pom中指定本地的依赖<!--more-->，如：
 ```xml
 <dependency>
-    <groupId>com.tencent.ml.tools</groupId>
+    <groupId>com.hello.world.tools</groupId>
     <artifactId>tools</artifactId>
     <version>0.0.1</version>
     <scope>system</scope>
@@ -18,7 +18,7 @@ date: 2016-06-24 21:45:11
 </dependency>
 ```
 
-通过以上方法仅仅可以让你的代码编译通过，如果我们要把这个本地jar包打进assembly jar包，那么需要在pom中添加如下配置：
+通过以上方法仅仅可以让你的代码编译通过，如果要把这个本地jar包打进assembly jar包，那么需要在pom中添加如下配置：
 ```xml
 <build>
   <plugins>
