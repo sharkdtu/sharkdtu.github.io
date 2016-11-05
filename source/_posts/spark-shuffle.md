@@ -72,7 +72,7 @@ Spark在1.1以前的版本一直是采用Hash Shuffle的实现的方式，到1.1
 
 从上述shuffle的原理介绍可以知道，shuffle是一个涉及到CPU(序列化反序列化)、网络IO(跨节点数据传输)以及磁盘IO(shuffle中间结果落地)的操作，用户在编写spark应用程序的时候应当尽可能考虑shuffle相关的优化，提升spark应用程序的性能。下面简单列举几点关于spark shuffle调优的参考。
 
-1. 尽量减少shuffle次数
+* 尽量减少shuffle次数
 
 ```scala
 // 两次shuffle
@@ -82,13 +82,13 @@ rdd.map(...).repartition(1000).reduceByKey(_ + _, 3000)
 rdd.map(...).repartition(3000).reduceByKey(_ + _)
 ```
 
-2. 必要时主动shuffle，通常用于改变并行度，提高后续分布式运行速度
+* 必要时主动shuffle，通常用于改变并行度，提高后续分布式运行速度
 
 ```scala
 rdd.repartiton(largerNumPartition).map(...)...
 ```
 
-3. 使用treeReduce & treeAggregate替换reduce & aggregate。数据量较大时，reduce & aggregate一次性聚合，shuffle量太大，而treeReduce & treeAggregate是分批聚合，更为保险。
+* 使用treeReduce & treeAggregate替换reduce & aggregate。数据量较大时，reduce & aggregate一次性聚合，shuffle量太大，而treeReduce & treeAggregate是分批聚合，更为保险。
 
 ## 小结
 
