@@ -10,7 +10,7 @@ tags:
 
 对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hadoop-2.2.0 的集群安装（其他Linux发行版无太大差别），最后运行WordCount程序以验证Hadoop集群安装是否成功。<!--more-->
 
-### 机器准备
+## 机器准备
 
 假设集群中有三台机器，机器可以为三台物理机或虚拟机，保证三台机器可以互相通信，其中一台机器作为master（运行NameNode和ResourceManager），另外两台机器作为slave或worker（运行DataNode和NodeManager）。下面我准备的机器相关配置如下，注意每台机器要保证用户名一致。
 
@@ -20,11 +20,11 @@ tags:
 | slave1	| hadoop	| 192.168.100.11 |
 | slave2	| hadoop	| 192.168.100.12 |
 
-### 工具准备
+## 工具准备
 
 为了避免在三台机器中重复安装配置工作，我们可以只在master机器上做安装配置，然后直接将配置好的软件打包发到每台slave机器上解压即可，首先我们应配置master机器到其他机器ssh免密码登陆，这是所有后续安装工作的前提。
 
-#### 1. 配置host
+### 1. 配置host
 
 在master机器中配置host，在/etc/hosts文件中添加以下配置：
 
@@ -32,7 +32,7 @@ tags:
     192.168.100.11     slave1
     192.168.100.12     slave2
 
-#### 2. 配置master免密码登录
+### 2. 配置master免密码登录
 
 首先运行如下命令生成公钥：
 
@@ -54,7 +54,7 @@ tags:
 
 完成上述操作后，切换回hadoop用户，现在master机器可以ssh免密码的登录集群中每台机器，下面我们开始现在master机器中开始安装配置hadoop。
 
-### JDK安装
+## JDK安装
 
 从[oracle官网](http://www.oracle.com/technetwork/articles/javase/index-jsp-138363.html)下载jdk，放到`/home/hadoop`目录下（后续所有安装包默认安装在`/home/hadoop`目录下），我下载的版本为jdk1.7.0_40，解压后设置jdk的环境变量，环境变量最好不要设置为全局的（在/etc/profile中），只设置当前用户的环境变量即可.
 
@@ -67,7 +67,7 @@ tags:
      export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
     [hadoop@master ~]$ source .bash_proflie
 
-### Hadoop安装
+## Hadoop安装
 
 从[Apache官网](http://hadoop.apache.org/releases.html)下载hadoop发行版，放到`/home/hadoop`目录下，我下载的版本为hadoop-2.2.0，解压软件包后，首先设置hadoop的环境变量。
 
@@ -86,7 +86,7 @@ tags:
 
 下面我们开始配置hadoop，进入hadoop的配置目录，首先我们先在`hadoop-env.sh`和`yarn-env.sh`中设置好jdk的路径，然后开始修改hadoop相关配置文件。
 
-#### 配置hdfs
+### 配置hdfs
 
 在配置文件`hdfs-site.xml`中添加以下内容。
 
@@ -110,7 +110,7 @@ tags:
 </configuration>
 ```
 
-#### 配置yarn
+### 配置yarn
 
 为了能够运行MapReduce程序，需要让各个NodeManager在启动时加载shuffle server，Reduce Task通过该server从各个NodeManager上远程拷贝Map Task产生的中间结果。在配置文件`yarn-site.xml`中添加以下内容。
 
@@ -131,7 +131,7 @@ tags:
 </configuration>
 ```
 
-#### 配置MapReduce计算框架
+### 配置MapReduce计算框架
 
 为了利用MapReduce中的WordCount验证hadoop集群是否安装成功，需要为hadoop配置MapReduce计算框架。在配置文件`mapred-site.xml`中添加以下内容。
 
@@ -145,7 +145,7 @@ tags:
 </configuration>
 ```
 
-#### 配置slaves
+### 配置slaves
 
 在配置文件`slaves`中添加以下内容。
 
@@ -154,7 +154,7 @@ tags:
 
 到这里为止，我们已经完成master机器上hadoop的配置，更多关于hadoop的配置参数说明请查看[官方文档]((http://hadoop.apache.org/docs/r2.2.0/))左侧的Configuration一栏，下面我们要将master机器上所有的安装配置操作同步到集群中所有节点上，为了避免挨个节点的重复劳动，我们前面也设置好了ssh无密码登录，现在我们简单写几个脚本，完成同步安装操作。
 
-#### 同步配置
+### 同步配置
 
 首先同步/etc/hosts文件，这个需要切换到root用户下来完成，运行如下脚本：
 
@@ -207,7 +207,7 @@ done
 
 到这里，hadoop的集群安装就完成了，我们启动hadoop环境，通过WordCount来测试一下集群，一次运行如下命令以启动hdfs和yarn。
 
-### WordCount测试
+## WordCount测试
 
 在master集群上启动hdfs和yarn后台进程：
 

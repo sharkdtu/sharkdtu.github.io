@@ -10,7 +10,7 @@ tags:
 
 给定类型或者对象实例，通过scala运行时反射，可以做到：1）获取运行时类型信息；2）通过类型信息实例化新对象；3）访问或调用对象的方法和属性等。下面分别举例阐述运行时反射的功能。
 
-### 获取运行时类型信息
+## 获取运行时类型信息
 
 scala运行时类型信息是保存在`TypeTag`对象中，编译器在编译过程中将类型信息保存到`TypeTag`中，并将其携带到运行期。我们可以通过`typeTag`方法获取`TypeTag`类型信息。
 
@@ -72,7 +72,7 @@ scala运行时类型信息是保存在`TypeTag`对象中，编译器在编译过
 
 从上述scala REPL中可以看到，`ClassTag`对象包含了`Class`对象，通过`Class`对象仅仅可以获取擦除后的类型信息，通过在scala REPL中用tab补全可以看到通过`Class`对象可以获取的信息。
 
-### 运行时类型实例化
+## 运行时类型实例化
 
 我们已经知道通过`Type`对象可以获取未擦除的详尽的类型信息，下面我们通过`Type`对象中的信息找到构造方法并实例化类型的一个对象。
 
@@ -102,7 +102,7 @@ scala运行时类型信息是保存在`TypeTag`对象中，编译器在编译过
 
 如上scala REPL代码，要想通过`Type`对象获取相关信息，必须借助`Mirror`，`Mirror`是按层级划分的，有`ClassLoaderMirror`, `ClassMirror`, `InstanceMirror`, `ModuleMirror`, `MethodMirror`, `FieldMirror`。通过`ClassLoaderMirror`可以创建`ClassMirror`, `InstanceMirror`, `ModuleMirror`,  `MethodMirror`, `FieldMirror`。通过`ClassMirror`, `InstanceMirror`可以创建`MethodMirror`,  `FieldMirror`。`ModuleMirror`用于处理单例对象，通常是由`object`定义的。从上述代码中可以发现，首先获取一个`ClassLoaderMirror`，然后通过该`Mirror`创建一个`ClassMirror`，继续创建`MethodMirror`，通过该`MethodMirror`调用构造函数。从一个`Mirror`创建另一个`Mirror`，需要指定一个`Symbol`，`Symbol`其实就是绑定名字和一个实体，有`ClassSymbol`、 `MethodSymbol`、 `FieldSymbol`等，`Symbol`的获取是通过`Type`对象方法去查询，例如上述代码中通过`declaration`方法查询构造函数的`Symbol`。
 
-### 运行时类成员访问
+## 运行时类成员访问
 
 下面举例阐述访问运行时类成员，同理，我们只需逐步创建`FieldMirror`来访问类成员。
 

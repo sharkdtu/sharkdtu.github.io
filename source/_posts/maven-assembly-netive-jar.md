@@ -18,7 +18,7 @@ date: 2016-06-24 21:45:11
 </dependency>
 ```
 
-通过以上方法仅仅可以让你的代码编译通过，如果要把这个本地jar包打进assembly jar包，那么需要在pom中添加如下配置：
+通过以上方法仅仅可以让你的代码编译通过，如果要把这个本地jar包打进assembly jar包，那么需要在pom中添加如下配置，其中jar包文件tools-0.0.1.jar放在根目录下的lib目录下：
 ```xml
 <build>
   <plugins>
