@@ -1,0 +1,953 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark,大数据,分布式计算,Scheduler," />
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解Spark(二)：Spark Scheduler原理及资源配置">
+<meta property="og:url" content="http://sharkdtu.com/posts/spark-scheduler.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
+<meta property="og:image" content="http://sharkdtu.com/images/spark-distribution-framework.png">
+<meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-overview.png">
+<meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-dag.png">
+<meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-task.png">
+<meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-resource.png">
+<meta property="og:updated_time" content="2016-11-05T14:24:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解Spark(二)：Spark Scheduler原理及资源配置">
+<meta name="twitter:description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
+<meta name="twitter:image" content="http://sharkdtu.com/images/spark-distribution-framework.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 7001956,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 深入理解Spark(二)：Spark Scheduler原理及资源配置 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkd's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                深入理解Spark(二)：Spark Scheduler原理及资源配置
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-23T21:33:14+08:00" content="2016-07-23">
+              2016-07-23
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/posts/spark-scheduler.html#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-scheduler.html" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+              &nbsp; | &nbsp;
+              <span class="page-pv">阅读量
+              <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+              </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>通过文章<a href="/posts/spark-rdd.html">“Spark核心概念RDD”</a>我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能用最少的资源高效地完成任务计算。<a id="more"></a></p>
+<h2 id="分布式运行框架"><a href="#分布式运行框架" class="headerlink" title="分布式运行框架"></a>分布式运行框架</h2><p>Spark可以部署在多种资源管理平台，例如Yarn、Mesos等，Spark本身也实现了一个简易的资源管理机制，称之为Standalone模式。由于工作中接触较多的是Saprk on Yarn，不做特别说明，以下所述均表示spark-on-yarn。Spark部署在Yarn上有两种运行模式，分别为yarn-client和yarn-cluster模式，它们的区别仅仅在于Spark Driver是运行在Client端还是ApplicationMater端。如下图所示为Spark部署在Yarn上，以yarn－cluster模式运行的分布式计算框架。</p>
+<p><img src="/images/spark-distribution-framework.png" width="400" height="230" alt="spark-distribution-framework" align="center"></p>
+<p>其中蓝色部分是Spark里的概念，包括Driver和Executor，Driver负责分发任务以及监控任务运行状态，Executor负责执行任务，Executor是一个进程，运行在其中的任务是线程，所以说Spark的任务是线程级别的。当以yarn－cluster模式运行Spark应用程序时，Driver运行在NodeManager上，作为ApplicationMaster角色，当Driver启动后，会根据提交时申请的资源参数，向ResourceManager申请资源运行Executor，一个Executor对应与一个Container，Executor进程起来后，等待Driver分发任务并将任务执行状态上报给Driver。</p>
+<h2 id="Spark任务调度总览"><a href="#Spark任务调度总览" class="headerlink" title="Spark任务调度总览"></a>Spark任务调度总览</h2><p>当Driver和Executor起来后，Driver则会根据用户程序逻辑分发任务。在详细阐述任务调度前，首先说明下Spark里的几个概念。一个Spark应用程序包括Job、Stage以及Task三个概念：</p>
+<ul>
+<li>Job是以action方法为界，遇到一个action方法则触发一个Job；</li>
+<li>Stage是Job的子集，以RDD宽依赖(即shuffle)为界，遇到shuffle做一次划分；</li>
+<li>Task是Stage的子集，以并行度(分区数)来衡量，分区数是多少，则有多少个task。</li>
+</ul>
+<p>Spark的任务调度总体来说分两路进行，一路是stage级的调度，一路是task级的调度，总体调度流程如下图所示。</p>
+<p><img src="/images/spark-scheduler-overview.png" width="400" height="230" alt="spark-scheduler-overview" align="center"></p>
+<p>Spark RDD通过其transactions操作，形成了RDD血缘关系图，即DAG，最后通过action的调用，触发Job并调度执行。DAGScheduler负责stage级的调度，主要是将DAG切分成若干stages，并将每个stage打包成TaskSet交给下游TaskScheduler调度。TaskScheduler负责task级的调度，将上游DAGScheduler给过来的TaskSet按照指定的调度策略分发到指定Executor上执行，调度过程中SchedulerBackend负责提供可用资源，其中SchedulerBackend有多种实现，分别对接不同的资源管理系统。</p>
+<h3 id="stage级的调度"><a href="#stage级的调度" class="headerlink" title="stage级的调度"></a>stage级的调度</h3><p>Spark的任务调度是从DAG切割开始，主要是由DAGScheduler来完成。当遇到一个action操作后就会触发一个Job的计算并交给DAGScheduler来提交，它首先会根据RDD的血缘关系构成的DAG进行切分，将一个Job划分为若干Stages，具体划分策略是根据是否有宽依赖，即是否需要做shuffle来划分，以shuffle为界，划分上下游Stage，窄依赖的RDD之间被划分到同一个Stage中，可以进行pipeline式的计算，划分的Stages分两类，一类叫做ResultStage，为DAG最下游的Stage，由action决定，另一类叫做ShuffleMapStage，为下游Stage准备数据，如下图所示。</p>
+<p><img src="/images/spark-scheduler-dag.png" width="400" height="230" alt="spark-scheduler-dag" align="center"></p>
+<p>上图中DAG有两个action，那么则会触发两个Job，根据RDD的依赖关系，union和map属于窄依赖，则划分到同一个Stage中，join属于宽依赖，则以此为界，划分上下游Stage，类似地，groupByKey和aggregate也属于宽依赖而被划分。一般来说这种情况会将中间Stage1中的RDD缓存起来以避免重计算。</p>
+<p>Stage划分过程中会分别记录Stage与Job之间的对应关系，因为有时候多个Job会共享同一个Stage，如上图实例所示，Stage0和Stage1就被两个Job共享，如果Stage1中RDD做了缓存，在第一个Job计算过程中会记录Stage1中各partition的缓存地址信息，那么下次计算第二个Job过程中则不需要再次调度计算Stage1了。</p>
+<p>Stage划分后，则将Stage按依赖关系依次调度执行，Stage会被打包成TaskSet交给TaskScheduler，一个partition对应一个task，并监控Stage的运行情况，只有executor丢失或者task由于Fetch失败才需要重新提交失败的Stage以调度运行失败的任务，其他类型的task失败会在TaskScheduler的调度过程中重试。</p>
+<h3 id="task级的调度"><a href="#task级的调度" class="headerlink" title="task级的调度"></a>task级的调度</h3><p>Spark task调度是由TaskScheduler来完成，由前文可知，DAGScheduler将Stage打包到TaskSet交给TaskScheduler，TaskScheduler会将其封装为TaskSetManager以监控管理task的运行，TaskScheduler就是以TaskSetManager为单元来调度任务。TaskScheduler的任务调度会借助SchedulerBackend，SchedulerBackend定义了许多与Executor事件相关的处理，包括：新的Executor注册进来的时候记录Executor的信息，增加全局的资源量(核数)，进行一次makeOffer；Executor更新状态，若任务完成的话，回收core，进行一次makeOffer；其他停止Executor、删除executor等事件。makeOffer的目的是在有资源更新的情况下，会把现有的Executor资源以WorkerOfffer列表的方式传给TaskScheduler，通知TaskScheduler对现有的任务进行一次分配，最终在任务分配的Executor上启动tasks，总体流程大致如下图所示。</p>
+<p><img src="/images/spark-scheduler-task.png" width="400" height="230" alt="spark-scheduler-task" align="center"></p>
+<p>TaskScheduler拿到这一些资源后，去遍历DAGScheduler提交过来的TaskSet并根据locality决定如何启动tasks。首先它会将所有等待提交的TaskSet进行一次优先级排序，这个排序算法目前是两种：FIFO或FAIR。得到一份待运行的TaskSet后，然后把SchedulerBackend交过来的资源信息合理分配给这些tasks，分配前，为了避免每次都是前几个Executor被分到tasks，所以先对资源列表进行一次随机洗牌，随后就是遍历tasks，根据task的locality安排任务运行所在的Executor并通过rpc调用在对应的Executor启动task。</p>
+<p>task的locality有五种，按优先级高低排：PROCESS_LOCAL，NODE_LOCAL，NO_PREF，RACK_LOCAL，ANY。也就是最好在同个进程里，次好是同一台机器上，再次是同机架，或任意都行。每个task都有自己的locality，如果本次WorkerOfffer资源里没有想要的locality资源，则会等待一定的时间，如果超时则逐步降低locality级别调度运行。</p>
+<h2 id="资源申请机制"><a href="#资源申请机制" class="headerlink" title="资源申请机制"></a>资源申请机制</h2><p>Spark之前只支持静态资源申请，即一开始就指定用多少资源，在整个Spark应用程序运行过程中用的资源都不变。后来支持动态Executor申请，用户不需要指定Executor的数量，Spark会动态调整Executor的数量以达到资源利用的最大化。</p>
+<h3 id="静态资源申请"><a href="#静态资源申请" class="headerlink" title="静态资源申请"></a>静态资源申请</h3><p>静态资源申请是一开始就要估计应用程序需要使用的资源，包括Executor数(num_executor)、每个Executor上的core数(executor_cores)、每个Executor的内存(executor_memory)以及Driver的内存(driver_memory)，如果Spark是部署在Yarn上，当ApplicationMaster启动后，会单独启动一个线程不断地申请指定数量的Executor，前面也说到，Executor更新信息会同步到SchedulerBackend。这些资源的使用与任务的并行度(Parallelism)有关，它们在任务运行时具体表现如下图所示。</p>
+<p><img src="/images/spark-scheduler-resource.png" width="400" height="230" alt="spark-scheduler-resource" align="center"></p>
+<p>任务的并行度(Parallelism)由分区数决定，有多少的分区，就会有多少的task。每个task占用一个core，一个Executor上的所有core共享Executor上的内存，一次并行运行的task数等于num_executor*executor_cores，如果分区数超过该值，则需要运行多个轮次，一般来说建议运行3～5轮较为合适，否则考虑增加num_executor或executor_cores。由于一个Executor的所有tasks会共享内存executor_memory，所以建议executor_cores不宜过大。executor_memory的设置则需要综合每个分区的数据量以及是否有缓存等逻辑。</p>
+<h3 id="动态资源申请"><a href="#动态资源申请" class="headerlink" title="动态资源申请"></a>动态资源申请</h3><p>动态资源申请目前只支持到Executor，即可以不用指定num_executor，通过参数spark.dynamicAllocation.enabled来控制，其他的还是需要自己来规划的。由于许多Spark应用程序一开始可能不需要那么多Executor或者其本身就不需要太多Executor，所以不必一次性申请那么多Executor，根据具体的任务数动态调整Executor的数量，尽可能做到资源的不浪费。由于动态Executor的调整会导致Executor动态的添加与删除，如果删除Executor，其上面的中间shuffle结果可能会丢失，这就需要借助第三方的ShuffleService了，如果Spark是部署在Yarn上，则可以在Yarn上配置Spark的ShuffleService，具体操作仅需做两点:</p>
+<ol>
+<li><p>首先在yarn-site.xml中加上如下配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>mapreduce_shuffle,spark_shuffle<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services.spark_shuffle.class<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.spark.network.yarn.YarnShuffleService<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>spark.shuffle.service.port<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>7337<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将Spark ShuffleService jar包\$SPARK_HOME/lib/spark-*-yarn-shuffle.jar拷贝到每台NodeManager的\$HADOOP_HOME/share/hadoop/yarn/lib/下，并重启所有的NodeManager。</p>
+</li>
+</ol>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文详细阐述了Spark的任务调度与资源规划等，着重讨论Spark on Yarn的部署调度，明白Spark的任务调度原理有助于优化应用程序逻辑以及合理优化资源利用等，后续文章将逐步介绍Spark的运行原理，包括Shuffle、Storage、RPC等等。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-scheduler.html">http://sharkdtu.com/posts/spark-scheduler.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton", disable="enable", onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}", style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onMouseOut="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag">#spark</a>
+          
+            <a href="/tags/big-data/" rel="tag">#大数据</a>
+          
+            <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
+          
+            <a href="/tags/Scheduler/" rel="tag">#Scheduler</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/maven-assembly-netive-jar.html" rel="next" title="Maven 使用本地jar包">
+                <i class="fa fa-chevron-left"></i> Maven 使用本地jar包
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/spark-shuffle.html" rel="prev" title="深入理解Spark(三)：Spark Shuffle原理及相关调优">
+                深入理解Spark(三)：Spark Shuffle原理及相关调优 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="posts/spark-scheduler.html"
+     data-title="深入理解Spark(二)：Spark Scheduler原理及资源配置"
+     data-content=""
+     data-url="http://sharkdtu.com/posts/spark-scheduler.html">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+      <li><a class="ds-douban" href="javascript:void(0);" data-service="douban">豆瓣</a></li>
+      <li><a class="ds-renren" href="javascript:void(0);" data-service="renren">人人网</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="posts/spark-scheduler.html"
+           data-title="深入理解Spark(二)：Spark Scheduler原理及资源配置" data-url="http://sharkdtu.com/posts/spark-scheduler.html">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="sharkd" />
+          <p class="site-author-name" itemprop="name">sharkd</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://cn.linkedin.com/in/sharkd" target="_blank" title="linkedin">
+                  
+                    <i class="fa fa-linkedin"></i>
+                  
+                  linkedin
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式运行框架"><span class="nav-number">1.</span> <span class="nav-text">分布式运行框架</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark任务调度总览"><span class="nav-number">2.</span> <span class="nav-text">Spark任务调度总览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#stage级的调度"><span class="nav-number">2.1.</span> <span class="nav-text">stage级的调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#task级的调度"><span class="nav-number">2.2.</span> <span class="nav-text">task级的调度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源申请机制"><span class="nav-number">3.</span> <span class="nav-text">资源申请机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#静态资源申请"><span class="nav-number">3.1.</span> <span class="nav-text">静态资源申请</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态资源申请"><span class="nav-number">3.2.</span> <span class="nav-text">动态资源申请</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkd</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"sharkdtu"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+      
+      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+      <script src="/js/src/hook-duoshuo.js"></script>
+    
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>
