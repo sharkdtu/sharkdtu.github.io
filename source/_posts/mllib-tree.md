@@ -10,13 +10,11 @@ categories: 机器学习
 date: 2016-01-12 21:45:11
 ---
 
-
-
 ## 模型简介
 
 决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。如此下去，一个实例从根节点开始，不断地被划分，直到叶子节点。对于分类问题，叶子节点输出其类别，对于回归问题，叶子节点输出其分值或概率。<!--more-->
 
-<img src="/images/decision-tree.png" width="400" height="230" alt="decision-tree" align=center />
+<img src="/images/decision-tree.png" width="100%" height="100%" alt="decision-tree" align=center />
 
 给定训练数据，如何学习决策树模型呢？首先将决策树抽象为一般的机器学习问题，用数学的说法就是，一个决策树对应着输入空间的一个划分以及在划分单元上的输出值。假设已经将输入空间划分为 $m$ 个单元(即叶子节点) $R_1, R_2,... R_m$，在每个单元 $R_i$ 上有一个固定的输出 $c_i$，那么决策树模型可表示为：
 
@@ -28,7 +26,7 @@ $$ f(x) = \sum_{i}^m c_i I(x \in R_i) $$
 
 MLlib中决策树的学习同样是利用前面所述的启发式方法，借助`RDD`进行分布式计算，其本质上是数据并行。下面是mllib中决策树学习的总体流程图，其最关键的一步就是如何找最优切分点，首先简单介绍下前后两步：初始化元数据以及如何判断切分终止条件，由于这两步实质上是由用户的参数配置和训练样本决定，暂且统称为算法参数，然后再着重详细讨论mllib如何分布式计算最优切分点。
 
-<img src="/images/tree-process.png" width="200" height ="400" alt="tree-process" align=center />
+<img src="/images/tree-process.png" width="300" height ="600" alt="tree-process" align=center />
 
 ### 算法参数
 算法参数是由训练数据以及用户的参数配置共同决定，mllib提供给用户的自定义参数是通过类`Strategy`来封装，下面列出一些重要的参数并详细说明其意义：
@@ -63,7 +61,7 @@ MLlib中决策树的学习同样是利用前面所述的启发式方法，借助
 
 经过上述分箱划分后，每个特征都对应一组分箱bins，如下图所示，根据分箱情况，将实例的所有特征映射到其对应的分箱中，每个分箱就包含一组实例，得到一些统计信息，用于计算不确定性。
 
-![tree-bins](/images/tree-bins.png)
+<img src="/images/tree-bins.png" width="100%" height ="100%" alt="tree-bins" align=center />
 
 对于分类树，假设不确定性指标为基尼系数gini，则每个bin的统计信息包含：1)每个类别对应的实例数 $C_i$ ；2)该bin的实例总和 $C$ 。那么可以根据以下公式求得基尼系数为：
 
@@ -75,15 +73,15 @@ $$ variance = \frac {1} {C} \sum {(y_i - u)}^2 = \frac {1} {C} (\sum {y_i}^2 - \
 
 Mllib在生成决策树的过程中，是按照树的层次一步步迭代，每一次对处于同一层的节点进行划分，相应地会触发一个job，如果树的深度为N，那么至少需要跑N个job才能训练得到一棵树，如下图所示。
 
-<img src="/images/tree-job.png" width="400" height="200" alt="tree-job" align=center />
+<img src="/images/tree-job.png" width="100%" height="100%" alt="tree-job" align=center />
 
 假设已经迭代到上图中的job2，首先会为每个要切分的节点初始化一个`DTStatsAggregator`对象，`DTStatsAggregator`封装了所有特征分箱的统计信息，这些统计信息用于计算分箱的不确定性，下图显示一次迭代计算最优切分点的过程。
 
-<img src="/images/tree-job-process.png" width="400" height="200" alt="tree-job-process" align=center />
+<img src="/images/tree-job-process.png" width="100%" height="100%" alt="tree-job-process" align=center />
 
 如上图，首先在每个partition上做一次map，遍历该partition上的所有实例，根据前面的分箱情况，将实例映射到分箱中，并更新分箱的统计信息， map操作后得到记录是`(nodeId, DTStatsAggregator)`，其中`nodeId`表示节点id，即需要对哪个节点进行切分，`DTStatsAggregator`对象保存了所有特征所有分箱的统计信息，然后再根据`nodeId`做一次reduce，将不同分区的分箱统计信息归并起来，最终得到不同节点(nodeId)上所有样本的分箱统计信息`(nodeId, DTStatsAggregator)`，最后再做一次map，对于每个节点，遍历所有可能的切分方案，找到不确定性减少最多的切分方案，即最优切分点。`DTStatsAggregator`对象中维护了一个大数组，该数组保存了所有特征的分箱统计信息，如下图所示，某个特征有3个bin，每个bin的统计信息由前面所述3个计算方差的统计值组成。
 
-![tree-bin-array](/images/tree-bin-array.png)
+<img src="/images/tree-bin-array.png" width="100%" height ="100%" alt="tree-bin-array" align=center />
 
 如何根据bin的统计信息遍历所有可能的切分方案呢？再看看前面讨论的特征划分，在初始化介绍后，我们是知道每个特征的所有可能的划分方案的，不同特征的划分也做了详细的区分。假如上图中feature是 continuous feature，那么3个bin对应2种切分方案，遍历这两种切分方案，得到切分后不确定减小的较多的切分方案，类似地，遍历所有特征的所有切分可能，最后得到一个最优切分点。
 
@@ -96,7 +94,7 @@ Mllib在生成决策树的过程中，是按照树的层次一步步迭代，每
 随机森林(Random Forests)其实就是多个决策树，每个决策树有一个权重，对未知数据进行预测时，会用多个决策树分别预测一个值，然后考虑树的权重，将这多个预测值综合起来，对于分类问题，采用多数表决，对于回归问题，直接求平均。
 随机森林模型训练实质上是同时训练多个决策树，每个决策树的训练样本是从原始训练集中抽样而来。在具体训练模型时，mllib做了一个优化，是同时对多个决策树进行训练，如下图所示，每个job会对一组节点进行切分，分组是按照树的层次逐步进行，每组需要切分的节点个数视内存大小而定，有一个参数`maxMemoryInMB`控制一次切分计算使用的最大内存大小，通过简单的估计节点切分计算所需内存（主要是计算分箱统计信息占用内存的大小）来决定一组节点的个数。
 
-![random-forest-job](/images/random-forest-job.png)
+<img src="/images/random-forest-job.png" width="100%" height ="100%" alt="random-forest-job" align=center />
 
 ### 梯度提升树
 
