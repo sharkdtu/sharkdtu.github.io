@@ -65,14 +65,14 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
+    <loc>http://sharkdtu.com/posts/before-last-winter-vacation.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/before-last-winter-vacation.html</loc>
+    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
@@ -86,21 +86,7 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
-    
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/start-akka-actor.html</loc>
-    
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</loc>
+    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
@@ -114,7 +100,21 @@
   </url>
   
   <url>
+    <loc>http://sharkdtu.com/posts/start-akka-actor.html</loc>
+    
+    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
+    
+    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
@@ -135,7 +135,7 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
+    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
