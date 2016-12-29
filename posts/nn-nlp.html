@@ -105,7 +105,7 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
 <meta property="og:image" content="http://sharkdtu.com/images/nlp-lstm-multilayer-cell.jpg">
 <meta property="og:image" content="http://sharkdtu.com/images/nlp-lstm-multilayer-dropout.jpg">
 <meta property="og:image" content="http://sharkdtu.com/images/nlp-lstm-multilayer-dropout-event-flow.jpg">
-<meta property="og:updated_time" content="2016-11-05T14:24:16.000Z">
+<meta property="og:updated_time" content="2016-12-29T14:41:55.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="运用TensorFlow处理简单的NLP问题">
 <meta name="twitter:description" content="当前“人工智能”是继“大数据”后又一个即将被毁的词，每家公司都宣称要发力人工智能，就跟4-5年前大数据一样，业界叫的都非常响亮，不禁想到之前一个老外说过的话：
@@ -394,15 +394,15 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
 <p>目标函数采用对数似然函数，表示如下(其中 $N$ 代表语料库中词典的大小)：</p>
 <p>$$ Obj = \frac{1}{N} \sum \limits_{i = 1}^N log P({w_i}|{context_i}) \tag{2-6}$$</p>
 <p>通过优化算法不断最小化目标函数得到一组优化的参数 $\Theta$ ，在神经网络中参数 $\Theta$ 则为网络层与层间的权值与偏置。那么在用神经网络学习语言模型[1]时，如何表示一个词呢？通常，在机器学习领域，是将一个样本对象抽象为一个向量，所以类似地，神经网络语言模型中是将词(或短语)表示为向量，通常叫做word2vec。那么神经网络语言模型就可以表示如下示意图。</p>
-<p><img src="/images/nlp-nn.jpg" width="400" height="230" alt="nlp-nn" align="center"></p>
+<p><img src="/images/nlp-nn.jpg" width="100%" height="100%" alt="nlp-nn" align="center"></p>
 <p>上述神经网络包括输入层、投影层、隐藏层以及输出层，其中投影层只是对输入层做了一个预处理，将输入的所有词进行一个连接操作，假如一个词表示为 $m$ 维向量，那么由 $n-1$ 个词连接后则为 $(n-1)m$ 维向量，将连接后的向量作为神经网络的输入，经过隐藏层再到输出层，其中 $W$ 、$U$ 分别为投影层到隐藏层、隐藏层到输出层的权值参数，$p$ 、$q$ 分别为投影层到隐藏层、隐藏层到输出层的偏置参数，整个过程数学表达如下：</p>
 <p>$$<br>\begin{split}<br>Z &amp;= \sigma(WX + p)\\<br>Y &amp;= UZ + q<br>\end{split} \tag{2-7}<br>$$</p>
 <p>其中 $\sigma$ 为sigmoid函数，作为隐藏层的激活函数，输出层的输出向量为 $N$ 维，对应于语料库中词典的大小。一般需要再经过softmax归一化为概率形式，得到预测语料库中每个词的概率。以上神经网络语言模型看似很简单，但是词向量怎么来呢，如何将一个词转化为向量的形式呢？下面作详细阐述。</p>
 <h2 id="词向量-word2vec"><a href="#词向量-word2vec" class="headerlink" title="词向量(word2vec)"></a>词向量(word2vec)</h2><p>词向量要做的事就是将语言数学化表示，以往的做法是采用 One-hot Representation 表示一个词，即语料库词典中有 $N$ 个词，那么向量的维度则为 $N$ ，给每个词编号，对于第 $i$ 个词，其向量表示除了第 $i$ 个单元为1，其他单元都为0的 $N$ 维向量，这种词向量的缺点显而易见，一般来说语料库的词典规模都特别大，那么词向量的维数就非常大，并且词与词之间没有关联性，并不能真实地刻画语言本身的性质，例如“腾讯”、“小马哥”这两个词通过One-hot向量表示，没有任何关联。为了克服One-hot Representation 的缺点，Mikolov大神提出了一种 Distributed Representation[2]，说个题外话，在大家都在如火如荼的用CNN做图像识别的时候，这哥们却在研究如何用神经网络处理NLP问题，最后发了大量关于神经网络NLP的高水平论文，成为这一领域的灵魂人物之一。顾名思义，Distributed Representation 就是把词的信息分布到向量不同的分量上，而不是像 One-hot Representation 那样所有信息集中在一个分量上，它的做法是将词映射到 $m$ 维空间，表示为 $m$ 维向量，也称之为 Word Embedding，这样一方面可以减小词向量的维度，另一方面，可以将有关联的词映射为空间中相邻的点，词与词之间的关联性通过空间距离来刻画，如下图所示。</p>
-<p><img src="/images/nlp-word2vec-example.jpg" width="400" height="230" alt="nlp-word2vec-example" align="center"></p>
+<p><img src="/images/nlp-word2vec-example.jpg" width="100%" height="100%" alt="nlp-word2vec-example" align="center"></p>
 <p>词被映射到3维空间，每个词表示为一个3维向量，相近的词离的较近，可以看到两组差不多关系的词，他们之间的词向量距离也差不多。</p>
 <p>要想得到词向量，需要借助语言模型训练得到，本质上来说，词向量是在训练语言模型过程中得到的副产品。解决word2vec问题有两种模型，即 CBOW 和 Skip-Gram 模型[3]，如下图所示：</p>
-<p><img src="/images/nlp-word2vec-model.jpg" width="400" height="230" alt="nlp-word2vec-model" align="center"></p>
+<p><img src="/images/nlp-word2vec-model.jpg" width="100%" height="100%" alt="nlp-word2vec-model" align="center"></p>
 <p>CBOW 模型是根据词的上下文预测当前词，这里的上下文是由待预测词的前后 $c$ 个词组成。而 Skip-Gram 模型则相反，是通过当前词去预测上下文。给定一个语料库作为训练集，就可以通过以上模型训练出每个词的向量表示。从实验结果来看，CBOW 模型会平滑掉一些分布信息，因为它将词的上下文作为单个样本，而 Skip-Gram 模型将词上下文拆分为多个样本，训练得到的结果更为精确，为此，TensorFlow 中 word2vec 采用的是 Skip-Gram 模型，对应于文[2]中所提出的一种更为优化的 Skip-Gram 模型，下面着重介绍其原理，更多关于 CBOW 和 Skip-Gram 模型细节可以参阅文[3]。</p>
 <h3 id="Skip-Gram-模型"><a href="#Skip-Gram-模型" class="headerlink" title="Skip-Gram 模型"></a>Skip-Gram 模型</h3><p>前面也提到， Skip-Gram 模型是根据当前词去预测上下文，例如有如下语句：</p>
 <p><em>“php 是 世界上 最好的 语言”</em></p>
@@ -416,14 +416,14 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
 <p>$$ Obj = log \sigma ({\theta_{w_O}}^{T} v_{w_I}) + \sum_{j=1}^{k} E_{w_j\sim {P_n}(w)} [log \sigma (-{\theta_{w_j}}^{T} v_{w_I})] \tag{3-3}$$</p>
 <p>以上表达式称之为 NCE(Noise-contrastive estimation)[4]目标函数，其中等号右边第二项表示通过一个服从 $P_{n}(w)$ 分布的采样算法取得 $k$ 个负样本的期望损失。文[2]中采用了一个简单的一元分布采样，简化了计算，称之为负采样(Negative Sampling)，下面详细介绍负采样算法。</p>
 <h3 id="负采样算法"><a href="#负采样算法" class="headerlink" title="负采样算法"></a>负采样算法</h3><p>词典中的每个词在语料库中出现的频次有高有低，理论上来说，对于那些高频词，被选为负样本的概率较大，对于那些低频词，被选为负样本的概率较小。基于这个基本事实，可以通过带权采样方法来实现，假设每个词的词频表示为单位线段上的一小分段，对于词典大小为 $N$ 的语料库，可以将词典中所有的词表示为单位线段上的一点，再在单位线段上等距离划分 $M$ 个等分， $M&gt;&gt;N$ ， 具体采样过程就是随机得到一个数 $i&lt;M$，通过映射找到其对应的词，如下如所示。</p>
-<p><img src="/images/nlp-word2vec-negative-sampling.jpg" width="400" height="230" alt="nlp-word2vec-negative-sampling" align="center"></p>
+<p><img src="/images/nlp-word2vec-negative-sampling.jpg" width="100%" height="100%" alt="nlp-word2vec-negative-sampling" align="center"></p>
 <p>文[2]中在实际负采样计算词频时，做了一点修正，不是简单的统计词的出现次数，而是对词的出现次数做了 $\alpha$ 次幂处理，最后词频公式为：</p>
 <p>$$ freq(w) = \frac {[counter(w)]^{3/4}} {\sum_{u \in W} [counter(u)]^{3/4}} \tag{3-4}$$</p>
 <h3 id="高频词二次采样"><a href="#高频词二次采样" class="headerlink" title="高频词二次采样"></a>高频词二次采样</h3><p>在一个大语料库中，很多常见的词大量出现，如“的”、“是”等。这些词虽然词频较高，但是能提供的有用信息却很少。一般来说，这些高频词的词向量在训练几百万样本后基本不会有太大的变化，为了提高训练速度，平衡低频词和高频词，文[2]中提出一种针对高频词二次采样的技巧，对于每个词，按如下概率丢弃而不做训练。</p>
 <p>$$ P(w_i) = 1 - \sqrt{\frac{t}{f(w_i)}} \tag{3-5}$$</p>
 <p>其中$f(w_i)$表示词频，从上述公式中不难发现，二次采样仅针对那些满足 $f(w_i) &gt; t$ 所谓的高频词有效，参数 $t$ 根据语料库的大小而设置，一般设置为 $10^{-5}$ 左右。</p>
 <h3 id="TensorFlow实现"><a href="#TensorFlow实现" class="headerlink" title="TensorFlow实现"></a>TensorFlow实现</h3><p>根据以上实现原理，下面结合代码阐述利用TensorFlow实现一个简易的word2vec模型[5]，借助TensorFlow丰富的api以及强大的计算引擎，我们可以非常方便地表达模型。给定语料库作为训练数据，首先扫描语料库建立字典，为每个词编号，同时将那些词频低于min_count的词过滤掉，即不对那些陌生词生成词向量。对于一个样本(“世界上”, “php”)，利用负采样得到若干负实例，分别计算输入词为“世界上”到“php”以及若干负样本的logit值，最后通过交叉熵公式得到目标函数(3-3)。</p>
-<p><img src="/images/nlp-word2vec-forward.jpg" width="400" height="230" alt="nlp-word2vec-forward" align="center"></p>
+<p><img src="/images/nlp-word2vec-forward.jpg" width="100%" height="100%" alt="nlp-word2vec-forward" align="center"></p>
 <h4 id="构建计算流图"><a href="#构建计算流图" class="headerlink" title="构建计算流图"></a>构建计算流图</h4><p>首先定义词向量矩阵，也称为 embedding matrix，这个是我们需要通过训练得到的词向量，其中<code>vocabulary_size</code>表示词典大小，<code>embedding_size</code>表示词向量的维度，那么词向量矩阵为 vocabulary_size $\times$ embedding_size，利用均匀分布对它进行随机初始化：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">embeddings = tf.Variable(</span><br><span class="line">    tf.random_uniform([vocabulary_size, embedding_size], <span class="number">-1.0</span>, <span class="number">1.0</span>))</span><br></pre></td></tr></table></figure></p>
 <p>定义权值矩阵和偏置向量（对应于3-3式中的 $\theta$），并初始化为0：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">weights = tf.Variable(</span><br><span class="line">  tf.truncated_normal([vocabulary_size, embedding_size],</span><br><span class="line">                      stddev=<span class="number">1.0</span> / math.sqrt(embedding_size)))</span><br><span class="line">biases = tf.Variable(tf.zeros([vocabulary_size]))</span><br></pre></td></tr></table></figure></p>
 <p>给定一个batch的输入，从词向量矩阵中找到对应的向量表示，以及从权值矩阵和偏置向量中找到对应正确输出的参数，其中<code>examples</code>是输入词，<code>labels</code>为对应的正确输出，一维向量表示，每个元素为词在字典中编号：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Embeddings for examples: [batch_size, embedding_size]</span></span><br><span class="line">example_emb = tf.nn.embedding_lookup(embeddings, examples)</span><br><span class="line"><span class="comment"># Weights for labels: [batch_size, embedding_size]</span></span><br><span class="line">true_w = tf.nn.embedding_lookup(weights, labels)</span><br><span class="line"><span class="comment"># Biases for labels: [batch_size, 1]</span></span><br><span class="line">true_b = tf.nn.embedding_lookup(biases, labels)</span><br></pre></td></tr></table></figure></p>
@@ -433,17 +433,17 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
 <h4 id="训练模型"><a href="#训练模型" class="headerlink" title="训练模型"></a>训练模型</h4><p>计算流图构建完毕后，我们需要去优化目标函数。采用梯度下降逐步更新参数，首先需要确定学习步长，随着迭代进行，逐步减少学习步长，其中<code>trained_words</code>为已训练的词数量，<code>words_to_train</code>为所有待训练的词数量：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lr = init_learning_rate * tf.maximum(</span><br><span class="line">     <span class="number">0.0001</span>, <span class="number">1.0</span> - tf.cast(trained_words, tf.float32) / words_to_train)</span><br></pre></td></tr></table></figure></p>
 <p>定义优化算子，使用梯度下降训练模型：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">optimizer = tf.train.GradientDescentOptimizer(lr)</span><br><span class="line">train = optimizer.minimize(loss,</span><br><span class="line">                           global_step=global_step,</span><br><span class="line">                           gate_gradients=optimizer.GATE_NONE)</span><br><span class="line">session.run(train)</span><br></pre></td></tr></table></figure></p>
 <h4 id="验证词向量"><a href="#验证词向量" class="headerlink" title="验证词向量"></a>验证词向量</h4><p>经过以上步骤后，即可得到词向量矩阵，即上述代码中的变量<code>embeddings</code>，那么如何验证得到的词向量矩阵的好坏呢，Mikolov等人发现[2]，如果一对关系差不多的词，其词向量在空间中的连线近乎平行，如下图所示。</p>
-<p><img src="/images/nlp-word2vec-analogical.jpg" width="400" height="230" alt="nlp-word2vec-analogical" align="center"></p>
+<p><img src="/images/nlp-word2vec-analogical.jpg" width="100%" height="100%" alt="nlp-word2vec-analogical" align="center"></p>
 <p>为此，给定基准测试集，其每行包含4个词组成一个四元组 $(w_1, w_2, w_3, w_4)$ ，对于一个较好的词向量结果，每个四元组大致会有如下关系：</p>
 <p>$$ Vector(w_1) - Vector(w_2) + Vector(w_4) = Vector(w_3) $$</p>
 <h2 id="循环神经网络-RNN"><a href="#循环神经网络-RNN" class="headerlink" title="循环神经网络(RNN)"></a>循环神经网络(RNN)</h2><p>人类不是从脑子一片空白开始思考，当你读一篇文章的时候，你会根据前文去理解下文，而不是每次看到一个词后就忘掉它，理解下一个词的时候又从头开始。传统的神经网络模型是从输入层到隐藏层再到输出层，每层之间的节点是无连接的，这种普通的神经网络不具备记忆功能，而循环神经网络(Recurrent Neural Network，RNN)就是来解决这类问题，它具备记忆性，通常用于处理时间序列问题，在众多NLP问题中，RNN取得了巨大成功以及广泛应用。</p>
 <p>在RNN网络中，一个序列当前的输出除了与当前输入有关以外，还与前面的输出也有关，下图为RNN中一个单元的结构示意图，图片来源于文[7]。</p>
-<p><img src="/images/nlp-rnn-cell.jpg" width="400" height="230" alt="nlp-rnn-cell" align="center"></p>
+<p><img src="/images/nlp-rnn-cell.jpg" width="100%" height="100%" alt="nlp-rnn-cell" align="center"></p>
 <p>上图理解起来可能还不是很形象，根据时间序列将上图平铺展开得到如下图，其链式的特征揭示了 RNN 本质上是与序列相关的，所以 RNN 对于这类数据来说是最自然的神经网络架构。</p>
-<p><img src="/images/nlp-rnn-unrolled.jpg" width="400" height="230" alt="nlp-rnn-unrolled" align="center"></p>
+<p><img src="/images/nlp-rnn-unrolled.jpg" width="100%" height="100%" alt="nlp-rnn-unrolled" align="center"></p>
 <p>然而 RNN 有一个缺点，虽然它可以将之前的信息连接到当前的输入上，但是如果当前输入与之前的信息时间跨度很大，由于梯度衰减等原因，RNN 学习如此远的信息的能力会下降，这个问题称之为长时间依赖（Long-Term Dependencies）问题。例如预测一句话“飞机在天上”下一个词，可能不需要太多的上下文就可以预测到下一个词为“飞”，这种情况下，相关信息与要预测的词之间的时间跨度很小，RNN 可以很容易学到之前的信息。再比如预测“他来自法国，…，他会讲”的下一个词，从当前的信息来看，下一个词可能是一种语言，但是要想准确预测哪种语言，就需要再去前文找信息了，由于前文的“法国”离当前位置的时间跨度较大，RNN很难学到如此远的信息。更多长时间依赖细节参考文[8]。幸运的是，有一种 RNN 变种，叫做长短时记忆网络(Long Short Term Memory networks, LSTM)，可以解决这个问题。</p>
 <h2 id="长短时记忆网络-LSTM"><a href="#长短时记忆网络-LSTM" class="headerlink" title="长短时记忆网络(LSTM)"></a>长短时记忆网络(LSTM)</h2><p>LSTM 是一种带有选择性记忆功能的 RNN，它可以有效的解决长时间依赖问题，并能学习到之前的关键信息。如下图所示为 LSTM 展开后的示意图。</p>
-<p><img src="/images/nlp-lstm-unrolled.jpg" width="600" height="300" alt="nlp-lstm-unrolled" align="center"></p>
+<p><img src="/images/nlp-lstm-unrolled.jpg" width="100%" height="100%" alt="nlp-lstm-unrolled" align="center"></p>
 <p>相对于 RNN , LSTM 只是在每个单元结构上做了改进，在 RNN 中，每个单元结构只有单个激活函数，而 LSTM 中每个单元结构更为复杂，它增加了一条状态线（图中最上面的水平线），以记住从之前的输入学到的信息，另外增加三个门(gate)来控制其该状态，分别为忘记门、输入门和输出门。忘记门的作用是选择性地将之前不重要的信息丢掉，以便存储新信息；输入门是根据当前输入学习到新信息然后更新当前状态；输出门则是结合当前输入和当前状态得到一个输出，该输出除了作为基本的输出外，还会作为下一个时刻的输入。下面用数学的方式表达每个门的意思。</p>
 <p>忘记门，要丢掉的信息如下：</p>
 <p>$$ f_t = \sigma (W_f[h_{t-1}, x_t] + b_f) \tag{5-1}$$</p>
@@ -454,18 +454,18 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
 <p>$$<br>\begin{split}<br>o_t &amp;= \sigma (W_o[h_{t-1}, x_t] + b_o)\\<br>h_t &amp;= o_t * tanh(C_t)<br>\end{split} \tag{5-4}<br>$$</p>
 <p>LSTM 单元输入都是上一个时刻的输出与当前时刻的输入通过向量concat连接而得到，基于这个输入，利用sigmoid函数作为三个门的筛选器，分别得到 $f_t$ 、$i_t$ 、$o_t$，这三个筛选器分别选择部分分量对状态进行选择性忘记、对输入进行选择性输入、对输出进行选择性输出。以上是 LSTM 基本结构原理，在这基础上，根据不同的实际应用场景，演变出很多 LSTM 的变体，更多关于 LSTM 的详细解释请参考文[7]。下面介绍一种深层 LSTM 网络[9]，该结构也是 TensorFlow 中 LSTM 所实现的根据[10]。</p>
 <h3 id="深层LSTM网络"><a href="#深层LSTM网络" class="headerlink" title="深层LSTM网络"></a>深层LSTM网络</h3><p>深度学习，其特点在于深，前面已经讲述单层 LSTM 网络结构，深层 LSTM 网络其实就是将多层 LSTM 叠加，形成多个隐藏层，如下图所示。</p>
-<p><img src="/images/nlp-lstm-multilayer.jpg" width="400" height="230" alt="nlp-lstm-multilayer" align="center"></p>
+<p><img src="/images/nlp-lstm-multilayer.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer" align="center"></p>
 <p>上图中每个 LSTM 单元内部结构如下图所示，对于 $l$ 层 $t$ 时刻来说，$h_{t-1}^l$ 为 $l$ 层 $t-1$ 时刻（即上一个时刻）的输出，$h_t^{l-1}$ 为 $l-1$ 层（即上一层） $t$ 时刻的输出，这两个输出叠加作为 $l$ 层 $t$ 时刻的输入。</p>
-<p><img src="/images/nlp-lstm-multilayer-cell.jpg" width="400" height="230" alt="nlp-lstm-multilayer-cell" align="center"></p>
+<p><img src="/images/nlp-lstm-multilayer-cell.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer-cell" align="center"></p>
 <p>根据上面的结构，可以得到 $l$ 层 LSTM 数学表达, $h_t^{l-1}, h_{t-1}^l, c_{t-1}^l \rightarrow h_t^l, c_t^l$：</p>
 <p>$$<br>\begin{split}<br>f &amp;= \sigma (W_f[h_t^{l-1}, h_{t-1}^l] + b_f) \\<br>i &amp;= \sigma (W_i[h_t^{l-1}, h_{t-1}^l] + b_i) \\<br>o &amp;= \sigma (W_o[h_t^{l-1}, h_{t-1}^l] + b_o) \\<br>g &amp;= tanh(W_g[h_t^{l-1}, h_{t-1}^l] + b_g) \\<br>\ \notag \\<br>c_t^l &amp;= f * c_{t-1}^l + i * g \\<br>h_t^l &amp;= o * tanh(c_t^l)<br>\end{split} \tag{5-5}<br>$$</p>
 <p>其中 $c_{t-1}^l$ 表示上一时刻的状态，$c_t^l$ 表示由当前输入更新后的状态。</p>
 <h3 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h3><p>然而，实践证明大规模的 LSTM 网络很容易过拟合，实际应用中，需要采取正则化方法来避免过拟合，神经网络中常见的正则化方法是Dropout方法[11]，文[12]提出一种简单高效的Dropout方法运用于 RNN/LTSM 网络。如下图所示，Dropout仅应用于虚线方向的输入，即仅针对于上一层的输出做Dropout。</p>
-<p><img src="/images/nlp-lstm-multilayer-dropout.jpg" width="400" height="230" alt="nlp-lstm-multilayer-dropout" align="center"></p>
+<p><img src="/images/nlp-lstm-multilayer-dropout.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer-dropout" align="center"></p>
 <p>根据上图的Dropout策略，公式(5-5)可以改写成如下形式：</p>
 <p>$$<br>\begin{split}<br>f &amp;= \sigma (W_f[D(h_t^{l-1}), h_{t-1}^l] + b_f) \\<br>i &amp;= \sigma (W_i[D(h_t^{l-1}), h_{t-1}^l] + b_i) \\<br>o &amp;= \sigma (W_o[D(h_t^{l-1}), h_{t-1}^l] + b_o) \\<br>g &amp;= tanh(W_g[D(h_t^{l-1}), h_{t-1}^l] + b_g) \\<br>\ \notag \\<br>c_t^l &amp;= f * c_{t-1}^l + i * g \\<br>h_t^l &amp;= o * tanh(c_t^l)<br>\end{split} \tag{5-6}<br>$$</p>
 <p>其中 $D$ 表示Dropout操作符，会随机地将 $h_t^{l-1}$ 的中的分量设置为零。如下图所示，黑色粗实线表示从 $t-2$ 时刻的信息流向 $t+2$ 时刻作为其预测的参考，它经历了 $L+1$ 次的Dropout，其中 $L$ 表示网络的层数。</p>
-<p><img src="/images/nlp-lstm-multilayer-dropout-event-flow.jpg" width="400" height="230" alt="nlp-lstm-multilayer-dropout-event-flow" align="center"></p>
+<p><img src="/images/nlp-lstm-multilayer-dropout-event-flow.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer-dropout-event-flow" align="center"></p>
 <h3 id="TensorFlow实现-1"><a href="#TensorFlow实现-1" class="headerlink" title="TensorFlow实现"></a>TensorFlow实现</h3><p>根据前面所述的 LSTM 模型原理，实现之前提到的语言模型，即根据前文预测下一个词，例如输入“飞机在天上”预测下一个词“飞”，使用 TensorFlow 来实现 LSTM 非常的方便，因为 TensorFlow 已经提供了基本的 LSTM 单元结构的Operation，其实现原理就是基于文[12]提出的带Dropout的 LSTM 模型。完整代码请参考<a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/ptb_word_lm.py" target="_blank" rel="external">ptb_word_lm.py</a></p>
 <h4 id="构建LSTM模型"><a href="#构建LSTM模型" class="headerlink" title="构建LSTM模型"></a>构建LSTM模型</h4><p>利用TensorFlow提供的Operation，实现 LSTM 网络很简单，首先定义一个基本的 LSTM 单元，其中<code>size</code>为 LSTM 单元的输出维度，再对其添加Dropout，根据 LSTM 的层数<code>num_layers</code>得到多层的 RNN 结构单元。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=<span class="number">0.0</span>)</span><br><span class="line">lstm_cell = tf.nn.rnn_cell.DropoutWrapper(</span><br><span class="line">    lstm_cell, output_keep_prob=keep_prob)</span><br><span class="line">cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_layers)</span><br></pre></td></tr></table></figure></p>
 <p>每次给定一个batch的输入，将 LSTM 网络的状态初始化为0。词的输入由词向量表示，所以先定义一个embedding矩阵，这里可以不要关心它一开始有没有，它会在训练过程中的慢慢得到的，仅作为训练的副产品。假设LSTM网络展开<code>num_steps</code>步，每一步给定一个batch的词作为输入，经过 LSTM 单元处理后，状态更新并得到输出，并通过softmax归一化后计算损失函数。</p>
@@ -635,7 +635,7 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-count">18</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -652,7 +652,7 @@ Big Data is like teenage sex: Everyone talks about it, nobody really knows how t
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
