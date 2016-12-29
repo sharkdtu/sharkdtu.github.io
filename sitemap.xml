@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://sharkdtu.com/posts/scala-reflect.html</loc>
+    
+    <lastmod>2016-12-29T14:49:46.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/nn-nlp.html</loc>
     
     <lastmod>2016-12-29T14:41:55.000Z</lastmod>
@@ -58,21 +65,7 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/scala-reflect.html</loc>
-    
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
-    
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
+    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
@@ -93,14 +86,7 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-tun.html</loc>
-    
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
+    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
@@ -121,6 +107,20 @@
   </url>
   
   <url>
+    <loc>http://sharkdtu.com/posts/spark-tun.html</loc>
+    
+    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
+    
+    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/to-live.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
@@ -135,7 +135,7 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
+    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
