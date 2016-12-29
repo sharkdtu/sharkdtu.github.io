@@ -55,7 +55,7 @@ $$ Obj = \frac{1}{N} \sum \limits_{i = 1}^N log P({w_i}|{context_i}) \tag{2-6}$$
 
 通过优化算法不断最小化目标函数得到一组优化的参数 $\Theta$ ，在神经网络中参数 $\Theta$ 则为网络层与层间的权值与偏置。那么在用神经网络学习语言模型[1]时，如何表示一个词呢？通常，在机器学习领域，是将一个样本对象抽象为一个向量，所以类似地，神经网络语言模型中是将词(或短语)表示为向量，通常叫做word2vec。那么神经网络语言模型就可以表示如下示意图。
 
-<img src="/images/nlp-nn.jpg" width="100%" height="100%" alt="nlp-nn" align=center />
+<img src="/images/nlp-nn.jpg" width="400" height="230" alt="nlp-nn" align=center />
 
 上述神经网络包括输入层、投影层、隐藏层以及输出层，其中投影层只是对输入层做了一个预处理，将输入的所有词进行一个连接操作，假如一个词表示为 $m$ 维向量，那么由 $n-1$ 个词连接后则为 $(n-1)m$ 维向量，将连接后的向量作为神经网络的输入，经过隐藏层再到输出层，其中 $W$ 、$U$ 分别为投影层到隐藏层、隐藏层到输出层的权值参数，$p$ 、$q$ 分别为投影层到隐藏层、隐藏层到输出层的偏置参数，整个过程数学表达如下：
 
@@ -72,13 +72,13 @@ $$
 
 词向量要做的事就是将语言数学化表示，以往的做法是采用 One-hot Representation 表示一个词，即语料库词典中有 $N$ 个词，那么向量的维度则为 $N$ ，给每个词编号，对于第 $i$ 个词，其向量表示除了第 $i$ 个单元为1，其他单元都为0的 $N$ 维向量，这种词向量的缺点显而易见，一般来说语料库的词典规模都特别大，那么词向量的维数就非常大，并且词与词之间没有关联性，并不能真实地刻画语言本身的性质，例如“腾讯”、“小马哥”这两个词通过One-hot向量表示，没有任何关联。为了克服One-hot Representation 的缺点，Mikolov大神提出了一种 Distributed Representation[2]，说个题外话，在大家都在如火如荼的用CNN做图像识别的时候，这哥们却在研究如何用神经网络处理NLP问题，最后发了大量关于神经网络NLP的高水平论文，成为这一领域的灵魂人物之一。顾名思义，Distributed Representation 就是把词的信息分布到向量不同的分量上，而不是像 One-hot Representation 那样所有信息集中在一个分量上，它的做法是将词映射到 $m$ 维空间，表示为 $m$ 维向量，也称之为 Word Embedding，这样一方面可以减小词向量的维度，另一方面，可以将有关联的词映射为空间中相邻的点，词与词之间的关联性通过空间距离来刻画，如下图所示。
 
-<img src="/images/nlp-word2vec-example.jpg" width="100%" height="100%" alt="nlp-word2vec-example" align=center />
+<img src="/images/nlp-word2vec-example.jpg" width="400" height="230" alt="nlp-word2vec-example" align=center />
 
 词被映射到3维空间，每个词表示为一个3维向量，相近的词离的较近，可以看到两组差不多关系的词，他们之间的词向量距离也差不多。
 
 要想得到词向量，需要借助语言模型训练得到，本质上来说，词向量是在训练语言模型过程中得到的副产品。解决word2vec问题有两种模型，即 CBOW 和 Skip-Gram 模型[3]，如下图所示：
 
-<img src="/images/nlp-word2vec-model.jpg" width="100%" height="100%" alt="nlp-word2vec-model" align=center />
+<img src="/images/nlp-word2vec-model.jpg" width="400" height="230" alt="nlp-word2vec-model" align=center />
 
 CBOW 模型是根据词的上下文预测当前词，这里的上下文是由待预测词的前后 $c$ 个词组成。而 Skip-Gram 模型则相反，是通过当前词去预测上下文。给定一个语料库作为训练集，就可以通过以上模型训练出每个词的向量表示。从实验结果来看，CBOW 模型会平滑掉一些分布信息，因为它将词的上下文作为单个样本，而 Skip-Gram 模型将词上下文拆分为多个样本，训练得到的结果更为精确，为此，TensorFlow 中 word2vec 采用的是 Skip-Gram 模型，对应于文[2]中所提出的一种更为优化的 Skip-Gram 模型，下面着重介绍其原理，更多关于 CBOW 和 Skip-Gram 模型细节可以参阅文[3]。
 
@@ -110,7 +110,7 @@ $$ Obj = log \sigma ({\theta_{w\_O}}^{T} v_{w\_I}) + \sum\_{j=1}^{k} E_{w\_j\sim
 
 词典中的每个词在语料库中出现的频次有高有低，理论上来说，对于那些高频词，被选为负样本的概率较大，对于那些低频词，被选为负样本的概率较小。基于这个基本事实，可以通过带权采样方法来实现，假设每个词的词频表示为单位线段上的一小分段，对于词典大小为 $N$ 的语料库，可以将词典中所有的词表示为单位线段上的一点，再在单位线段上等距离划分 $M$ 个等分， $M>>N$ ， 具体采样过程就是随机得到一个数 $i<M$，通过映射找到其对应的词，如下如所示。
 
-<img src="/images/nlp-word2vec-negative-sampling.jpg" width="100%" height="100%" alt="nlp-word2vec-negative-sampling" align=center />
+<img src="/images/nlp-word2vec-negative-sampling.jpg" width="400" height="230" alt="nlp-word2vec-negative-sampling" align=center />
 
 文[2]中在实际负采样计算词频时，做了一点修正，不是简单的统计词的出现次数，而是对词的出现次数做了 $\alpha$ 次幂处理，最后词频公式为：
 
@@ -128,7 +128,7 @@ $$ P(w_i) = 1 - \sqrt{\frac{t}{f(w_i)}} \tag{3-5}$$
 
 根据以上实现原理，下面结合代码阐述利用TensorFlow实现一个简易的word2vec模型[5]，借助TensorFlow丰富的api以及强大的计算引擎，我们可以非常方便地表达模型。给定语料库作为训练数据，首先扫描语料库建立字典，为每个词编号，同时将那些词频低于min_count的词过滤掉，即不对那些陌生词生成词向量。对于一个样本(“世界上”, “php”)，利用负采样得到若干负实例，分别计算输入词为“世界上”到“php”以及若干负样本的logit值，最后通过交叉熵公式得到目标函数(3-3)。
 
-<img src="/images/nlp-word2vec-forward.jpg" width="100%" height="100%" alt="nlp-word2vec-forward" align=center />
+<img src="/images/nlp-word2vec-forward.jpg" width="400" height="230" alt="nlp-word2vec-forward" align=center />
 
 #### 构建计算流图
 
@@ -218,7 +218,7 @@ session.run(train)
 
 经过以上步骤后，即可得到词向量矩阵，即上述代码中的变量`embeddings`，那么如何验证得到的词向量矩阵的好坏呢，Mikolov等人发现[2]，如果一对关系差不多的词，其词向量在空间中的连线近乎平行，如下图所示。
 
-<img src="/images/nlp-word2vec-analogical.jpg" width="100%" height="100%" alt="nlp-word2vec-analogical" align=center />
+<img src="/images/nlp-word2vec-analogical.jpg" width="400" height="230" alt="nlp-word2vec-analogical" align=center />
 
 为此，给定基准测试集，其每行包含4个词组成一个四元组 $(w_1, w_2, w_3, w_4)$ ，对于一个较好的词向量结果，每个四元组大致会有如下关系：
 
@@ -230,11 +230,11 @@ $$ Vector(w_1) - Vector(w_2) + Vector(w_4) = Vector(w_3) $$
 
 在RNN网络中，一个序列当前的输出除了与当前输入有关以外，还与前面的输出也有关，下图为RNN中一个单元的结构示意图，图片来源于文[7]。
 
-<img src="/images/nlp-rnn-cell.jpg" width="100%" height="100%" alt="nlp-rnn-cell" align=center />
+<img src="/images/nlp-rnn-cell.jpg" width="400" height="230" alt="nlp-rnn-cell" align=center />
 
 上图理解起来可能还不是很形象，根据时间序列将上图平铺展开得到如下图，其链式的特征揭示了 RNN 本质上是与序列相关的，所以 RNN 对于这类数据来说是最自然的神经网络架构。
 
-<img src="/images/nlp-rnn-unrolled.jpg" width="100%" height="100%" alt="nlp-rnn-unrolled" align=center />
+<img src="/images/nlp-rnn-unrolled.jpg" width="400" height="230" alt="nlp-rnn-unrolled" align=center />
 
 然而 RNN 有一个缺点，虽然它可以将之前的信息连接到当前的输入上，但是如果当前输入与之前的信息时间跨度很大，由于梯度衰减等原因，RNN 学习如此远的信息的能力会下降，这个问题称之为长时间依赖（Long-Term Dependencies）问题。例如预测一句话“飞机在天上”下一个词，可能不需要太多的上下文就可以预测到下一个词为“飞”，这种情况下，相关信息与要预测的词之间的时间跨度很小，RNN 可以很容易学到之前的信息。再比如预测“他来自法国，...，他会讲”的下一个词，从当前的信息来看，下一个词可能是一种语言，但是要想准确预测哪种语言，就需要再去前文找信息了，由于前文的“法国”离当前位置的时间跨度较大，RNN很难学到如此远的信息。更多长时间依赖细节参考文[8]。幸运的是，有一种 RNN 变种，叫做长短时记忆网络(Long Short Term Memory networks, LSTM)，可以解决这个问题。
 
@@ -242,7 +242,7 @@ $$ Vector(w_1) - Vector(w_2) + Vector(w_4) = Vector(w_3) $$
 
 LSTM 是一种带有选择性记忆功能的 RNN，它可以有效的解决长时间依赖问题，并能学习到之前的关键信息。如下图所示为 LSTM 展开后的示意图。
 
-<img src="/images/nlp-lstm-unrolled.jpg" width="100%" height="100%" alt="nlp-lstm-unrolled" align=center />
+<img src="/images/nlp-lstm-unrolled.jpg" width="400" height="230" alt="nlp-lstm-unrolled" align=center />
 
 相对于 RNN , LSTM 只是在每个单元结构上做了改进，在 RNN 中，每个单元结构只有单个激活函数，而 LSTM 中每个单元结构更为复杂，它增加了一条状态线（图中最上面的水平线），以记住从之前的输入学到的信息，另外增加三个门(gate)来控制其该状态，分别为忘记门、输入门和输出门。忘记门的作用是选择性地将之前不重要的信息丢掉，以便存储新信息；输入门是根据当前输入学习到新信息然后更新当前状态；输出门则是结合当前输入和当前状态得到一个输出，该输出除了作为基本的输出外，还会作为下一个时刻的输入。下面用数学的方式表达每个门的意思。
 
@@ -277,11 +277,11 @@ LSTM 单元输入都是上一个时刻的输出与当前时刻的输入通过向
 
 深度学习，其特点在于深，前面已经讲述单层 LSTM 网络结构，深层 LSTM 网络其实就是将多层 LSTM 叠加，形成多个隐藏层，如下图所示。
 
-<img src="/images/nlp-lstm-multilayer.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer" align=center />
+<img src="/images/nlp-lstm-multilayer.jpg" width="400" height="230" alt="nlp-lstm-multilayer" align=center />
 
 上图中每个 LSTM 单元内部结构如下图所示，对于 $l$ 层 $t$ 时刻来说，$h_{t-1}^l$ 为 $l$ 层 $t-1$ 时刻（即上一个时刻）的输出，$h_t^{l-1}$ 为 $l-1$ 层（即上一层） $t$ 时刻的输出，这两个输出叠加作为 $l$ 层 $t$ 时刻的输入。
 
-<img src="/images/nlp-lstm-multilayer-cell.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer-cell" align=center />
+<img src="/images/nlp-lstm-multilayer-cell.jpg" width="400" height="230" alt="nlp-lstm-multilayer-cell" align=center />
 
 根据上面的结构，可以得到 $l$ 层 LSTM 数学表达, $h\_t^{l-1}, h\_{t-1}^l, c_{t-1}^l \rightarrow h_t^l, c_t^l$：
 
@@ -303,7 +303,7 @@ $$
 
 然而，实践证明大规模的 LSTM 网络很容易过拟合，实际应用中，需要采取正则化方法来避免过拟合，神经网络中常见的正则化方法是Dropout方法[11]，文[12]提出一种简单高效的Dropout方法运用于 RNN/LTSM 网络。如下图所示，Dropout仅应用于虚线方向的输入，即仅针对于上一层的输出做Dropout。
 
-<img src="/images/nlp-lstm-multilayer-dropout.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer-dropout" align=center />
+<img src="/images/nlp-lstm-multilayer-dropout.jpg" width="400" height="230" alt="nlp-lstm-multilayer-dropout" align=center />
 
 根据上图的Dropout策略，公式(5-5)可以改写成如下形式：
 
@@ -321,7 +321,7 @@ $$
 
 其中 $D$ 表示Dropout操作符，会随机地将 $h_t^{l-1}$ 的中的分量设置为零。如下图所示，黑色粗实线表示从 $t-2$ 时刻的信息流向 $t+2$ 时刻作为其预测的参考，它经历了 $L+1$ 次的Dropout，其中 $L$ 表示网络的层数。
 
-<img src="/images/nlp-lstm-multilayer-dropout-event-flow.jpg" width="100%" height="100%" alt="nlp-lstm-multilayer-dropout-event-flow" align=center />
+<img src="/images/nlp-lstm-multilayer-dropout-event-flow.jpg" width="400" height="230" alt="nlp-lstm-multilayer-dropout-event-flow" align=center />
 
 ### TensorFlow实现
 
