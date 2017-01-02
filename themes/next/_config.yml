@@ -6,7 +6,7 @@
 favicon: /favicon.ico
 
 # Set default keywords (Use a comma to separate)
-keywords: "sharkd, 鲨鱼"
+keywords: "sharkd, 鲨鱼, 小刚"
 
 # Set rss to false to disable feed link.
 # Leave rss as empty to use site's feed link.
@@ -14,7 +14,7 @@ keywords: "sharkd, 鲨鱼"
 rss:
 
 # Specify the date when the site was setup
-#since: 2015
+since: 2016
 
 
 
