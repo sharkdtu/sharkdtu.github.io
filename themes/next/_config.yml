@@ -104,7 +104,7 @@ font:
   # Font settings for <code> and code blocks.
   code:
     external: true
-    family:
+    family: PT Mono
 
 
 
@@ -233,7 +233,7 @@ mathjax:
 #baidu_analytics:
 
 # Duoshuo ShortName
-duoshuo_shortname: sharkdtu
+# duoshuo_shortname: sharkdtu
 
 # Disqus
 #disqus_shortname:
@@ -245,11 +245,11 @@ duoshuo_shortname: sharkdtu
 ##  type: button
 
 # Share
-#jiathis:
+# jiathis: true
 #add_this_id:
 
 # Share
-duoshuo_share: true
+# duoshuo_share: true
 
 # Google Webmaster tools verification setting
 # See: https://www.google.com/webmasters/
@@ -266,10 +266,10 @@ duoshuo_share: true
 # Make duoshuo show UA
 # user_id must NOT be null when admin_enable is true!
 # you can visit http://dev.duoshuo.com get duoshuo user id.
-duoshuo_info:
-  ua_enable: true
-  admin_enable: true
-  user_id: 7001956
+# duoshuo_info:
+#   ua_enable: true
+#   admin_enable: true
+#   user_id: 7001956
   #admin_nickname: Author
 
 # duoshuo_hotartical: true

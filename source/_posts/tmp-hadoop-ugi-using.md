@@ -1,11 +1,12 @@
 ---
 title: 临时更换hadoop-ugi
+categories: 问题总结
+date: 2016-05-12 21:45:11
+comments: false
 tags:
   - hadoop
   - ugi
   - hdfs
-categories: 问题总结
-date: 2016-05-12 21:45:11
 ---
 
 

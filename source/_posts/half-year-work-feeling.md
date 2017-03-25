@@ -2,6 +2,7 @@
 title: 工作半年小感
 date: 2015-10-23 16:22:09
 categories: 随笔
+comments: false
 ---
 ![fight](/images/fight.jpg)
 

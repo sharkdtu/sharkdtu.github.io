@@ -2,6 +2,7 @@
 title: 初识Scala反射
 date: 2016-04-23 10:04:25
 categories: 程序语言
+comments: false
 tags:
   - 反射
   - scala

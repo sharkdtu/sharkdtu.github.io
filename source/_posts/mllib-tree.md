@@ -1,13 +1,14 @@
 ---
 title: MLlib决策树与集成树
+date: 2016-01-12 21:45:11
+categories: 机器学习
+comments: false
 tags:
   - spark
   - mllib
   - 决策树
   - GBDT
   - 随机森林
-categories: 机器学习
-date: 2016-01-12 21:45:11
 ---
 
 ## 模型简介

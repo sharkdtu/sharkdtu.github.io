@@ -2,6 +2,7 @@
 title: 《活着》–让人瞬间安静的一本书
 date: 2014-11-03 21:20:25
 categories: 读书笔记
+comments: false
 ---
 ![to-live](/images/to-live.jpg)
 

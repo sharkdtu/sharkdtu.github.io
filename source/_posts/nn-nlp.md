@@ -1,13 +1,14 @@
 ---
 title: 运用TensorFlow处理简单的NLP问题
+date: 2016-05-31 22:25:17
+categories: 深度学习
+comments: false
 tags:
   - NLP
   - TensorFlow
   - Word2Vec
   - RNN
   - LSTM
-categories: 深度学习
-date: 2016-05-31 22:25:17
 ---
 
 

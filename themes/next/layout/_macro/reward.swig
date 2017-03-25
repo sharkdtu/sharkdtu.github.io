@@ -6,13 +6,13 @@
   </button>
   <div id="QR" style="display: none;">
     {% if theme.wechatpay %}
-      <div id="wechat" style="display: inline-block">
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
         <img id="wechat_qr" src="{{ theme.wechatpay }}" alt="{{ theme.author }} WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>微信打赏</p>
       </div>
     {% endif %}
     {% if theme.alipay %}
-      <div id="alipay" style="display: inline-block">
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
         <img id="alipay_qr" src="{{ theme.alipay }}" alt="{{ theme.author }} Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>支付宝打赏</p>
       </div>

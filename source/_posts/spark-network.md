@@ -1,7 +1,8 @@
 ---
-title: 深入理解Spark(四)：Spark 底层网络模块
+title: Spark 底层网络模块
 date: 2016-11-12  22:11:29
 categories: spark
+comments: false
 tags:
   - spark
   - network

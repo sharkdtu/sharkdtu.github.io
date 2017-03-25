@@ -2,6 +2,7 @@
 title: Akka-remote使用入门
 date: 2014-12-20  20:15:33
 categories: 程序语言
+comments: false
 tags:
   - scala
   - akka

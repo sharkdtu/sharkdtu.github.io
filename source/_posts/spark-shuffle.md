@@ -1,7 +1,8 @@
 ---
-title: 深入理解Spark(三)：Spark Shuffle原理及相关调优
+title: Spark Shuffle原理及相关调优
 date: 2016-10-04  15:21:44
 categories: spark
+comments: false
 tags:
   - spark
   - shuffle

@@ -1,7 +1,8 @@
 ---
-title: 深入理解Spark(二)：Spark Scheduler原理及资源配置
+title: Spark Scheduler原理及资源配置
 date: 2016-07-23  21:33:14
 categories: spark
+comments: false
 tags:
   - spark
   - Scheduler
