@@ -4,12 +4,102 @@
 
     
   <url>
-    <loc>http://sharkdtu.com/posts/spark-network.html</loc>
-    <lastmod>2017-01-02T14:53:52.000Z</lastmod>
+    <loc>http://sharkdtu.com/posts/to-live.html</loc>
+    <lastmod>2017-03-25T09:22:15.000Z</lastmod>
     <data>
         <display>
-        <title>深入理解Spark(四)：Spark 底层网络模块</title>
-        <pubTime>2016-11-12T14:11:29.000Z</pubTime>
+        <title>《活着》–让人瞬间安静的一本书</title>
+        <pubTime>2014-11-03T13:20:25.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="读书笔记" url="http://sharkdtu.com/categories/reading-notes/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</loc>
+    <lastmod>2017-03-25T09:22:09.000Z</lastmod>
+    <data>
+        <display>
+        <title>临时更换hadoop-ugi</title>
+        <pubTime>2016-05-12T13:45:11.000Z</pubTime>
+        
+        <tag>hadoop</tag>
+         
+        <tag>ugi</tag>
+         
+        <tag>hdfs</tag>
+         
+         
+           
+             
+              <breadCrumb title="问题总结" url="http://sharkdtu.com/categories/stackoverflow/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
+    <lastmod>2017-03-25T09:21:45.000Z</lastmod>
+    <data>
+        <display>
+        <title>Akka-remote使用入门</title>
+        <pubTime>2014-12-20T12:15:33.000Z</pubTime>
+        
+        <tag>scala</tag>
+         
+        <tag>akka</tag>
+         
+        <tag>actor-remote</tag>
+         
+         
+           
+             
+              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/start-akka-actor.html</loc>
+    <lastmod>2017-03-25T09:21:41.000Z</lastmod>
+    <data>
+        <display>
+        <title>Akka-actor使用入门</title>
+        <pubTime>2014-12-12T13:45:11.000Z</pubTime>
+        
+        <tag>scala</tag>
+         
+        <tag>akka</tag>
+         
+        <tag>actor</tag>
+         
+         
+           
+             
+              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/spark-tun.html</loc>
+    <lastmod>2017-03-25T09:21:35.000Z</lastmod>
+    <data>
+        <display>
+        <title>Spark 应用程序调优</title>
+        <pubTime>2015-06-17T06:22:33.000Z</pubTime>
         
         <tag>spark</tag>
          
@@ -17,7 +107,31 @@
          
         <tag>分布式计算</tag>
          
-        <tag>network</tag>
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/spark-shuffle.html</loc>
+    <lastmod>2017-03-25T09:21:31.000Z</lastmod>
+    <data>
+        <display>
+        <title>Spark Shuffle原理及相关调优</title>
+        <pubTime>2016-10-04T07:21:44.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>大数据</tag>
+         
+        <tag>分布式计算</tag>
+         
+        <tag>shuffle</tag>
          
          
            
@@ -31,10 +145,10 @@
     
   <url>
     <loc>http://sharkdtu.com/posts/spark-rdd.html</loc>
-    <lastmod>2016-12-29T16:21:50.000Z</lastmod>
+    <lastmod>2017-03-25T09:21:23.000Z</lastmod>
     <data>
         <display>
-        <title>深入理解Spark(一)：Spark核心概念RDD</title>
+        <title>Spark核心概念RDD</title>
         <pubTime>2016-06-18T12:12:03.000Z</pubTime>
         
         <tag>spark</tag>
@@ -56,27 +170,71 @@
 
     
   <url>
-    <loc>http://sharkdtu.com/posts/mllib-tree.html</loc>
-    <lastmod>2016-12-29T16:15:29.000Z</lastmod>
+    <loc>http://sharkdtu.com/posts/spark-network.html</loc>
+    <lastmod>2017-03-25T09:21:19.000Z</lastmod>
     <data>
         <display>
-        <title>MLlib决策树与集成树</title>
-        <pubTime>2016-01-12T13:45:11.000Z</pubTime>
+        <title>Spark 底层网络模块</title>
+        <pubTime>2016-11-12T14:11:29.000Z</pubTime>
         
         <tag>spark</tag>
          
-        <tag>mllib</tag>
+        <tag>大数据</tag>
          
-        <tag>决策树</tag>
+        <tag>分布式计算</tag>
          
-        <tag>GBDT</tag>
-         
-        <tag>随机森林</tag>
+        <tag>network</tag>
          
          
            
              
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
+    <lastmod>2017-03-25T09:21:08.000Z</lastmod>
+    <data>
+        <display>
+        <title>Spark源码编译并在YARN上运行WordCount实例</title>
+        <pubTime>2014-11-06T12:33:25.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>大数据</tag>
+         
+        <tag>分布式计算</tag>
+         
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/scala-reflect.html</loc>
+    <lastmod>2017-03-25T09:21:03.000Z</lastmod>
+    <data>
+        <display>
+        <title>初识Scala反射</title>
+        <pubTime>2016-04-23T02:04:25.000Z</pubTime>
+        
+        <tag>反射</tag>
+         
+        <tag>scala</tag>
+         
+         
+           
+             
+              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
           
         </display>
     </data>
@@ -85,7 +243,7 @@
     
   <url>
     <loc>http://sharkdtu.com/posts/nn-nlp.html</loc>
-    <lastmod>2016-12-29T16:11:52.000Z</lastmod>
+    <lastmod>2017-03-25T09:20:58.000Z</lastmod>
     <data>
         <display>
         <title>运用TensorFlow处理简单的NLP问题</title>
@@ -112,25 +270,127 @@
 
     
   <url>
-    <loc>http://sharkdtu.com/posts/spark-shuffle.html</loc>
-    <lastmod>2016-12-29T16:05:24.000Z</lastmod>
+    <loc>http://sharkdtu.com/posts/mllib-tree.html</loc>
+    <lastmod>2017-03-25T09:20:31.000Z</lastmod>
     <data>
         <display>
-        <title>深入理解Spark(三)：Spark Shuffle原理及相关调优</title>
-        <pubTime>2016-10-04T07:21:44.000Z</pubTime>
+        <title>MLlib决策树与集成树</title>
+        <pubTime>2016-01-12T13:45:11.000Z</pubTime>
         
         <tag>spark</tag>
          
-        <tag>大数据</tag>
+        <tag>mllib</tag>
          
-        <tag>分布式计算</tag>
+        <tag>决策树</tag>
          
-        <tag>shuffle</tag>
+        <tag>GBDT</tag>
+         
+        <tag>随机森林</tag>
          
          
            
              
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
+    <lastmod>2017-03-25T09:19:59.000Z</lastmod>
+    <data>
+        <display>
+        <title>Maven 使用本地jar包</title>
+        <pubTime>2016-06-24T13:45:11.000Z</pubTime>
+        
+        <tag>maven</tag>
+         
+        <tag>java</tag>
+         
+         
+           
+             
+              <breadCrumb title="问题总结" url="http://sharkdtu.com/categories/stackoverflow/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/half-year-work-feeling.html</loc>
+    <lastmod>2017-03-25T09:19:18.000Z</lastmod>
+    <data>
+        <display>
+        <title>工作半年小感</title>
+        <pubTime>2015-10-23T08:22:09.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
+    <lastmod>2017-03-25T09:19:11.000Z</lastmod>
+    <data>
+        <display>
+        <title>CentOS下Hadoop-2.2.0集群安装配置</title>
+        <pubTime>2014-10-25T11:54:25.000Z</pubTime>
+        
+        <tag>大数据</tag>
+         
+        <tag>hadoop</tag>
+         
+        <tag>分布式计算</tag>
+         
+         
+           
+             
+              <breadCrumb title="hadoop" url="http://sharkdtu.com/categories/hadoop/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/blog-reborn.html</loc>
+    <lastmod>2017-03-25T09:19:04.000Z</lastmod>
+    <data>
+        <display>
+        <title>博客重生</title>
+        <pubTime>2016-04-23T01:24:25.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/before-last-winter-vacation.html</loc>
+    <lastmod>2017-03-25T09:18:59.000Z</lastmod>
+    <data>
+        <display>
+        <title>写在最后一个寒假前</title>
+        <pubTime>2015-01-23T03:22:09.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
           
         </display>
     </data>
@@ -139,10 +399,10 @@
     
   <url>
     <loc>http://sharkdtu.com/posts/spark-scheduler.html</loc>
-    <lastmod>2016-12-29T16:04:17.000Z</lastmod>
+    <lastmod>2017-03-25T09:18:53.000Z</lastmod>
     <data>
         <display>
-        <title>深入理解Spark(二)：Spark Scheduler原理及资源配置</title>
+        <title>Spark Scheduler原理及资源配置</title>
         <pubTime>2016-07-23T13:33:14.000Z</pubTime>
         
         <tag>spark</tag>
@@ -164,83 +424,20 @@
 
     
   <url>
-    <loc>http://sharkdtu.com/posts/half-year-work-feeling.html</loc>
-    <lastmod>2016-12-29T15:14:20.000Z</lastmod>
+    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
+    <lastmod>2017-03-25T09:18:44.000Z</lastmod>
     <data>
         <display>
-        <title>工作半年小感</title>
-        <pubTime>2015-10-23T08:22:09.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/scala-reflect.html</loc>
-    <lastmod>2016-12-29T14:49:46.000Z</lastmod>
-    <data>
-        <display>
-        <title>初识Scala反射</title>
-        <pubTime>2016-04-23T02:04:25.000Z</pubTime>
-        
-        <tag>反射</tag>
-         
-        <tag>scala</tag>
-         
-         
-           
-             
-              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/start-akka-actor.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>Akka-actor使用入门</title>
-        <pubTime>2014-12-12T13:45:11.000Z</pubTime>
-        
-        <tag>scala</tag>
-         
-        <tag>akka</tag>
-         
-        <tag>actor</tag>
-         
-         
-           
-             
-              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark源码编译并在YARN上运行WordCount实例</title>
-        <pubTime>2014-11-06T12:33:25.000Z</pubTime>
+        <title>Spark Cache性能测试</title>
+        <pubTime>2017-03-22T14:11:29.000Z</pubTime>
         
         <tag>spark</tag>
          
-        <tag>大数据</tag>
-         
         <tag>分布式计算</tag>
+         
+        <tag>cache</tag>
+         
+        <tag>benchmark</tag>
          
          
            
@@ -252,178 +449,7 @@
     </url>
 
     
-  <url>
-    <loc>http://sharkdtu.com/posts/blog-reborn.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>博客重生</title>
-        <pubTime>2016-04-23T01:24:25.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>Maven 使用本地jar包</title>
-        <pubTime>2016-06-24T13:45:11.000Z</pubTime>
-        
-        <tag>maven</tag>
-         
-        <tag>java</tag>
-         
-         
-           
-             
-              <breadCrumb title="问题总结" url="http://sharkdtu.com/categories/stackoverflow/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/before-last-winter-vacation.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>写在最后一个寒假前</title>
-        <pubTime>2015-01-23T03:22:09.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-tun.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark 应用程序调优</title>
-        <pubTime>2015-06-17T06:22:33.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>临时更换hadoop-ugi</title>
-        <pubTime>2016-05-12T13:45:11.000Z</pubTime>
-        
-        <tag>hadoop</tag>
-         
-        <tag>ugi</tag>
-         
-        <tag>hdfs</tag>
-         
-         
-           
-             
-              <breadCrumb title="问题总结" url="http://sharkdtu.com/categories/stackoverflow/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>Akka-remote使用入门</title>
-        <pubTime>2014-12-20T12:15:33.000Z</pubTime>
-        
-        <tag>scala</tag>
-         
-        <tag>akka</tag>
-         
-        <tag>actor-remote</tag>
-         
-         
-           
-             
-              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/to-live.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>《活着》–让人瞬间安静的一本书</title>
-        <pubTime>2014-11-03T13:20:25.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="读书笔记" url="http://sharkdtu.com/categories/reading-notes/"/>
-          
-        </display>
-    </data>
-    </url>
-
     
     
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
-    <data>
-        <display>
-        <title>CentOS下Hadoop-2.2.0集群安装配置</title>
-        <pubTime>2014-10-25T11:54:25.000Z</pubTime>
-        
-        <tag>大数据</tag>
-         
-        <tag>hadoop</tag>
-         
-        <tag>分布式计算</tag>
-         
-         
-           
-             
-              <breadCrumb title="hadoop" url="http://sharkdtu.com/categories/hadoop/"/>
-          
-        </display>
-    </data>
-    </url>
-
     
 </urlset>

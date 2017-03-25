@@ -53,7 +53,7 @@
   
     
     
-    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -89,7 +89,7 @@
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="在学习一门新语言时，想必我们都是”Hello World”程序开始，类似地，分布式计算框架的一个典型实例就是WordCount程序，接触过Hadoop的人肯定都知道用MapReduce实现WordCount，当前内存分布式计算框架Spark因为其计算速度之快，并且可以部署到Hadoop YARN中运行，已经受到各大公司的青睐，Spark社区提供了一些编译好的jar包，但是其中没有适配Hadoop-">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-on-yarn.png">
-<meta property="og:updated_time" content="2016-11-05T14:24:16.000Z">
+<meta property="og:updated_time" content="2017-03-25T09:21:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark源码编译并在YARN上运行WordCount实例">
 <meta name="twitter:description" content="在学习一门新语言时，想必我们都是”Hello World”程序开始，类似地，分布式计算框架的一个典型实例就是WordCount程序，接触过Hadoop的人肯定都知道用MapReduce实现WordCount，当前内存分布式计算框架Spark因为其计算速度之快，并且可以部署到Hadoop YARN中运行，已经受到各大公司的青睐，Spark社区提供了一些编译好的jar包，但是其中没有适配Hadoop-">
@@ -105,7 +105,7 @@
     fancybox: true,
     motion: true,
     duoshuo: {
-      userId: 7001956,
+      userId: undefined,
       author: '博主'
     }
   };
@@ -322,15 +322,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-build.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-build.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -347,6 +338,17 @@
       </header>
     
 
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">#spark</a>
+        
+          <a href="/tags/big-data/" rel="tag">#大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
+        
+      </div>
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -448,13 +450,13 @@ classes  wordcount_2.10-1.0.0.jar
   </button>
   <div id="QR" style="display: none;">
     
-      <div id="wechat" style="display: inline-block">
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
         <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>微信打赏</p>
       </div>
     
     
-      <div id="alipay" style="display: inline-block">
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
         <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>支付宝打赏</p>
       </div>
@@ -462,21 +464,12 @@ classes  wordcount_2.10-1.0.0.jar
   </div>
 </div>
 
+
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/spark/" rel="tag">#spark</a>
-          
-            <a href="/tags/big-data/" rel="tag">#大数据</a>
-          
-            <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
-          
-        </div>
-      
 
       
         <div class="post-nav">
@@ -501,33 +494,16 @@ classes  wordcount_2.10-1.0.0.jar
       
       
     </footer>
+    -->
   </article>
 
 
 
+    <!--
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="posts/spark-build.html"
-     data-title="Spark源码编译并在YARN上运行WordCount实例"
-     data-content=""
-     data-url="http://sharkdtu.com/posts/spark-build.html">
-  <div class="ds-share-inline">
-    <ul  class="ds-share-icons-16">
-
-      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
-      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
-      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
-      <li><a class="ds-douban" href="javascript:void(0);" data-service="douban">豆瓣</a></li>
-      <li><a class="ds-renren" href="javascript:void(0);" data-service="renren">人人网</a></li>
-
-    </ul>
-    <div class="ds-share-icons-more">
     </div>
-  </div>
-</div>
-
-      
-    </div>
+    -->
   </div>
 
 
@@ -536,14 +512,6 @@ classes  wordcount_2.10-1.0.0.jar
 
 
           
-  <div class="comments" id="comments">
-    
-      <div class="ds-thread" data-thread-key="posts/spark-build.html"
-           data-title="Spark源码编译并在YARN上运行WordCount实例" data-url="http://sharkdtu.com/posts/spark-build.html">
-      </div>
-    
-  </div>
-
 
         </div>
         
@@ -584,7 +552,7 @@ classes  wordcount_2.10-1.0.0.jar
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -601,7 +569,7 @@ classes  wordcount_2.10-1.0.0.jar
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -792,32 +760,9 @@ classes  wordcount_2.10-1.0.0.jar
 
   
 
-  
-    
-  
-
-  <script type="text/javascript">
-    var duoshuoQuery = {short_name:"sharkdtu"};
-    (function() {
-      var ds = document.createElement('script');
-      ds.type = 'text/javascript';ds.async = true;
-      ds.id = 'duoshuo-script';
-      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-      ds.charset = 'UTF-8';
-      (document.getElementsByTagName('head')[0]
-      || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
-  </script>
-
-  
-    
-      
-      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
-      <script src="/js/src/hook-duoshuo.js"></script>
-    
-  
 
 
+  
 
 
 

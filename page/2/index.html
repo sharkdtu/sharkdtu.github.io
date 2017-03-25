@@ -53,7 +53,7 @@
   
     
     
-    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -102,7 +102,7 @@
     fancybox: true,
     motion: true,
     duoshuo: {
-      userId: 7001956,
+      userId: undefined,
       author: '博主'
     }
   };
@@ -285,6 +285,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/spark-rdd.html" itemprop="url">
+                  Spark核心概念RDD
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-06-18T20:12:03+08:00" content="2016-06-18">
+              2016-06-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>RDD全称叫做弹性分布式数据集(Resilient Distributed Datasets)，它是一种分布式的内存抽象，表示一个只读的记录分区的集合，它只能通过其他RDD转换而创建，为此，RDD支持丰富的转换操作(如map, join, filter, groupBy等)，通过这种转换操作，新的RDD则包含了如何从其他RDDs衍生所必需的信息，所以说RDDs之间是有依赖关系的。基于RDDs之间的依赖，RDDs会形成一个有向无环图DAG，该DAG描述了整个流式计算的流程，实际执行的时候，RDD是通过血缘关系(Lineage)一气呵成的，即使出现数据分区丢失，也可以通过血缘关系重建分区，总结起来，基于RDD的流式计算任务可描述为：从稳定的物理存储(如分布式文件系统)中加载记录，记录被传入由一组确定性操作构成的DAG，然后写回稳定存储。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/spark-rdd.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/nn-nlp.html" itemprop="url">
                   运用TensorFlow处理简单的NLP问题
                 </a>
@@ -326,15 +441,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/nn-nlp.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/nn-nlp.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -346,6 +452,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -376,8 +483,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -386,6 +493,7 @@
         <div class="post-eof"></div>
       
     </footer>
+    -->
   </article>
 
 
@@ -452,15 +560,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/tmp-hadoop-ugi-using.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/tmp-hadoop-ugi-using.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -472,6 +571,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -498,8 +598,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -508,6 +608,7 @@
         <div class="post-eof"></div>
       
     </footer>
+    -->
   </article>
 
 
@@ -574,15 +675,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/scala-reflect.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/scala-reflect.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -594,6 +686,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -620,8 +713,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -630,6 +723,7 @@
         <div class="post-eof"></div>
       
     </footer>
+    -->
   </article>
 
 
@@ -696,15 +790,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/blog-reborn.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/blog-reborn.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -716,6 +801,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -742,8 +828,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -752,128 +838,7 @@
         <div class="post-eof"></div>
       
     </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/mllib-tree.html" itemprop="url">
-                  MLlib决策树与集成树
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-01-12T21:45:11+08:00" content="2016-01-12">
-              2016-01-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
-                    <span itemprop="name">机器学习</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/mllib-tree.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/mllib-tree.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="模型简介"><a href="#模型简介" class="headerlink" title="模型简介"></a>模型简介</h2><p>决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。如此下去，一个实例从根节点开始，不断地被划分，直到叶子节点。对于分类问题，叶子节点输出其类别，对于回归问题，叶子节点输出其分值或概率。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/mllib-tree.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
+    -->
   </article>
 
 
@@ -923,7 +888,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -940,7 +905,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -1116,32 +1081,9 @@
 
   
 
-  
-    
-  
-
-  <script type="text/javascript">
-    var duoshuoQuery = {short_name:"sharkdtu"};
-    (function() {
-      var ds = document.createElement('script');
-      ds.type = 'text/javascript';ds.async = true;
-      ds.id = 'duoshuo-script';
-      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-      ds.charset = 'UTF-8';
-      (document.getElementsByTagName('head')[0]
-      || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
-  </script>
-
-  
-    
-      
-      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
-      <script src="/js/src/hook-duoshuo.js"></script>
-    
-  
 
 
+  
 
 
 

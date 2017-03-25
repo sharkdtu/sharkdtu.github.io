@@ -64,7 +64,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="反射,scala," />
+  <meta name="keywords" content="spark,分布式计算,cache,benchmark," />
 
 
 
@@ -82,16 +82,16 @@
 
 
 
-<meta name="description" content="我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反">
+<meta name="description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="初识Scala反射">
-<meta property="og:url" content="http://sharkdtu.com/posts/scala-reflect.html">
+<meta property="og:title" content="Spark Cache性能测试">
+<meta property="og:url" content="http://sharkdtu.com/posts/spark-cache-benchmark.html">
 <meta property="og:site_name" content="守护之鲨">
-<meta property="og:description" content="我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反">
-<meta property="og:updated_time" content="2017-03-25T09:21:03.000Z">
+<meta property="og:description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
+<meta property="og:updated_time" content="2017-03-25T09:18:44.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="初识Scala反射">
-<meta name="twitter:description" content="我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反">
+<meta name="twitter:title" content="Spark Cache性能测试">
+<meta name="twitter:description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
 
 
 
@@ -109,7 +109,7 @@
   };
 </script>
 
-  <title> 初识Scala反射 | 守护之鲨 </title>
+  <title> Spark Cache性能测试 | 守护之鲨 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -281,7 +281,7 @@
             
             
               
-                初识Scala反射
+                Spark Cache性能测试
               
             
           </h1>
@@ -293,8 +293,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-04-23T10:04:25+08:00" content="2016-04-23">
-              2016-04-23
+            <time itemprop="dateCreated" datetime="2017-03-22T22:11:29+08:00" content="2017-03-22">
+              2017-03-22
             </time>
           </span>
 
@@ -307,8 +307,8 @@
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/programming-language/" itemprop="url" rel="index">
-                    <span itemprop="name">程序语言</span>
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
                   </a>
                 </span>
 
@@ -339,9 +339,13 @@
     
       <div class="post-tags">
         
-          <a href="/tags/reflect/" rel="tag">#反射</a>
+          <a href="/tags/spark/" rel="tag">#spark</a>
         
-          <a href="/tags/scala/" rel="tag">#scala</a>
+          <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
+        
+          <a href="/tags/cache/" rel="tag">#cache</a>
+        
+          <a href="/tags/benchmark/" rel="tag">#benchmark</a>
         
       </div>
     
@@ -352,148 +356,144 @@
       
 
       
-        <p>我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反射包括运行时反射和编译时反射，本文主要阐述运行时反射的一些用法，方便scala开发人员参考，具体原理细节请查看官方文档。<a id="more"></a>本文涉及到的代码示例是基于scala-2.10.4，如有不同请勿对号入座。</p>
-<p>给定类型或者对象实例，通过scala运行时反射，可以做到：1）获取运行时类型信息；2）通过类型信息实例化新对象；3）访问或调用对象的方法和属性等。下面分别举例阐述运行时反射的功能。</p>
-<h2 id="获取运行时类型信息"><a href="#获取运行时类型信息" class="headerlink" title="获取运行时类型信息"></a>获取运行时类型信息</h2><p>scala运行时类型信息是保存在<code>TypeTag</code>对象中，编译器在编译过程中将类型信息保存到<code>TypeTag</code>中，并将其携带到运行期。我们可以通过<code>typeTag</code>方法获取<code>TypeTag</code>类型信息。</p>
-<pre><code>scala&gt; import scala.reflect.runtime.universe._
-import scala.reflect.runtime.universe._
-
-scala&gt; typeTag[List[Int]]
-res0: reflect.runtime.universe.TypeTag[List[Int]] = TypeTag[scala.List[Int]]
-
-scala&gt; res0.tpe
-res1: reflect.runtime.universe.Type = scala.List[Int]
-</code></pre><p>如上述scala REPL显示，通过<code>typeTag</code>方法获取<code>List[Int]</code>类型的<code>TypeTag</code>对象，该对象包含了<code>List[Int]</code>的详细类型信息，通过<code>TypeTag</code>对象的<code>tpe</code>方法得到由<code>Type</code>对象封装具体的类型信息，可以看到该<code>Type</code>对象的类型信息精确到了类型参数<code>Int</code>。如果仅仅是获取类型信息，还有一个更简便的方法，那就是通过<code>typeOf</code>方法。</p>
-<pre><code>scala&gt; import scala.reflect.runtime.universe._
-import scala.reflect.runtime.universe._
-
-scala&gt; typeOf[List[Int]]
-res0: reflect.runtime.universe.Type = scala.List[Int]
-</code></pre><p>这时有人就会问，<code>typeTag</code>方法需要传一个具体的类型，事先知道类型还要<code>TypeTag</code>有啥用啊。我们不妨写个方法，获取任意对象的类型信息。</p>
-<pre><code>scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@6dae22e7
-
-scala&gt; def getTypeTag[T: ru.TypeTag](obj: T) = ru.typeTag[T]
-getTypeTag: [T](obj: T)(implicit evidence$1: ru.TypeTag[T])ru.TypeTag[T]
-
-scala&gt; val list = List(1, 2, 3)
-list: List[Int] = List(1, 2, 3)
-
-scala&gt; val theType = getTypeTag(list).tpe
-theType: ru.Type = List[Int]
-</code></pre><p>如上scala REPL显示，方法<code>getTypeTag</code>可以获取任意对象的类型信息，注意方法中的上下文界定<code>T: ru.TypeTag</code> ,它表示存在一个从<code>T</code>到<code>TypeTag[T]</code>的隐式转换，前面已经讲到，<code>TypeTag</code>对象是在编译期间由编译器生成的，如果不加这个上下文界定，编译器就不会为T生成<code>TypeTag</code>对象。当然也可以通过隐式参数替代上下文界定，就如同REPL中显示的<code>implicit evidence$1: ru.TypeTag[T]</code>那样。一旦我们获取到了类型信息(Type instance)，我们就可以通过该<code>Type</code>对象查询更详尽的类型信息。</p>
-<pre><code>scala&gt; val decls = theType.declarations.take(10)
-decls: Iterable[ru.Symbol] = List(constructor List, method companion, method isEmpty, method head, method tail, method ::, method :::, method reverse_:::, method mapConserve, method ++)
-</code></pre><p>到这里我们知道<code>TypeTag</code>对象封装了<code>Type</code>对象，通过<code>Type</code>对象可以获取详尽的类型信息，包括方法和属性等，通过<code>typeTag</code>方法可以得到<code>TypeTag</code>对象，通过<code>typeOf</code>方法可以得到<code>Type</code>对象，它包含没有被编译器擦除的含完整的scala类型信息，与之对应地，如果想获取擦除后的类型信息，传统的方法可以通过java的反射机制来实现，但是scala也提供了该功能，通过<code>classTag</code>方法可以获取<code>ClassTag</code>对象，<code>ClassTag</code>封装了擦除后的类型信息，通过<code>classOf</code>方法可以获取<code>Class</code>对象，这与java反射中的<code>Class</code>对象一致。</p>
-<pre><code>scala&gt; import scala.reflect._
-import scala.reflect._
-
-scala&gt; val clsTag = classTag[List[Int]]
-clsTag: scala.reflect.ClassTag[List[Int]] = scala.collection.immutable.List
-
-scala&gt; clsTag.runtimeClass
-res0: Class[_] = class scala.collection.immutable.List
-
-scala&gt; val cls = classOf[List[Int]]
-cls: Class[List[Int]] = class scala.collection.immutable.List
-
-scala&gt; cls.[tab键补全]
-asInstanceOf              asSubclass          cast
-desiredAssertionStatus    getAnnotation
-getAnnotations            getCanonicalName    ...   
-</code></pre><p>从上述scala REPL中可以看到，<code>ClassTag</code>对象包含了<code>Class</code>对象，通过<code>Class</code>对象仅仅可以获取擦除后的类型信息，通过在scala REPL中用tab补全可以看到通过<code>Class</code>对象可以获取的信息。</p>
-<h2 id="运行时类型实例化"><a href="#运行时类型实例化" class="headerlink" title="运行时类型实例化"></a>运行时类型实例化</h2><p>我们已经知道通过<code>Type</code>对象可以获取未擦除的详尽的类型信息，下面我们通过<code>Type</code>对象中的信息找到构造方法并实例化类型的一个对象。</p>
-<pre><code>scala&gt; case class Person(id: Int, name: String)
-defined class Person
-
-scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@3e9ed70d
-
-scala&gt; val m = ru.runtimeMirror(getClass.getClassLoader)
-m: ru.Mirror = JavaMirror with scala.tools.nsc.interpreter.IMain$TranslatingClassLoader@a57fc5f ...
-
-scala&gt; val classPerson = ru.typeOf[Person].typeSymbol.asClass
-classPerson: ru.ClassSymbol = class Person
-
-scala&gt; val cm = m.reflectClass(classPerson)
-cm: ru.ClassMirror = class mirror for Person (bound to null)
-
-scala&gt; val ctor = ru.typeOf[Person].declaration(ru.nme.CONSTRUCTOR).asMethod
-ctor: ru.MethodSymbol = constructor Person
-
-scala&gt; val ctorm = cm.reflectConstructor(ctor)
-ctorm: ru.MethodMirror = constructor mirror for Person.&lt;init&gt;(id: scala.Int, name: String): Person (bound to null)
-
-scala&gt; val p = ctorm(1, &quot;Mike&quot;)
-p: Any = Person(1,Mike)
-</code></pre><p>如上scala REPL代码，要想通过<code>Type</code>对象获取相关信息，必须借助<code>Mirror</code>，<code>Mirror</code>是按层级划分的，有<code>ClassLoaderMirror</code>, <code>ClassMirror</code>, <code>InstanceMirror</code>, <code>ModuleMirror</code>, <code>MethodMirror</code>, <code>FieldMirror</code>。通过<code>ClassLoaderMirror</code>可以创建<code>ClassMirror</code>, <code>InstanceMirror</code>, <code>ModuleMirror</code>,  <code>MethodMirror</code>, <code>FieldMirror</code>。通过<code>ClassMirror</code>, <code>InstanceMirror</code>可以创建<code>MethodMirror</code>,  <code>FieldMirror</code>。<code>ModuleMirror</code>用于处理单例对象，通常是由<code>object</code>定义的。从上述代码中可以发现，首先获取一个<code>ClassLoaderMirror</code>，然后通过该<code>Mirror</code>创建一个<code>ClassMirror</code>，继续创建<code>MethodMirror</code>，通过该<code>MethodMirror</code>调用构造函数。从一个<code>Mirror</code>创建另一个<code>Mirror</code>，需要指定一个<code>Symbol</code>，<code>Symbol</code>其实就是绑定名字和一个实体，有<code>ClassSymbol</code>、 <code>MethodSymbol</code>、 <code>FieldSymbol</code>等，<code>Symbol</code>的获取是通过<code>Type</code>对象方法去查询，例如上述代码中通过<code>declaration</code>方法查询构造函数的<code>Symbol</code>。</p>
-<h2 id="运行时类成员访问"><a href="#运行时类成员访问" class="headerlink" title="运行时类成员访问"></a>运行时类成员访问</h2><p>下面举例阐述访问运行时类成员，同理，我们只需逐步创建<code>FieldMirror</code>来访问类成员。</p>
-<pre><code>scala&gt; case class Person(id: Int, name: String)
-defined class Person
-
-scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@3e9ed70d
-
-scala&gt; val m = ru.runtimeMirror(getClass.getClassLoader)
-m: ru.Mirror = JavaMirror with scala.tools.nsc.interpreter.IMain$TranslatingClassLoader@a57fc5f ...
-
-scala&gt; val p = Person(1, &quot;Mike&quot;)
-p: Person = Person(1,Mike)
-
-scala&gt; val nameTermSymb = ru.typeOf[Person].declaration(ru.newTermName(&quot;name&quot;)).asTerm
-nameTermSymb: ru.TermSymbol = value name
-
-scala&gt; val im = m.reflect(p)
-im: ru.InstanceMirror = instance mirror for Person(1,Mike)
-
-scala&gt; val nameFieldMirror = im.reflectField(nameTermSymb)
-nameFieldMirror: ru.FieldMirror = field mirror for Person.name (bound to Person(1,Mike))
-
-scala&gt; nameFieldMirror.get
-res0: Any = Mike
-
-scala&gt; nameFieldMirror.set(&quot;Jim&quot;)
-
-scala&gt; p.name
-res2: String = Jim
-</code></pre><p>如上代码所示，通过层级<code>ClassLoaderMirror</code>-&gt;<code>InstanceMirror</code>-&gt;<code>FieldMirror</code>得到<code>FieldMirror</code>，通过<code>Type</code>对象调用方法<code>declaration(ru.newTermName(&quot;name&quot;))</code>获取name字段的<code>Symbol</code>，通过<code>FieldMirror</code>的<code>get</code>和<code>set</code>方法去访问和修改成员变量。</p>
-<p>说了这么多，貌似利用java的反射机制也可以实现上述功能，还不用这么的费劲。关键还是在于你要访问编译器擦除后的类型信息还是擦除前的类型信息，如果是访问擦除后的类型信息，使用java和scala的反射都可以，但是访问擦除前的类型信息，那就必须要使用scala的反射，因为java的反射并不知道擦除前的信息。</p>
-<p>举个栗子，一步步剖析，首先定义一个基类<code>A</code>，它包含一个抽象类型成员<code>T</code>，然后分别派生出两个子类<code>B</code>和<code>C</code>。</p>
-<pre><code>scala&gt; class A {
-     | type T
-     | val x: Option[T] = None
-     | }
-defined class A
-
-scala&gt; class B extends A
-defined class B
-
-scala&gt; class C extends B
-defined class C
-</code></pre><p>现在分别实例化<code>B</code>和<code>C</code>的一个对象，并将抽象类型<code>T</code>具体化为<code>String</code>类型。</p>
-<pre><code>scala&gt; val b = new B { type T = String }
-b: B{type T = String} = $anon$1@446344a8
-
-scala&gt; val c = new C { type T = String }
-c: C{type T = String} = $anon$1@195bc0a4
-</code></pre><p>现在通过java的反射机制判断对象<code>b</code>和<code>c</code>的运行时类型是否是父子关系。</p>
-<pre><code>scala&gt; b.getClass.isAssignableFrom(c.getClass)
-res3: Boolean = false
-</code></pre><p>可以看到通过java的反射判断对象<code>c</code>的运行时类型并不是对象<code>b</code>的运行时类型的子类。然而从我们的定义来看，对象<code>c</code>的类型本应该是对象<code>b</code>的类型的子类，到这里我们就会想到编译器，在实例化对象<code>b</code>和<code>c</code>时实际上是通过匿名类来实例化的，一开始定义类型信息在编译的时候被擦除了，转为匿名类了。下面通过scala的反射机制判断对象<code>b</code>和<code>c</code>的运行时类型是否是父子关系。</p>
-<pre><code>scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@3e9ed70d
-
-scala&gt; def isSubClass[T: ru.TypeTag, S: ru.TypeTag](x: T, y: S): Boolean = {
-     | val leftTag = ru.typeTag[T]
-     | val rightTag = ru.typeTag[S]
-     | leftTag.tpe &lt;:&lt; rightTag.tpe
-     | }
-isSubClass: [T, S](x: T, y: S)(implicit evidence$1: ru.TypeTag[T], implicit evidence$2: ru.TypeTag[S])Boolean
-
-scala&gt; isSubClass(c, b)
-res5: Boolean = true
-</code></pre><p>从上述代码中可以看到，通过scala的反射得到的类型信息符合我们一开始定义。所以在scala中最好是使用scala的反射而不要使用java的反射，因为很有可能编译后通过java的反射得到的结果并不是想象的那样。</p>
-<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/scala-reflect.html">http://sharkdtu.com/posts/scala-reflect.html</a></em></span></p>
+        <p>采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。<a id="more"></a></p>
+<h2 id="测试准备"><a href="#测试准备" class="headerlink" title="测试准备"></a>测试准备</h2><p>训练数据是通过<a href="http://prof.ict.ac.cn/BigDataBench/dowloads/" target="_blank" rel="external">Facebook SNS公开数据集生成器</a>得到，在HDFS上大小为9.3G，100个文件，添加如下两个参数以保证所有资源全部到位后才启动task，训练时间为加载数据到训练完毕这期间的耗时。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--conf spark.scheduler.minRegisteredResourcesRatio=1</span><br><span class="line">--conf spark.scheduler.maxRegisteredResourcesWaitingTime=100000000</span><br></pre></td></tr></table></figure>
+<p>测试集群为3个节点的TS5机器搭建而成，其中一台作为RM，并运行着Alluxio Master，两个NM上同时运行着Alluxio Worker。除以上配置外，其他配置全部保持Spark默认状态。公共资源配置、分区设置以及算法参数如下表所示，executor_memory视不同的测试用例不同:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">driver_memory</th>
+<th style="text-align:center">num_executor</th>
+<th style="text-align:center">executor_cores</th>
+<th style="text-align:center">分区数</th>
+<th style="text-align:center">聚类个数</th>
+<th style="text-align:center">迭代次数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">4g</td>
+<td style="text-align:center">10</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">100</td>
+<td style="text-align:center">6</td>
+<td style="text-align:center">10</td>
+</tr>
+</tbody>
+</table>
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><h3 id="测试用例1-不使用Cache"><a href="#测试用例1-不使用Cache" class="headerlink" title="测试用例1:  不使用Cache"></a>测试用例1:  不使用Cache</h3><p>在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过alluxio加载数据，相关测试指标数据如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">\</th>
+<th style="text-align:center">说明</th>
+<th style="text-align:center">内存使用总量</th>
+<th style="text-align:center">训练时间</th>
+<th style="text-align:center">GC时间占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">case 1-1</td>
+<td style="text-align:center">从hdfs直接加载训练数据</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">1064s</td>
+<td style="text-align:center">3.1%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 1-2</td>
+<td style="text-align:center">透过alluxio加载训练数据</td>
+<td style="text-align:center">20g + 9.3g</td>
+<td style="text-align:center">689s</td>
+<td style="text-align:center">3.4%</td>
+</tr>
+</tbody>
+</table>
+<p>不使用cache时，以上两种情形GC均不是瓶颈，主要差别表现在：</p>
+<ul>
+<li>从hdfs直接加载训练数据：在每次迭代时均要读一遍hdfs，访问hdfs有较大的开销；</li>
+<li>透过alluxio加载训练数据：只需第一次加载读一遍hdfs，后续迭代直接从alluxio中读取，不过alluxio额外消耗9.3G内存，整体性能提升35%+。</li>
+</ul>
+<h3 id="测试用例2-使用Cache"><a href="#测试用例2-使用Cache" class="headerlink" title="测试用例2:  使用Cache"></a>测试用例2:  使用Cache</h3><p>在使用Cache的情况下，从HDFS加载数据后先做cache，分别采用不同的Cache方式，相关测试指标数据如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">\</th>
+<th style="text-align:center">缓存方式</th>
+<th style="text-align:center">executor_memory</th>
+<th style="text-align:center">内存使用总量</th>
+<th style="text-align:center">cache比例</th>
+<th style="text-align:center">训练时间</th>
+<th style="text-align:center">GC时间占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">case 2-1</td>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">33%</td>
+<td style="text-align:center">1558s</td>
+<td style="text-align:center">12%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-2</td>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">4g</td>
+<td style="text-align:center">40g</td>
+<td style="text-align:center">90%</td>
+<td style="text-align:center">986s</td>
+<td style="text-align:center">7%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-3</td>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">6g</td>
+<td style="text-align:center">60g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">463s</td>
+<td style="text-align:center">4.7%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-4</td>
+<td style="text-align:center">MEMORY_AND_DISK</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">1182s</td>
+<td style="text-align:center">16.9%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-5</td>
+<td style="text-align:center">DISK_ONLY</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">514s</td>
+<td style="text-align:center">3.2%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-6</td>
+<td style="text-align:center">ALLUXIO</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g + 9.3g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">687s</td>
+<td style="text-align:center">4.5%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="external">采用Alluxio的Cache实现方式</a>为:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">data.saveAsTextFile(path)</span><br><span class="line"><span class="keyword">val</span> data = sc.textFile(path)</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>从以上测试数据看来，让人有点出乎意料，一开始有点不太相信，但是多次测试后数据并没有多大的抖动，所以说Spark的性能受多方面因素的影响，单单Cache这块不同的Cache方式以及不同的资源情况下，其性能差别就相差较大，下面分析其内在原因。</p>
+<p>从HDFS加载训练数据后直接采用Spark原生的Cache，当executor_memory为2g时，不足以Cache住原始训练数据，从UI上看到Cache的比例只有33%左右，导致频繁的 rdd-block 剔除重建，同时由于内存吃紧，可能引发频发的Spill以及较重的GC，从UI上看到GC时间占到总的task运行时间的12%左右，已经成为瓶颈，其整体性能还不如不使用Cache的case1-1；当executor_memory为4g时，也不足以Cache住原始训练数据，但是其Cache的比例有90%左右，同样存在 rdd-block 剔除重建，频发Spill以及较重的GC，GC时间占总的task运行时间的7%左右，虽然比executor_memory为2g的情况有所好转，但是仍然不理想，只比不做Cache的case1-1好7%左右，但是内存却多用了20g，并不是特别划算；当executor_memory为6g时，可以全部Cache住原始训练数据，性能较优，GC占比较小，但是比不用Cache的case1-1要多用40g内存，有些代价。</p>
+<p>一般来说，当我们内存不够时，可以选择MEMORY_AND_DISK的缓存方式，但是测试发现MEMORY_AND_DISK的缓存效果并不是特别好，从测试数据来看，还不如直接使用DISK_ONLY的缓存方式，MEMORY_AND_DISK的缓存方式带来的GC开销非常大，可能是因为每次都尽可能地Cache数据到内存，不够再刷到磁盘，造成JVM频繁GC。</p>
+<p>另外测试了使用Alluxio作缓存的Case，发现并没有<a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="external">官方描述</a>的那样会提升Cache的性能，还不如直接使用Spark DISK_ONLY缓存，感觉官方给的测试对比数据存在一定的水分，值得一提的是在多个Application之间Alluxio能起到加速作用。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Spark的Cache并不是总是会加速任务运行，Cache的方式不同，对任务产生的影响不同。并不是能用内存Cache就用内存，而是要考虑是否有充足的内存Cache住你的数据，否则可能适得其反。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-cache-benchmark.html">http://sharkdtu.com/posts/spark-cache-benchmark.html</a></em></span></p>
 
       
     </div>
@@ -539,17 +539,13 @@ res5: Boolean = true
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/posts/blog-reborn.html" rel="next" title="博客重生">
-                <i class="fa fa-chevron-left"></i> 博客重生
+              <a href="/posts/spark-network.html" rel="next" title="Spark 底层网络模块">
+                <i class="fa fa-chevron-left"></i> Spark 底层网络模块
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/posts/tmp-hadoop-ugi-using.html" rel="prev" title="临时更换hadoop-ugi">
-                临时更换hadoop-ugi <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -698,7 +694,7 @@ res5: Boolean = true
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取运行时类型信息"><span class="nav-number">1.</span> <span class="nav-text">获取运行时类型信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行时类型实例化"><span class="nav-number">2.</span> <span class="nav-text">运行时类型实例化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行时类成员访问"><span class="nav-number">3.</span> <span class="nav-text">运行时类成员访问</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#测试准备"><span class="nav-number">1.</span> <span class="nav-text">测试准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试用例"><span class="nav-number">2.</span> <span class="nav-text">测试用例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试用例1-不使用Cache"><span class="nav-number">2.1.</span> <span class="nav-text">测试用例1:  不使用Cache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试用例2-使用Cache"><span class="nav-number">2.2.</span> <span class="nav-text">测试用例2:  使用Cache</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
             
           </div>
         </section>

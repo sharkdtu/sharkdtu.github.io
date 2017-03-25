@@ -53,7 +53,7 @@
   
     
     
-    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -84,7 +84,7 @@
 
 <meta name="description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
 <meta property="og:type" content="article">
-<meta property="og:title" content="深入理解Spark(二)：Spark Scheduler原理及资源配置">
+<meta property="og:title" content="Spark Scheduler原理及资源配置">
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-scheduler.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
@@ -93,9 +93,9 @@
 <meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-dag.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-task.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-scheduler-resource.png">
-<meta property="og:updated_time" content="2016-12-29T16:04:17.000Z">
+<meta property="og:updated_time" content="2017-03-25T09:18:53.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="深入理解Spark(二)：Spark Scheduler原理及资源配置">
+<meta name="twitter:title" content="Spark Scheduler原理及资源配置">
 <meta name="twitter:description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
 <meta name="twitter:image" content="http://sharkdtu.com/images/spark-distribution-framework.png">
 
@@ -109,13 +109,13 @@
     fancybox: true,
     motion: true,
     duoshuo: {
-      userId: 7001956,
+      userId: undefined,
       author: '博主'
     }
   };
 </script>
 
-  <title> 深入理解Spark(二)：Spark Scheduler原理及资源配置 | 守护之鲨 </title>
+  <title> Spark Scheduler原理及资源配置 | 守护之鲨 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -287,7 +287,7 @@
             
             
               
-                深入理解Spark(二)：Spark Scheduler原理及资源配置
+                Spark Scheduler原理及资源配置
               
             
           </h1>
@@ -326,15 +326,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-scheduler.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-scheduler.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -351,6 +342,19 @@
       </header>
     
 
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">#spark</a>
+        
+          <a href="/tags/big-data/" rel="tag">#大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
+        
+          <a href="/tags/Scheduler/" rel="tag">#Scheduler</a>
+        
+      </div>
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -414,13 +418,13 @@
   </button>
   <div id="QR" style="display: none;">
     
-      <div id="wechat" style="display: inline-block">
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
         <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>微信打赏</p>
       </div>
     
     
-      <div id="alipay" style="display: inline-block">
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
         <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>支付宝打赏</p>
       </div>
@@ -428,23 +432,12 @@
   </div>
 </div>
 
+
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/spark/" rel="tag">#spark</a>
-          
-            <a href="/tags/big-data/" rel="tag">#大数据</a>
-          
-            <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
-          
-            <a href="/tags/Scheduler/" rel="tag">#Scheduler</a>
-          
-        </div>
-      
 
       
         <div class="post-nav">
@@ -458,8 +451,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/posts/spark-shuffle.html" rel="prev" title="深入理解Spark(三)：Spark Shuffle原理及相关调优">
-                深入理解Spark(三)：Spark Shuffle原理及相关调优 <i class="fa fa-chevron-right"></i>
+              <a href="/posts/spark-shuffle.html" rel="prev" title="Spark Shuffle原理及相关调优">
+                Spark Shuffle原理及相关调优 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -469,33 +462,16 @@
       
       
     </footer>
+    -->
   </article>
 
 
 
+    <!--
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="posts/spark-scheduler.html"
-     data-title="深入理解Spark(二)：Spark Scheduler原理及资源配置"
-     data-content=""
-     data-url="http://sharkdtu.com/posts/spark-scheduler.html">
-  <div class="ds-share-inline">
-    <ul  class="ds-share-icons-16">
-
-      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
-      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
-      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
-      <li><a class="ds-douban" href="javascript:void(0);" data-service="douban">豆瓣</a></li>
-      <li><a class="ds-renren" href="javascript:void(0);" data-service="renren">人人网</a></li>
-
-    </ul>
-    <div class="ds-share-icons-more">
     </div>
-  </div>
-</div>
-
-      
-    </div>
+    -->
   </div>
 
 
@@ -504,14 +480,6 @@
 
 
           
-  <div class="comments" id="comments">
-    
-      <div class="ds-thread" data-thread-key="posts/spark-scheduler.html"
-           data-title="深入理解Spark(二)：Spark Scheduler原理及资源配置" data-url="http://sharkdtu.com/posts/spark-scheduler.html">
-      </div>
-    
-  </div>
-
 
         </div>
         
@@ -552,7 +520,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -569,7 +537,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -760,32 +728,9 @@
 
   
 
-  
-    
-  
-
-  <script type="text/javascript">
-    var duoshuoQuery = {short_name:"sharkdtu"};
-    (function() {
-      var ds = document.createElement('script');
-      ds.type = 'text/javascript';ds.async = true;
-      ds.id = 'duoshuo-script';
-      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-      ds.charset = 'UTF-8';
-      (document.getElementsByTagName('head')[0]
-      || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
-  </script>
-
-  
-    
-      
-      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
-      <script src="/js/src/hook-duoshuo.js"></script>
-    
-  
 
 
+  
 
 
 

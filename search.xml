@@ -4,7 +4,151 @@
   
     
     <entry>
-      <title><![CDATA[深入理解Spark(四)：Spark 底层网络模块]]></title>
+      <title><![CDATA[Spark Cache性能测试]]></title>
+      <url>http://sharkdtu.com/posts/spark-cache-benchmark.html</url>
+      <content type="html"><![CDATA[<p>采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。<a id="more"></a></p>
+<h2 id="测试准备"><a href="#测试准备" class="headerlink" title="测试准备"></a>测试准备</h2><p>训练数据是通过<a href="http://prof.ict.ac.cn/BigDataBench/dowloads/" target="_blank" rel="external">Facebook SNS公开数据集生成器</a>得到，在HDFS上大小为9.3G，100个文件，添加如下两个参数以保证所有资源全部到位后才启动task，训练时间为加载数据到训练完毕这期间的耗时。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--conf spark.scheduler.minRegisteredResourcesRatio=1</span><br><span class="line">--conf spark.scheduler.maxRegisteredResourcesWaitingTime=100000000</span><br></pre></td></tr></table></figure>
+<p>测试集群为3个节点的TS5机器搭建而成，其中一台作为RM，并运行着Alluxio Master，两个NM上同时运行着Alluxio Worker。除以上配置外，其他配置全部保持Spark默认状态。公共资源配置、分区设置以及算法参数如下表所示，executor_memory视不同的测试用例不同:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">driver_memory</th>
+<th style="text-align:center">num_executor</th>
+<th style="text-align:center">executor_cores</th>
+<th style="text-align:center">分区数</th>
+<th style="text-align:center">聚类个数</th>
+<th style="text-align:center">迭代次数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">4g</td>
+<td style="text-align:center">10</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">100</td>
+<td style="text-align:center">6</td>
+<td style="text-align:center">10</td>
+</tr>
+</tbody>
+</table>
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><h3 id="测试用例1-不使用Cache"><a href="#测试用例1-不使用Cache" class="headerlink" title="测试用例1:  不使用Cache"></a>测试用例1:  不使用Cache</h3><p>在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过alluxio加载数据，相关测试指标数据如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">\</th>
+<th style="text-align:center">说明</th>
+<th style="text-align:center">内存使用总量</th>
+<th style="text-align:center">训练时间</th>
+<th style="text-align:center">GC时间占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">case 1-1</td>
+<td style="text-align:center">从hdfs直接加载训练数据</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">1064s</td>
+<td style="text-align:center">3.1%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 1-2</td>
+<td style="text-align:center">透过alluxio加载训练数据</td>
+<td style="text-align:center">20g + 9.3g</td>
+<td style="text-align:center">689s</td>
+<td style="text-align:center">3.4%</td>
+</tr>
+</tbody>
+</table>
+<p>不使用cache时，以上两种情形GC均不是瓶颈，主要差别表现在：</p>
+<ul>
+<li>从hdfs直接加载训练数据：在每次迭代时均要读一遍hdfs，访问hdfs有较大的开销；</li>
+<li>透过alluxio加载训练数据：只需第一次加载读一遍hdfs，后续迭代直接从alluxio中读取，不过alluxio额外消耗9.3G内存，整体性能提升35%+。</li>
+</ul>
+<h3 id="测试用例2-使用Cache"><a href="#测试用例2-使用Cache" class="headerlink" title="测试用例2:  使用Cache"></a>测试用例2:  使用Cache</h3><p>在使用Cache的情况下，从HDFS加载数据后先做cache，分别采用不同的Cache方式，相关测试指标数据如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">\</th>
+<th style="text-align:center">缓存方式</th>
+<th style="text-align:center">executor_memory</th>
+<th style="text-align:center">内存使用总量</th>
+<th style="text-align:center">cache比例</th>
+<th style="text-align:center">训练时间</th>
+<th style="text-align:center">GC时间占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">case 2-1</td>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">33%</td>
+<td style="text-align:center">1558s</td>
+<td style="text-align:center">12%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-2</td>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">4g</td>
+<td style="text-align:center">40g</td>
+<td style="text-align:center">90%</td>
+<td style="text-align:center">986s</td>
+<td style="text-align:center">7%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-3</td>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">6g</td>
+<td style="text-align:center">60g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">463s</td>
+<td style="text-align:center">4.7%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-4</td>
+<td style="text-align:center">MEMORY_AND_DISK</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">1182s</td>
+<td style="text-align:center">16.9%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-5</td>
+<td style="text-align:center">DISK_ONLY</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">514s</td>
+<td style="text-align:center">3.2%</td>
+</tr>
+<tr>
+<td style="text-align:center">case 2-6</td>
+<td style="text-align:center">ALLUXIO</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">20g + 9.3g</td>
+<td style="text-align:center">100%</td>
+<td style="text-align:center">687s</td>
+<td style="text-align:center">4.5%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="external">采用Alluxio的Cache实现方式</a>为:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">data.saveAsTextFile(path)</span><br><span class="line"><span class="keyword">val</span> data = sc.textFile(path)</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>从以上测试数据看来，让人有点出乎意料，一开始有点不太相信，但是多次测试后数据并没有多大的抖动，所以说Spark的性能受多方面因素的影响，单单Cache这块不同的Cache方式以及不同的资源情况下，其性能差别就相差较大，下面分析其内在原因。</p>
+<p>从HDFS加载训练数据后直接采用Spark原生的Cache，当executor_memory为2g时，不足以Cache住原始训练数据，从UI上看到Cache的比例只有33%左右，导致频繁的 rdd-block 剔除重建，同时由于内存吃紧，可能引发频发的Spill以及较重的GC，从UI上看到GC时间占到总的task运行时间的12%左右，已经成为瓶颈，其整体性能还不如不使用Cache的case1-1；当executor_memory为4g时，也不足以Cache住原始训练数据，但是其Cache的比例有90%左右，同样存在 rdd-block 剔除重建，频发Spill以及较重的GC，GC时间占总的task运行时间的7%左右，虽然比executor_memory为2g的情况有所好转，但是仍然不理想，只比不做Cache的case1-1好7%左右，但是内存却多用了20g，并不是特别划算；当executor_memory为6g时，可以全部Cache住原始训练数据，性能较优，GC占比较小，但是比不用Cache的case1-1要多用40g内存，有些代价。</p>
+<p>一般来说，当我们内存不够时，可以选择MEMORY_AND_DISK的缓存方式，但是测试发现MEMORY_AND_DISK的缓存效果并不是特别好，从测试数据来看，还不如直接使用DISK_ONLY的缓存方式，MEMORY_AND_DISK的缓存方式带来的GC开销非常大，可能是因为每次都尽可能地Cache数据到内存，不够再刷到磁盘，造成JVM频繁GC。</p>
+<p>另外测试了使用Alluxio作缓存的Case，发现并没有<a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="external">官方描述</a>的那样会提升Cache的性能，还不如直接使用Spark DISK_ONLY缓存，感觉官方给的测试对比数据存在一定的水分，值得一提的是在多个Application之间Alluxio能起到加速作用。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Spark的Cache并不是总是会加速任务运行，Cache的方式不同，对任务产生的影响不同。并不是能用内存Cache就用内存，而是要考虑是否有充足的内存Cache住你的数据，否则可能适得其反。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-cache-benchmark.html">http://sharkdtu.com/posts/spark-cache-benchmark.html</a></em></span></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Spark 底层网络模块]]></title>
       <url>http://sharkdtu.com/posts/spark-network.html</url>
       <content type="html"><![CDATA[<p>对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对于一个优雅的工程师来说，不会在系统中同时使用具有重复功能的框架，否则会使得系统越来越重，所以自spark-1.6开始，通过netty封装了一套简洁的类似于akka actor模式的RPC接口，逐步抛弃akka这个大框架。从spark-2.0起，所有的网络功能都是通过netty来实现。<a id="more"></a></p>
 <h2 id="系统抽象"><a href="#系统抽象" class="headerlink" title="系统抽象"></a>系统抽象</h2><p>在介绍spark网络模块前，我们先温习下netty的基本工作流程。无论是服务器还是客户端都会关联一个channel(socket)，channel上会绑定一个pipeline，pipeline绑定若干个handler，用来专门用来处理和业务有关的东西，handler有DownHandler和UpHandler两种，DownHandler用来处理发包，UpHandler用来处理收包，大致过程如下图所示。</p>
@@ -47,7 +191,7 @@
     </entry>
     
     <entry>
-      <title><![CDATA[深入理解Spark(三)：Spark Shuffle原理及相关调优]]></title>
+      <title><![CDATA[Spark Shuffle原理及相关调优]]></title>
       <url>http://sharkdtu.com/posts/spark-shuffle.html</url>
       <content type="html"><![CDATA[<p>通过文章<a href="/posts/spark-scheduler.html">“Spark Scheduler原理及资源配置”</a>我们知道，Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map工作，下游Stage做reduce工作，其本质上还是MapReduce计算框架。Shuffle是连接map和reduce之间的桥梁，它将map的输出对应到reduce输入中，这期间涉及到序列化反序列化、跨节点网络IO以及磁盘读写IO等，所以说Shuffle是整个应用程序运行过程中非常昂贵的一个阶段，理解Spark Shuffle原理有助于优化Spark应用程序。<a id="more"></a></p>
 <h2 id="Spark-Shuffle的基本原理与特性"><a href="#Spark-Shuffle的基本原理与特性" class="headerlink" title="Spark Shuffle的基本原理与特性"></a>Spark Shuffle的基本原理与特性</h2><p>与MapReduce计算框架一样，Spark的Shuffle实现大致如下图所示，在DAG阶段以shuffle为界，划分stage，上游stage做map task，每个map task将计算结果数据分成多份，每一份对应到下游stage的每个partition中，并将其临时写到磁盘，该过程叫做shuffle write；下游stage做reduce task，每个reduce task通过网络拉取上游stage中所有map task的指定分区结果数据，该过程叫做shuffle read，最后完成reduce的业务逻辑。举个栗子，假如上游stage有100个map task，下游stage有1000个reduce task，那么这100个map task中每个map task都会得到1000份数据，而1000个reduce task中的每个reduce task都会拉取上游100个map task对应的那份数据，即第一个reduce task会拉取所有map task结果数据的第一份，以此类推。</p>
@@ -89,7 +233,7 @@
     </entry>
     
     <entry>
-      <title><![CDATA[深入理解Spark(二)：Spark Scheduler原理及资源配置]]></title>
+      <title><![CDATA[Spark Scheduler原理及资源配置]]></title>
       <url>http://sharkdtu.com/posts/spark-scheduler.html</url>
       <content type="html"><![CDATA[<p>通过文章<a href="/posts/spark-rdd.html">“Spark核心概念RDD”</a>我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能用最少的资源高效地完成任务计算。<a id="more"></a></p>
 <h2 id="分布式运行框架"><a href="#分布式运行框架" class="headerlink" title="分布式运行框架"></a>分布式运行框架</h2><p>Spark可以部署在多种资源管理平台，例如Yarn、Mesos等，Spark本身也实现了一个简易的资源管理机制，称之为Standalone模式。由于工作中接触较多的是Saprk on Yarn，不做特别说明，以下所述均表示spark-on-yarn。Spark部署在Yarn上有两种运行模式，分别为yarn-client和yarn-cluster模式，它们的区别仅仅在于Spark Driver是运行在Client端还是ApplicationMater端。如下图所示为Spark部署在Yarn上，以yarn－cluster模式运行的分布式计算框架。</p>
@@ -140,7 +284,7 @@
     </entry>
     
     <entry>
-      <title><![CDATA[深入理解Spark(一)：Spark核心概念RDD]]></title>
+      <title><![CDATA[Spark核心概念RDD]]></title>
       <url>http://sharkdtu.com/posts/spark-rdd.html</url>
       <content type="html"><![CDATA[<p>RDD全称叫做弹性分布式数据集(Resilient Distributed Datasets)，它是一种分布式的内存抽象，表示一个只读的记录分区的集合，它只能通过其他RDD转换而创建，为此，RDD支持丰富的转换操作(如map, join, filter, groupBy等)，通过这种转换操作，新的RDD则包含了如何从其他RDDs衍生所必需的信息，所以说RDDs之间是有依赖关系的。基于RDDs之间的依赖，RDDs会形成一个有向无环图DAG，该DAG描述了整个流式计算的流程，实际执行的时候，RDD是通过血缘关系(Lineage)一气呵成的，即使出现数据分区丢失，也可以通过血缘关系重建分区，总结起来，基于RDD的流式计算任务可描述为：从稳定的物理存储(如分布式文件系统)中加载记录，记录被传入由一组确定性操作构成的DAG，然后写回稳定存储。<a id="more"></a>另外RDD还可以将数据集缓存到内存中，使得在多个操作之间可以重用数据集，基于这个特点可以很方便地构建迭代型应用(图计算、机器学习等)或者交互式数据分析应用。可以说Spark最初也就是实现RDD的一个分布式系统，后面通过不断发展壮大成为现在较为完善的大数据生态系统，简单来讲，Spark-RDD的关系类似于Hadoop-MapReduce关系。</p>
 <h2 id="RDD特点"><a href="#RDD特点" class="headerlink" title="RDD特点"></a>RDD特点</h2><p>RDD表示只读的分区的数据集，对RDD进行改动，只能通过RDD的转换操作，由一个RDD得到一个新的RDD，新的RDD包含了从其他RDD衍生所必需的信息。RDDs之间存在依赖，RDD的执行是按照血缘关系延时计算的。如果血缘关系较长，可以通过持久化RDD来切断血缘关系。</p>

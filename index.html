@@ -53,7 +53,7 @@
   
     
     
-    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -102,7 +102,7 @@
     fancybox: true,
     motion: true,
     duoshuo: {
-      userId: 7001956,
+      userId: undefined,
       author: '博主'
     }
   };
@@ -285,8 +285,123 @@
             
               
                 
+                <a class="post-title-link" href="/posts/spark-cache-benchmark.html" itemprop="url">
+                  Spark Cache性能测试
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-03-22T22:11:29+08:00" content="2017-03-22">
+              2017-03-22
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/spark-cache-benchmark.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/spark-network.html" itemprop="url">
-                  深入理解Spark(四)：Spark 底层网络模块
+                  Spark 底层网络模块
                 </a>
               
             
@@ -326,15 +441,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-network.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-network.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -346,6 +452,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -372,8 +479,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -382,6 +489,7 @@
         <div class="post-eof"></div>
       
     </footer>
+    -->
   </article>
 
 
@@ -408,7 +516,7 @@
               
                 
                 <a class="post-title-link" href="/posts/spark-shuffle.html" itemprop="url">
-                  深入理解Spark(三)：Spark Shuffle原理及相关调优
+                  Spark Shuffle原理及相关调优
                 </a>
               
             
@@ -448,15 +556,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-shuffle.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-shuffle.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -468,6 +567,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -494,8 +594,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -504,6 +604,7 @@
         <div class="post-eof"></div>
       
     </footer>
+    -->
   </article>
 
 
@@ -530,7 +631,7 @@
               
                 
                 <a class="post-title-link" href="/posts/spark-scheduler.html" itemprop="url">
-                  深入理解Spark(二)：Spark Scheduler原理及资源配置
+                  Spark Scheduler原理及资源配置
                 </a>
               
             
@@ -570,15 +671,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-scheduler.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-scheduler.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -590,6 +682,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -616,8 +709,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -626,6 +719,7 @@
         <div class="post-eof"></div>
       
     </footer>
+    -->
   </article>
 
 
@@ -692,15 +786,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/maven-assembly-native-jar.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/maven-assembly-native-jar.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -712,6 +797,7 @@
       </header>
     
 
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -738,8 +824,8 @@
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
 
       
 
@@ -748,128 +834,7 @@
         <div class="post-eof"></div>
       
     </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/spark-rdd.html" itemprop="url">
-                  深入理解Spark(一)：Spark核心概念RDD
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-06-18T20:12:03+08:00" content="2016-06-18">
-              2016-06-18
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-rdd.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-rdd.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>RDD全称叫做弹性分布式数据集(Resilient Distributed Datasets)，它是一种分布式的内存抽象，表示一个只读的记录分区的集合，它只能通过其他RDD转换而创建，为此，RDD支持丰富的转换操作(如map, join, filter, groupBy等)，通过这种转换操作，新的RDD则包含了如何从其他RDDs衍生所必需的信息，所以说RDDs之间是有依赖关系的。基于RDDs之间的依赖，RDDs会形成一个有向无环图DAG，该DAG描述了整个流式计算的流程，实际执行的时候，RDD是通过血缘关系(Lineage)一气呵成的，即使出现数据分区丢失，也可以通过血缘关系重建分区，总结起来，基于RDD的流式计算任务可描述为：从稳定的物理存储(如分布式文件系统)中加载记录，记录被传入由一组确定性操作构成的DAG，然后写回稳定存储。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/spark-rdd.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
+    -->
   </article>
 
 
@@ -919,7 +884,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -936,7 +901,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -1112,32 +1077,9 @@
 
   
 
-  
-    
-  
-
-  <script type="text/javascript">
-    var duoshuoQuery = {short_name:"sharkdtu"};
-    (function() {
-      var ds = document.createElement('script');
-      ds.type = 'text/javascript';ds.async = true;
-      ds.id = 'duoshuo-script';
-      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-      ds.charset = 'UTF-8';
-      (document.getElementsByTagName('head')[0]
-      || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
-  </script>
-
-  
-    
-      
-      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
-      <script src="/js/src/hook-duoshuo.js"></script>
-    
-  
 
 
+  
 
 
 

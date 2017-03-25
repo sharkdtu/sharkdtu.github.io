@@ -53,7 +53,7 @@
   
     
     
-    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -88,7 +88,7 @@
 <meta property="og:url" content="http://sharkdtu.com/posts/centos-hadoop-setup.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hado">
-<meta property="og:updated_time" content="2016-11-05T14:24:16.000Z">
+<meta property="og:updated_time" content="2017-03-25T09:19:11.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CentOS下Hadoop-2.2.0集群安装配置">
 <meta name="twitter:description" content="对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hado">
@@ -103,7 +103,7 @@
     fancybox: true,
     motion: true,
     duoshuo: {
-      userId: 7001956,
+      userId: undefined,
       author: '博主'
     }
   };
@@ -320,15 +320,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/centos-hadoop-setup.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/centos-hadoop-setup.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -345,6 +336,17 @@
       </header>
     
 
+    
+      <div class="post-tags">
+        
+          <a href="/tags/big-data/" rel="tag">#大数据</a>
+        
+          <a href="/tags/hadoop/" rel="tag">#hadoop</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
+        
+      </div>
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -474,13 +476,13 @@ slave2
   </button>
   <div id="QR" style="display: none;">
     
-      <div id="wechat" style="display: inline-block">
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
         <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>微信打赏</p>
       </div>
     
     
-      <div id="alipay" style="display: inline-block">
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
         <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>支付宝打赏</p>
       </div>
@@ -488,21 +490,12 @@ slave2
   </div>
 </div>
 
+
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/big-data/" rel="tag">#大数据</a>
-          
-            <a href="/tags/hadoop/" rel="tag">#hadoop</a>
-          
-            <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
-          
-        </div>
-      
 
       
         <div class="post-nav">
@@ -523,33 +516,16 @@ slave2
       
       
     </footer>
+    -->
   </article>
 
 
 
+    <!--
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="posts/centos-hadoop-setup.html"
-     data-title="CentOS下Hadoop-2.2.0集群安装配置"
-     data-content=""
-     data-url="http://sharkdtu.com/posts/centos-hadoop-setup.html">
-  <div class="ds-share-inline">
-    <ul  class="ds-share-icons-16">
-
-      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
-      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
-      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
-      <li><a class="ds-douban" href="javascript:void(0);" data-service="douban">豆瓣</a></li>
-      <li><a class="ds-renren" href="javascript:void(0);" data-service="renren">人人网</a></li>
-
-    </ul>
-    <div class="ds-share-icons-more">
     </div>
-  </div>
-</div>
-
-      
-    </div>
+    -->
   </div>
 
 
@@ -558,14 +534,6 @@ slave2
 
 
           
-  <div class="comments" id="comments">
-    
-      <div class="ds-thread" data-thread-key="posts/centos-hadoop-setup.html"
-           data-title="CentOS下Hadoop-2.2.0集群安装配置" data-url="http://sharkdtu.com/posts/centos-hadoop-setup.html">
-      </div>
-    
-  </div>
-
 
         </div>
         
@@ -606,7 +574,7 @@ slave2
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -623,7 +591,7 @@ slave2
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -814,32 +782,9 @@ slave2
 
   
 
-  
-    
-  
-
-  <script type="text/javascript">
-    var duoshuoQuery = {short_name:"sharkdtu"};
-    (function() {
-      var ds = document.createElement('script');
-      ds.type = 'text/javascript';ds.async = true;
-      ds.id = 'duoshuo-script';
-      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-      ds.charset = 'UTF-8';
-      (document.getElementsByTagName('head')[0]
-      || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
-  </script>
-
-  
-    
-      
-      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
-      <script src="/js/src/hook-duoshuo.js"></script>
-    
-  
 
 
+  
 
 
 

@@ -8,11 +8,165 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Mon, 02 Jan 2017 14:53:52 GMT</pubDate>
+    <pubDate>Sat, 25 Mar 2017 09:18:44 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
-      <title>深入理解Spark(四)：Spark 底层网络模块</title>
+      <title>Spark Cache性能测试</title>
+      <link>http://sharkdtu.com/posts/spark-cache-benchmark.html</link>
+      <guid>http://sharkdtu.com/posts/spark-cache-benchmark.html</guid>
+      <pubDate>Wed, 22 Mar 2017 14:11:29 GMT</pubDate>
+      <description>
+      
+        &lt;p&gt;采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。
+      
+      </description>
+      
+      <content:encoded>&lt;p&gt;采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;测试准备&quot;&gt;&lt;a href=&quot;#测试准备&quot; class=&quot;headerlink&quot; title=&quot;测试准备&quot;&gt;&lt;/a&gt;测试准备&lt;/h2&gt;&lt;p&gt;训练数据是通过&lt;a href=&quot;http://prof.ict.ac.cn/BigDataBench/dowloads/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Facebook SNS公开数据集生成器&lt;/a&gt;得到，在HDFS上大小为9.3G，100个文件，添加如下两个参数以保证所有资源全部到位后才启动task，训练时间为加载数据到训练完毕这期间的耗时。&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;--conf spark.scheduler.minRegisteredResourcesRatio=1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--conf spark.scheduler.maxRegisteredResourcesWaitingTime=100000000&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;测试集群为3个节点的TS5机器搭建而成，其中一台作为RM，并运行着Alluxio Master，两个NM上同时运行着Alluxio Worker。除以上配置外，其他配置全部保持Spark默认状态。公共资源配置、分区设置以及算法参数如下表所示，executor_memory视不同的测试用例不同:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;driver_memory&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;num_executor&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;executor_cores&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;分区数&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;聚类个数&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;迭代次数&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;4g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;10&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;2&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;100&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;6&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;10&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&quot;测试用例&quot;&gt;&lt;a href=&quot;#测试用例&quot; class=&quot;headerlink&quot; title=&quot;测试用例&quot;&gt;&lt;/a&gt;测试用例&lt;/h2&gt;&lt;h3 id=&quot;测试用例1-不使用Cache&quot;&gt;&lt;a href=&quot;#测试用例1-不使用Cache&quot; class=&quot;headerlink&quot; title=&quot;测试用例1:  不使用Cache&quot;&gt;&lt;/a&gt;测试用例1:  不使用Cache&lt;/h3&gt;&lt;p&gt;在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过alluxio加载数据，相关测试指标数据如下表所示：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;\&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;说明&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;内存使用总量&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;训练时间&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;GC时间占比&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 1-1&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;从hdfs直接加载训练数据&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;20g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;1064s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;3.1%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 1-2&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;透过alluxio加载训练数据&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;20g + 9.3g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;689s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;3.4%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;不使用cache时，以上两种情形GC均不是瓶颈，主要差别表现在：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;从hdfs直接加载训练数据：在每次迭代时均要读一遍hdfs，访问hdfs有较大的开销；&lt;/li&gt;
+&lt;li&gt;透过alluxio加载训练数据：只需第一次加载读一遍hdfs，后续迭代直接从alluxio中读取，不过alluxio额外消耗9.3G内存，整体性能提升35%+。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;测试用例2-使用Cache&quot;&gt;&lt;a href=&quot;#测试用例2-使用Cache&quot; class=&quot;headerlink&quot; title=&quot;测试用例2:  使用Cache&quot;&gt;&lt;/a&gt;测试用例2:  使用Cache&lt;/h3&gt;&lt;p&gt;在使用Cache的情况下，从HDFS加载数据后先做cache，分别采用不同的Cache方式，相关测试指标数据如下表所示：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;\&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;缓存方式&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;executor_memory&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;内存使用总量&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;cache比例&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;训练时间&lt;/th&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;GC时间占比&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 2-1&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;MEMORY_ONLY&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;2g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;20g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;33%&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;1558s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;12%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 2-2&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;MEMORY_ONLY&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;4g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;40g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;90%&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;986s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;7%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 2-3&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;MEMORY_ONLY&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;6g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;60g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;100%&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;463s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;4.7%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 2-4&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;MEMORY_AND_DISK&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;2g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;20g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;100%&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;1182s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;16.9%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 2-5&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;DISK_ONLY&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;2g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;20g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;100%&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;514s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;3.2%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;case 2-6&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;ALLUXIO&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;2g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;20g + 9.3g&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;100%&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;687s&lt;/td&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;4.5%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&quot;https://alluxio.com/blog/alluxiospark-rdd&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;采用Alluxio的Cache实现方式&lt;/a&gt;为:&lt;br&gt;&lt;figure class=&quot;highlight scala&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;data.saveAsTextFile(path)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;val&lt;/span&gt; data = sc.textFile(path)&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;从以上测试数据看来，让人有点出乎意料，一开始有点不太相信，但是多次测试后数据并没有多大的抖动，所以说Spark的性能受多方面因素的影响，单单Cache这块不同的Cache方式以及不同的资源情况下，其性能差别就相差较大，下面分析其内在原因。&lt;/p&gt;
+&lt;p&gt;从HDFS加载训练数据后直接采用Spark原生的Cache，当executor_memory为2g时，不足以Cache住原始训练数据，从UI上看到Cache的比例只有33%左右，导致频繁的 rdd-block 剔除重建，同时由于内存吃紧，可能引发频发的Spill以及较重的GC，从UI上看到GC时间占到总的task运行时间的12%左右，已经成为瓶颈，其整体性能还不如不使用Cache的case1-1；当executor_memory为4g时，也不足以Cache住原始训练数据，但是其Cache的比例有90%左右，同样存在 rdd-block 剔除重建，频发Spill以及较重的GC，GC时间占总的task运行时间的7%左右，虽然比executor_memory为2g的情况有所好转，但是仍然不理想，只比不做Cache的case1-1好7%左右，但是内存却多用了20g，并不是特别划算；当executor_memory为6g时，可以全部Cache住原始训练数据，性能较优，GC占比较小，但是比不用Cache的case1-1要多用40g内存，有些代价。&lt;/p&gt;
+&lt;p&gt;一般来说，当我们内存不够时，可以选择MEMORY_AND_DISK的缓存方式，但是测试发现MEMORY_AND_DISK的缓存效果并不是特别好，从测试数据来看，还不如直接使用DISK_ONLY的缓存方式，MEMORY_AND_DISK的缓存方式带来的GC开销非常大，可能是因为每次都尽可能地Cache数据到内存，不够再刷到磁盘，造成JVM频繁GC。&lt;/p&gt;
+&lt;p&gt;另外测试了使用Alluxio作缓存的Case，发现并没有&lt;a href=&quot;https://alluxio.com/blog/alluxiospark-rdd&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;官方描述&lt;/a&gt;的那样会提升Cache的性能，还不如直接使用Spark DISK_ONLY缓存，感觉官方给的测试对比数据存在一定的水分，值得一提的是在多个Application之间Alluxio能起到加速作用。&lt;/p&gt;
+&lt;h2 id=&quot;小结&quot;&gt;&lt;a href=&quot;#小结&quot; class=&quot;headerlink&quot; title=&quot;小结&quot;&gt;&lt;/a&gt;小结&lt;/h2&gt;&lt;p&gt;Spark的Cache并不是总是会加速任务运行，Cache的方式不同，对任务产生的影响不同。并不是能用内存Cache就用内存，而是要考虑是否有充足的内存Cache住你的数据，否则可能适得其反。&lt;/p&gt;
+&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-cache-benchmark.html&quot;&gt;http://sharkdtu.com/posts/spark-cache-benchmark.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
+</content:encoded>
+      
+      
+    </item>
+    
+    <item>
+      <title>Spark 底层网络模块</title>
       <link>http://sharkdtu.com/posts/spark-network.html</link>
       <guid>http://sharkdtu.com/posts/spark-network.html</guid>
       <pubDate>Sat, 12 Nov 2016 14:11:29 GMT</pubDate>
@@ -61,11 +215,11 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-network.html&quot;&gt;http://sharkdtu.com/posts/spark-network.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/spark-network.html#disqus_thread</comments>
+      
     </item>
     
     <item>
-      <title>深入理解Spark(三)：Spark Shuffle原理及相关调优</title>
+      <title>Spark Shuffle原理及相关调优</title>
       <link>http://sharkdtu.com/posts/spark-shuffle.html</link>
       <guid>http://sharkdtu.com/posts/spark-shuffle.html</guid>
       <pubDate>Tue, 04 Oct 2016 07:21:44 GMT</pubDate>
@@ -113,11 +267,11 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-shuffle.html&quot;&gt;http://sharkdtu.com/posts/spark-shuffle.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/spark-shuffle.html#disqus_thread</comments>
+      
     </item>
     
     <item>
-      <title>深入理解Spark(二)：Spark Scheduler原理及资源配置</title>
+      <title>Spark Scheduler原理及资源配置</title>
       <link>http://sharkdtu.com/posts/spark-scheduler.html</link>
       <guid>http://sharkdtu.com/posts/spark-scheduler.html</guid>
       <pubDate>Sat, 23 Jul 2016 13:33:14 GMT</pubDate>
@@ -165,7 +319,7 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-scheduler.html&quot;&gt;http://sharkdtu.com/posts/spark-scheduler.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/spark-scheduler.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -184,11 +338,11 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/maven-assembly-native-jar.html&quot;&gt;http://sharkdtu.com/posts/maven-assembly-native-jar.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/maven-assembly-native-jar.html#disqus_thread</comments>
+      
     </item>
     
     <item>
-      <title>深入理解Spark(一)：Spark核心概念RDD</title>
+      <title>Spark核心概念RDD</title>
       <link>http://sharkdtu.com/posts/spark-rdd.html</link>
       <guid>http://sharkdtu.com/posts/spark-rdd.html</guid>
       <pubDate>Sat, 18 Jun 2016 12:12:03 GMT</pubDate>
@@ -226,7 +380,7 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-rdd.html&quot;&gt;http://sharkdtu.com/posts/spark-rdd.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/spark-rdd.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -349,7 +503,7 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/nn-nlp.html&quot;&gt;http://sharkdtu.com/posts/nn-nlp.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/nn-nlp.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -370,7 +524,7 @@
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html&quot;&gt;http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -528,7 +682,7 @@ res5: Boolean = true
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/scala-reflect.html&quot;&gt;http://sharkdtu.com/posts/scala-reflect.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/scala-reflect.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -547,7 +701,7 @@ res5: Boolean = true
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/blog-reborn.html&quot;&gt;http://sharkdtu.com/posts/blog-reborn.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/blog-reborn.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -608,7 +762,7 @@ res5: Boolean = true
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/mllib-tree.html&quot;&gt;http://sharkdtu.com/posts/mllib-tree.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/mllib-tree.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -630,7 +784,7 @@ res5: Boolean = true
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/half-year-work-feeling.html&quot;&gt;http://sharkdtu.com/posts/half-year-work-feeling.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/half-year-work-feeling.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -723,7 +877,7 @@ res5: Boolean = true
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-tun.html&quot;&gt;http://sharkdtu.com/posts/spark-tun.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/spark-tun.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -743,7 +897,7 @@ res5: Boolean = true
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/before-last-winter-vacation.html&quot;&gt;http://sharkdtu.com/posts/before-last-winter-vacation.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/before-last-winter-vacation.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -839,7 +993,7 @@ parameters {//参数
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/start-akka-remote.html&quot;&gt;http://sharkdtu.com/posts/start-akka-remote.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/start-akka-remote.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -903,7 +1057,7 @@ Spend:  9678 milliseconds
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/start-akka-actor.html&quot;&gt;http://sharkdtu.com/posts/start-akka-actor.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/start-akka-actor.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -993,7 +1147,7 @@ classes  wordcount_2.10-1.0.0.jar
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-build.html&quot;&gt;http://sharkdtu.com/posts/spark-build.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/spark-build.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -1018,7 +1172,7 @@ classes  wordcount_2.10-1.0.0.jar
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/to-live.html&quot;&gt;http://sharkdtu.com/posts/to-live.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/to-live.html#disqus_thread</comments>
+      
     </item>
     
     <item>
@@ -1136,7 +1290,7 @@ slave2
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/centos-hadoop-setup.html&quot;&gt;http://sharkdtu.com/posts/centos-hadoop-setup.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
-      <comments>http://sharkdtu.com/posts/centos-hadoop-setup.html#disqus_thread</comments>
+      
     </item>
     
   </channel>

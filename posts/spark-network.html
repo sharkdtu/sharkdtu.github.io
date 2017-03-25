@@ -53,7 +53,7 @@
   
     
     
-    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -84,7 +84,7 @@
 
 <meta name="description" content="对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对">
 <meta property="og:type" content="article">
-<meta property="og:title" content="深入理解Spark(四)：Spark 底层网络模块">
+<meta property="og:title" content="Spark 底层网络模块">
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-network.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对">
@@ -93,9 +93,9 @@
 <meta property="og:image" content="http://sharkdtu.com/images/spark-network-protocol.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-network-messagewithheader.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-network-handler.png">
-<meta property="og:updated_time" content="2017-01-02T14:53:52.000Z">
+<meta property="og:updated_time" content="2017-03-25T09:21:19.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="深入理解Spark(四)：Spark 底层网络模块">
+<meta name="twitter:title" content="Spark 底层网络模块">
 <meta name="twitter:description" content="对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对">
 <meta name="twitter:image" content="http://sharkdtu.com/images/spark-network-netty-overview.png">
 
@@ -109,13 +109,13 @@
     fancybox: true,
     motion: true,
     duoshuo: {
-      userId: 7001956,
+      userId: undefined,
       author: '博主'
     }
   };
 </script>
 
-  <title> 深入理解Spark(四)：Spark 底层网络模块 | 守护之鲨 </title>
+  <title> Spark 底层网络模块 | 守护之鲨 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -287,7 +287,7 @@
             
             
               
-                深入理解Spark(四)：Spark 底层网络模块
+                Spark 底层网络模块
               
             
           </h1>
@@ -326,15 +326,6 @@
           
 
           
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/posts/spark-network.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/spark-network.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
 
           
 
@@ -351,6 +342,19 @@
       </header>
     
 
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">#spark</a>
+        
+          <a href="/tags/big-data/" rel="tag">#大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
+        
+          <a href="/tags/network/" rel="tag">#network</a>
+        
+      </div>
+    
 
     <div class="post-body" itemprop="articleBody">
 
@@ -415,13 +419,13 @@
   </button>
   <div id="QR" style="display: none;">
     
-      <div id="wechat" style="display: inline-block">
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
         <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>微信打赏</p>
       </div>
     
     
-      <div id="alipay" style="display: inline-block">
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
         <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
         <p>支付宝打赏</p>
       </div>
@@ -429,35 +433,28 @@
   </div>
 </div>
 
+
       
     </div>
 
+    <!--
     <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/spark/" rel="tag">#spark</a>
-          
-            <a href="/tags/big-data/" rel="tag">#大数据</a>
-          
-            <a href="/tags/distributed-computation/" rel="tag">#分布式计算</a>
-          
-            <a href="/tags/network/" rel="tag">#network</a>
-          
-        </div>
-      
 
       
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/posts/spark-shuffle.html" rel="next" title="深入理解Spark(三)：Spark Shuffle原理及相关调优">
-                <i class="fa fa-chevron-left"></i> 深入理解Spark(三)：Spark Shuffle原理及相关调优
+              <a href="/posts/spark-shuffle.html" rel="next" title="Spark Shuffle原理及相关调优">
+                <i class="fa fa-chevron-left"></i> Spark Shuffle原理及相关调优
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/spark-cache-benchmark.html" rel="prev" title="Spark Cache性能测试">
+                Spark Cache性能测试 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -466,33 +463,16 @@
       
       
     </footer>
+    -->
   </article>
 
 
 
+    <!--
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="posts/spark-network.html"
-     data-title="深入理解Spark(四)：Spark 底层网络模块"
-     data-content=""
-     data-url="http://sharkdtu.com/posts/spark-network.html">
-  <div class="ds-share-inline">
-    <ul  class="ds-share-icons-16">
-
-      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
-      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
-      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
-      <li><a class="ds-douban" href="javascript:void(0);" data-service="douban">豆瓣</a></li>
-      <li><a class="ds-renren" href="javascript:void(0);" data-service="renren">人人网</a></li>
-
-    </ul>
-    <div class="ds-share-icons-more">
     </div>
-  </div>
-</div>
-
-      
-    </div>
+    -->
   </div>
 
 
@@ -501,14 +481,6 @@
 
 
           
-  <div class="comments" id="comments">
-    
-      <div class="ds-thread" data-thread-key="posts/spark-network.html"
-           data-title="深入理解Spark(四)：Spark 底层网络模块" data-url="http://sharkdtu.com/posts/spark-network.html">
-      </div>
-    
-  </div>
-
 
         </div>
         
@@ -549,7 +521,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -566,7 +538,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -757,32 +729,9 @@
 
   
 
-  
-    
-  
-
-  <script type="text/javascript">
-    var duoshuoQuery = {short_name:"sharkdtu"};
-    (function() {
-      var ds = document.createElement('script');
-      ds.type = 'text/javascript';ds.async = true;
-      ds.id = 'duoshuo-script';
-      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-      ds.charset = 'UTF-8';
-      (document.getElementsByTagName('head')[0]
-      || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
-  </script>
-
-  
-    
-      
-      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
-      <script src="/js/src/hook-duoshuo.js"></script>
-    
-  
 
 
+  
 
 
 
