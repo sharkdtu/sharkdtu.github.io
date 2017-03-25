@@ -32,7 +32,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><h3 id="测试用例1-不使用Cache"><a href="#测试用例1-不使用Cache" class="headerlink" title="测试用例1:  不使用Cache"></a>测试用例1:  不使用Cache</h3><p>在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过alluxio加载数据，相关测试指标数据如下表所示：</p>
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><h3 id="测试用例1-不使用Cache"><a href="#测试用例1-不使用Cache" class="headerlink" title="测试用例1:  不使用Cache"></a>测试用例1:  不使用Cache</h3><p>在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过ALLUXIO加载数据，相关测试指标数据如下表所示：</p>
 <table>
 <thead>
 <tr>

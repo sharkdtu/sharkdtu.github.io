@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
+    
+    <lastmod>2017-03-25T10:05:24.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/to-live.html</loc>
     
     <lastmod>2017-03-25T09:22:15.000Z</lastmod>
@@ -124,13 +131,6 @@
     <loc>http://sharkdtu.com/posts/spark-scheduler.html</loc>
     
     <lastmod>2017-03-25T09:18:53.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
-    
-    <lastmod>2017-03-25T09:18:44.000Z</lastmod>
     
   </url>
   

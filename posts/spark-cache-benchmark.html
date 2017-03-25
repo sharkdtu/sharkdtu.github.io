@@ -49,11 +49,17 @@
   
 
   
+    
+      
+    
+
+    
+  
 
   
     
     
-    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
   
 
 
@@ -88,7 +94,7 @@
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-cache-benchmark.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
-<meta property="og:updated_time" content="2017-03-25T09:18:44.000Z">
+<meta property="og:updated_time" content="2017-03-25T10:05:24.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark Cache性能测试">
 <meta name="twitter:description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
@@ -382,7 +388,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><h3 id="测试用例1-不使用Cache"><a href="#测试用例1-不使用Cache" class="headerlink" title="测试用例1:  不使用Cache"></a>测试用例1:  不使用Cache</h3><p>在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过alluxio加载数据，相关测试指标数据如下表所示：</p>
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><h3 id="测试用例1-不使用Cache"><a href="#测试用例1-不使用Cache" class="headerlink" title="测试用例1:  不使用Cache"></a>测试用例1:  不使用Cache</h3><p>在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过ALLUXIO加载数据，相关测试指标数据如下表所示：</p>
 <table>
 <thead>
 <tr>

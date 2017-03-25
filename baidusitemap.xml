@@ -4,6 +4,32 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
+    <lastmod>2017-03-25T10:05:24.000Z</lastmod>
+    <data>
+        <display>
+        <title>Spark Cache性能测试</title>
+        <pubTime>2017-03-22T14:11:29.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>分布式计算</tag>
+         
+        <tag>cache</tag>
+         
+        <tag>benchmark</tag>
+         
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/to-live.html</loc>
     <lastmod>2017-03-25T09:22:15.000Z</lastmod>
     <data>
@@ -412,32 +438,6 @@
         <tag>分布式计算</tag>
          
         <tag>Scheduler</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
-    <lastmod>2017-03-25T09:18:44.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark Cache性能测试</title>
-        <pubTime>2017-03-22T14:11:29.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>cache</tag>
-         
-        <tag>benchmark</tag>
          
          
            

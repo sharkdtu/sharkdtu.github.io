@@ -8,7 +8,7 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Sat, 25 Mar 2017 09:18:44 GMT</pubDate>
+    <pubDate>Sat, 25 Mar 2017 10:05:24 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
@@ -48,7 +48,7 @@
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;h2 id=&quot;测试用例&quot;&gt;&lt;a href=&quot;#测试用例&quot; class=&quot;headerlink&quot; title=&quot;测试用例&quot;&gt;&lt;/a&gt;测试用例&lt;/h2&gt;&lt;h3 id=&quot;测试用例1-不使用Cache&quot;&gt;&lt;a href=&quot;#测试用例1-不使用Cache&quot; class=&quot;headerlink&quot; title=&quot;测试用例1:  不使用Cache&quot;&gt;&lt;/a&gt;测试用例1:  不使用Cache&lt;/h3&gt;&lt;p&gt;在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过alluxio加载数据，相关测试指标数据如下表所示：&lt;/p&gt;
+&lt;h2 id=&quot;测试用例&quot;&gt;&lt;a href=&quot;#测试用例&quot; class=&quot;headerlink&quot; title=&quot;测试用例&quot;&gt;&lt;/a&gt;测试用例&lt;/h2&gt;&lt;h3 id=&quot;测试用例1-不使用Cache&quot;&gt;&lt;a href=&quot;#测试用例1-不使用Cache&quot; class=&quot;headerlink&quot; title=&quot;测试用例1:  不使用Cache&quot;&gt;&lt;/a&gt;测试用例1:  不使用Cache&lt;/h3&gt;&lt;p&gt;在不使用Cache的情况下，测试Spark-Kmeans算法的训练时间以及GC时间占比。这里分别使用两种方式加载数据，一种是直接从HDFS加载数据，另一种是透过ALLUXIO加载数据，相关测试指标数据如下表所示：&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
