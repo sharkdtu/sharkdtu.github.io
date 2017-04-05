@@ -420,8 +420,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-11-12T22:11:29+08:00" content="2016-11-12">
-              2016-11-12
+            <time itemprop="dateCreated" datetime="2016-12-12T22:11:29+08:00" content="2016-12-12">
+              2016-12-12
             </time>
           </span>
 
@@ -535,8 +535,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-10-04T15:21:44+08:00" content="2016-10-04">
-              2016-10-04
+            <time itemprop="dateCreated" datetime="2016-11-04T15:21:44+08:00" content="2016-11-04">
+              2016-11-04
             </time>
           </span>
 
@@ -637,7 +637,7 @@
               
                 
                 <a class="post-title-link" href="/posts/spark-scheduler.html" itemprop="url">
-                  Spark Scheduler原理及资源配置
+                  Spark Scheduler内部原理剖析
                 </a>
               
             
@@ -650,8 +650,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-07-23T21:33:14+08:00" content="2016-07-23">
-              2016-07-23
+            <time itemprop="dateCreated" datetime="2016-10-23T21:33:14+08:00" content="2016-10-23">
+              2016-10-23
             </time>
           </span>
 
@@ -751,8 +751,8 @@
             
               
                 
-                <a class="post-title-link" href="/posts/maven-assembly-native-jar.html" itemprop="url">
-                  Maven 使用本地jar包
+                <a class="post-title-link" href="/posts/spark-rdd.html" itemprop="url">
+                  Spark核心概念RDD
                 </a>
               
             
@@ -765,8 +765,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-06-24T21:45:11+08:00" content="2016-06-24">
-              2016-06-24
+            <time itemprop="dateCreated" datetime="2016-09-18T20:12:03+08:00" content="2016-09-18">
+              2016-09-18
             </time>
           </span>
 
@@ -779,8 +779,8 @@
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/stackoverflow/" itemprop="url" rel="index">
-                    <span itemprop="name">问题总结</span>
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
                   </a>
                 </span>
 
@@ -812,9 +812,9 @@
 
       
         
-          <p>通常maven管理的项目中的依赖都是在远程仓库中的，假如我需要在maven项目中添加一个本地的jar包依赖，该jar包在仓库中是不存在的，可能是项目组前人开发的一个库，但是没发布到maven仓库中。遇到这种情况我们可以通过在pom中指定本地的依赖
+          <p>RDD全称叫做弹性分布式数据集(Resilient Distributed Datasets)，它是一种分布式的内存抽象，表示一个只读的记录分区的集合，它只能通过其他RDD转换而创建，为此，RDD支持丰富的转换操作(如map, join, filter, groupBy等)，通过这种转换操作，新的RDD则包含了如何从其他RDDs衍生所必需的信息，所以说RDDs之间是有依赖关系的。基于RDDs之间的依赖，RDDs会形成一个有向无环图DAG，该DAG描述了整个流式计算的流程，实际执行的时候，RDD是通过血缘关系(Lineage)一气呵成的，即使出现数据分区丢失，也可以通过血缘关系重建分区，总结起来，基于RDD的流式计算任务可描述为：从稳定的物理存储(如分布式文件系统)中加载记录，记录被传入由一组确定性操作构成的DAG，然后写回稳定存储。
           <div class="post-more-link text-center">
-            <a class="btn" href="/posts/maven-assembly-native-jar.html#more" rel="contents">
+            <a class="btn" href="/posts/spark-rdd.html#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
