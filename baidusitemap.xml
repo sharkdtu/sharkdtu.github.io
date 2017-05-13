@@ -3,6 +3,32 @@
 
 
     
+  <url>
+    <loc>http://sharkdtu.com/posts/spark-shuffle.html</loc>
+    <lastmod>2017-05-13T16:17:47.000Z</lastmod>
+    <data>
+        <display>
+        <title>Spark Shuffle原理及相关调优</title>
+        <pubTime>2016-11-04T07:21:44.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>大数据</tag>
+         
+        <tag>分布式计算</tag>
+         
+        <tag>shuffle</tag>
+         
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
     
   <url>
     <loc>http://sharkdtu.com/posts/spark-app-optimize.html</loc>
@@ -97,32 +123,6 @@
         <tag>分布式计算</tag>
          
         <tag>network</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-shuffle.html</loc>
-    <lastmod>2017-04-05T15:23:33.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark Shuffle原理及相关调优</title>
-        <pubTime>2016-11-04T07:21:44.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>shuffle</tag>
          
          
            
