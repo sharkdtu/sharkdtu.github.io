@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://sharkdtu.com/posts/spark-app-optimize.html</loc>
+    
+    <lastmod>2017-05-13T14:50:21.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/spark-scheduler.html</loc>
     
     <lastmod>2017-04-05T15:25:35.000Z</lastmod>
@@ -142,14 +149,14 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/404.html</loc>
+    <loc>http://sharkdtu.com/categories/index.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/categories/index.html</loc>
+    <loc>http://sharkdtu.com/404.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
