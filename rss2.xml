@@ -8,7 +8,7 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Sat, 13 May 2017 14:50:21 GMT</pubDate>
+    <pubDate>Sat, 13 May 2017 15:12:35 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
@@ -150,8 +150,7 @@
 &lt;p&gt;把上述&lt;code&gt;-XX:NewRatio=3&lt;/code&gt;去掉，设置参数&lt;code&gt;-XX:CMSInitiatingOccupancyFraction=60&lt;/code&gt;，重新提交程序，得到executor GC的监控信息，发现GC最大暂停时间也降下来了，但是由于老年代GC的频率加大了，整体运行时间为498s，比原来的436s还要长。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;/images/executor-gc3.png&quot; alt=&quot;executor-gc3 | center&quot;&gt;&lt;/p&gt;
 &lt;p&gt;综合考虑以上信息，增加executor的jvm启动参数&lt;code&gt;-XX:NewRatio=3&lt;/code&gt;，能把GC状态调整到一个较优的状态。&lt;/p&gt;
-&lt;p&gt;值得一提的是，目前我们平台还没开放给用户配置jvm参数的功能，以上监控信息暂时只能内部开发人员才能拿的到，这里拿出来仅作为相关调优思考，考虑平台的通用性，我们已经配置好了较为平衡的jvm参数，后续探索如何向用户提供这些监控信息作为参考。&lt;/p&gt;
-&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;Spark给我们提供了一种简单灵活的大数据编程框架，但是对于很多实际问题的处理，还应该多思考下如何让我们写出来的应用程序更高效更节约。除了最后关于性能监控外，以上其他几个调优点是可以推广到其他应用的，在我们编写spark应用程序时，通过这种思考也可以加速我们对spark的理解。&lt;/p&gt;
+&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;Spark给我们提供了一种简单灵活的大数据编程框架，但是对于很多实际问题的处理，还应该多思考下如何让我们写出来的应用程序更高效更节约，以上几个调优点是可以推广到其他应用的，在我们编写spark应用程序时，通过这种思考也可以加速我们对spark的理解。&lt;/p&gt;
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-app-optimize.html&quot;&gt;http://sharkdtu.com/posts/spark-app-optimize.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       

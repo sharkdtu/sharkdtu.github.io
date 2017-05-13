@@ -116,7 +116,7 @@
 <meta property="og:image" content="http://sharkdtu.com/images/executor-heap-info2.png">
 <meta property="og:image" content="http://sharkdtu.com/images/executor-gc2.png">
 <meta property="og:image" content="http://sharkdtu.com/images/executor-gc3.png">
-<meta property="og:updated_time" content="2017-05-13T14:50:21.000Z">
+<meta property="og:updated_time" content="2017-05-13T15:12:35.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="从PageRank Example谈Spark应用程序调优">
 <meta name="twitter:description" content="最近在做BigData-Benchmark中PageRank测试，在测试时，发现有很多有趣的调优点，想到这些调优点可能是普遍有效的，现把它整理出来一一分析，以供大家参考。BigData-Benchmark中的Spark PageRank采用的是Spark开源代码examples包里的PageRank的代码，原理及代码实现都比较简单，下面我简单地介绍下。">
@@ -513,8 +513,7 @@
 <p>把上述<code>-XX:NewRatio=3</code>去掉，设置参数<code>-XX:CMSInitiatingOccupancyFraction=60</code>，重新提交程序，得到executor GC的监控信息，发现GC最大暂停时间也降下来了，但是由于老年代GC的频率加大了，整体运行时间为498s，比原来的436s还要长。</p>
 <p><img src="/images/executor-gc3.png" alt="executor-gc3 | center"></p>
 <p>综合考虑以上信息，增加executor的jvm启动参数<code>-XX:NewRatio=3</code>，能把GC状态调整到一个较优的状态。</p>
-<p>值得一提的是，目前我们平台还没开放给用户配置jvm参数的功能，以上监控信息暂时只能内部开发人员才能拿的到，这里拿出来仅作为相关调优思考，考虑平台的通用性，我们已经配置好了较为平衡的jvm参数，后续探索如何向用户提供这些监控信息作为参考。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spark给我们提供了一种简单灵活的大数据编程框架，但是对于很多实际问题的处理，还应该多思考下如何让我们写出来的应用程序更高效更节约。除了最后关于性能监控外，以上其他几个调优点是可以推广到其他应用的，在我们编写spark应用程序时，通过这种思考也可以加速我们对spark的理解。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spark给我们提供了一种简单灵活的大数据编程框架，但是对于很多实际问题的处理，还应该多思考下如何让我们写出来的应用程序更高效更节约，以上几个调优点是可以推广到其他应用的，在我们编写spark应用程序时，通过这种思考也可以加速我们对spark的理解。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-app-optimize.html">http://sharkdtu.com/posts/spark-app-optimize.html</a></em></span></p>
 
       
