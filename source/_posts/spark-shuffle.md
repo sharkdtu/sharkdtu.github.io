@@ -10,7 +10,7 @@ tags:
   - 分布式计算
 ---
 
-通过文章[“Spark Scheduler原理及资源配置”](/posts/spark-scheduler.html)我们知道，Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map工作，下游Stage做reduce工作，其本质上还是MapReduce计算框架。Shuffle是连接map和reduce之间的桥梁，它将map的输出对应到reduce输入中，这期间涉及到序列化反序列化、跨节点网络IO以及磁盘读写IO等，所以说Shuffle是整个应用程序运行过程中非常昂贵的一个阶段，理解Spark Shuffle原理有助于优化Spark应用程序。<!--more-->
+通过文章[“Spark Scheduler内部原理剖析”](/posts/spark-scheduler.html)我们知道，Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map工作，下游Stage做reduce工作，其本质上还是MapReduce计算框架。Shuffle是连接map和reduce之间的桥梁，它将map的输出对应到reduce输入中，这期间涉及到序列化反序列化、跨节点网络IO以及磁盘读写IO等，所以说Shuffle是整个应用程序运行过程中非常昂贵的一个阶段，理解Spark Shuffle原理有助于优化Spark应用程序。<!--more-->
 
 ## Spark Shuffle的基本原理与特性
 
