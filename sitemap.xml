@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://sharkdtu.com/posts/ml-lr.html</loc>
+    
+    <lastmod>2017-06-04T15:27:32.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/spark-sql-join.html</loc>
     
     <lastmod>2017-05-30T06:49:07.000Z</lastmod>
@@ -156,14 +163,14 @@
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/404.html</loc>
+    <loc>http://sharkdtu.com/categories/index.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/categories/index.html</loc>
+    <loc>http://sharkdtu.com/404.html</loc>
     
     <lastmod>2016-11-05T14:24:16.000Z</lastmod>
     

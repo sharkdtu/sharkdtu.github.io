@@ -8,8 +8,77 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Tue, 30 May 2017 06:49:07 GMT</pubDate>
+    <pubDate>Sun, 04 Jun 2017 15:27:32 GMT</pubDate>
     <generator>http://hexo.io/</generator>
+    
+    <item>
+      <title>机器学习套路--逻辑回归</title>
+      <link>http://sharkdtu.com/posts/ml-lr.html</link>
+      <guid>http://sharkdtu.com/posts/ml-lr.html</guid>
+      <pubDate>Sat, 03 Jun 2017 14:45:33 GMT</pubDate>
+      <description>
+      
+        &lt;p&gt;逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。
+      
+      </description>
+      
+      <content:encoded>&lt;p&gt;逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;感性认识&quot;&gt;&lt;a href=&quot;#感性认识&quot; class=&quot;headerlink&quot; title=&quot;感性认识&quot;&gt;&lt;/a&gt;感性认识&lt;/h2&gt;&lt;p&gt;$sigmoid$ 函数 $\sigma (z) = \frac{1}{1+e^{-z}}$ 有如下图所示的漂亮S型曲线。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/sigmoid.png&quot; alt=&quot;sigmoid | center&quot;&gt;&lt;/p&gt;
+&lt;p&gt;逻辑回归其实是在线性回归的基础上 $z = \sum_{i=1}^{n} {w_ix_i}$ ，借助 $sigmoid$ 函数将预测值压缩到0-1之间，实际上它是一种线性模型。其决策边界并不是上图中的S型曲线，而是一条直线或平面，如下图所示。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/lr-boundary.png&quot; width=&quot;328&quot; height=&quot;200&quot; alt=&quot;lr-boundary&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;基本套路&quot;&gt;&lt;a href=&quot;#基本套路&quot; class=&quot;headerlink&quot; title=&quot;基本套路&quot;&gt;&lt;/a&gt;基本套路&lt;/h2&gt;&lt;p&gt;机器学习问题，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;基本模型&lt;/strong&gt;：&lt;br&gt;$$ h_ \theta(X) = \frac {1} {1 + e^{-\theta^T X}} $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$\theta$ 为模型参数，$X$ 为表示样本特征，它们均为 $n$ 维向量。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;代价函数&lt;/strong&gt;：&lt;br&gt;$$&lt;br&gt;J(\theta) = - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} logh_\theta(X^{(i)}) + (1-y^{(i)})(1-logh_\theta(X^{(i)}) \right)&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;上述公式也称之为交叉熵，$m$ 为样本个数，$(X^{(i)}, y^{(i)})$ 为第 $i$ 个样本。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;参数梯度&lt;/strong&gt;：&lt;br&gt;$$&lt;br&gt;\bigtriangledown_{\theta_j} J(\theta)  =  \frac {1} {m} \sum_{i=1}^m \left[ \left( y^{(i)} - h_\theta(X^{(i)}) \right) X^{(i)}_j \right]&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$\theta_j$ 表示第 $j$ 个参数，$X^{(i)}_j$ 表示样本 $X^{(i)}$ 的第 $j$ 个特征值。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;应用套路&quot;&gt;&lt;a href=&quot;#应用套路&quot; class=&quot;headerlink&quot; title=&quot;应用套路&quot;&gt;&lt;/a&gt;应用套路&lt;/h2&gt;&lt;p&gt;在实际应用时，基于上述基本套路可能会有些小变化，下面还是从模型、代价函数以及参数梯度来描述。&lt;/p&gt;
+&lt;p&gt;通常来说在模型中会加个偏置项，模型变成如下形式：&lt;br&gt;$$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$&lt;/p&gt;
+&lt;p&gt;为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;L1:  $\lambda \left |  \theta \right |$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导&lt;/li&gt;
+&lt;li&gt;L2:  $\frac {\lambda} {2}  {\left |  \theta \right |}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导&lt;/li&gt;
+&lt;li&gt;L1&amp;amp;L2:  $\alpha \left |  \theta \right | + \frac {\beta} {2} {\left |  \theta \right |}^2$,  也称之为弹性网络(ElasticNet)，具备L1&amp;amp;L2的双重特性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;加上正则项后，代价函数变成如下形式：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;J(\theta, b) =&amp;amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\&lt;br&gt;&amp;amp;+ \frac {\alpha} {m} \left |  \theta \right | + \frac {\beta} {2m} {\left |  \theta \right |}^2&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt; $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;由于 $sigmoid$ 函数在两端靠近极值点附近特别平缓，如果使用梯度下降优化算法，收敛非常慢，通常实际应用时，会使用拟牛顿法，它是沿着梯度下降最快的方向搜索，收敛相对较快，常见的拟牛顿法为&lt;a href=&quot;http://blog.csdn.net/itplus/article/details/21896453&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;L-BFGS&lt;/a&gt;和&lt;a href=&quot;http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;OWL-QN&lt;/a&gt;。L-BFGS只能处理可导的代价函数，由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能使用L-BFGS，OWL-QN是基于L-BFGS算法的可用于求解L1正则的算法，所以当 $\alpha$ 不为0，可以使用OWL-QN。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;\bigtriangledown_{\theta_j} J(\theta, b) &amp;amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right) X^{(i)}_j + \frac {\beta} {m}  {\theta_j}^\ast \\&lt;br&gt;\bigtriangledown_b J(\theta, b) &amp;amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;${\theta_j}^\ast$ 为上一次迭代得到的参数值。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;Softmax&quot;&gt;&lt;a href=&quot;#Softmax&quot; class=&quot;headerlink&quot; title=&quot;Softmax&quot;&gt;&lt;/a&gt;Softmax&lt;/h2&gt;&lt;p&gt;上述逻辑回归为二元逻辑回归，只能解决二分类问题，更一般地，可以推广到多元逻辑回归，用于解决多分类问题，一般将其称之为softmax，其模型、代价函数以及参数梯度描述如下。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;基本模型&lt;/strong&gt;&lt;br&gt;$$&lt;br&gt;H_\Theta(X) = \frac {1} {\sum_{j=1}^k exp(\Theta_j^T X)}&lt;br&gt;\begin{bmatrix}&lt;br&gt;exp(\Theta_1^T X)\\&lt;br&gt;exp(\Theta_2^T X)\\&lt;br&gt;…\\&lt;br&gt;exp(\Theta_k^T X)&lt;br&gt;\end{bmatrix}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$H_ \Theta(X)$ 是一个 $k$ 维向量，$k$ 为类别的个数，对于一个实例 $X$ ，经过上述模型输出 $k$ 个概率值，表示预测不同类别的概率，不难看出，输出的 $k$ 个概率值之和为1。模型中的参数则可以抽象为如下矩阵形式：&lt;br&gt; $$ \Theta = \begin{bmatrix}-\Theta_1^T-\\ -\Theta_2^T-\\ \cdots \\ -\Theta_k^T-\end{bmatrix} $$ $\Theta_j$ 表示第 $j$ 个参数向量，如果参数中带有偏置项，那么总共有 $k \times (n+1)$ 个参数。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;代价函数&lt;/strong&gt;&lt;br&gt;$$ J(\Theta) = - \frac {1} {m} \left[\sum_{i=1}^m \sum_{j=1}^k 1 \left\{ y^{(i)} = j \right\} log \frac {exp(\Theta_j^T X)} {\sum_{l=1}^k exp(\Theta_l^T X)} \right] $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$1 \left\{ y^{(i)} = j \right\}$ 为示性函数，表示 $y^{(i)} = j$ 为真时，其结果为1，否则为0.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;参数梯度&lt;/strong&gt;&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;&amp;amp; P\left( y^{(i)} = j \mid X^{(i)}, \Theta \right) = \frac {exp(\Theta_j^T X)} {\sum_{l=1}^k exp(\Theta_l^T X)}  \\&lt;br&gt;&amp;amp; \bigtriangledown_{\Theta_j} J(\Theta)  =  \frac {1} {m} \sum_{i=1}^m \left[ \left( 1 \left\{ y^{(i)} = j \right\} - P\left( y^{(i)} = j \mid X^{(i)}, \Theta \right) \right ) X^{(i)} \right]&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$P\left( y^{(i)} = j \mid X^{(i)}, \Theta \right)$ 表示将 $X^{(i)}$ 预测为第 $j$ 类的概率，注意 $\bigtriangledown_ {\Theta_j} J(\Theta)$ 是一个向量。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;虽然逻辑回归是线性模型，看起来很简单，但是被应用到大量实际业务中，尤其在计算广告领域它一直是一颗闪耀的明珠，总结其优缺点如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;优点：计算代价低，速度快，易于理解和实现。&lt;/li&gt;
+&lt;li&gt;缺点：容易欠拟合，分类的精度可能不高。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/ml-lr.html&quot;&gt;http://sharkdtu.com/posts/ml-lr.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
+</content:encoded>
+      
+      
+    </item>
     
     <item>
       <title>Spark SQL 之 Join 实现</title>
@@ -1399,31 +1468,6 @@ classes  wordcount_2.10-1.0.0.jar
 &lt;p&gt;这里采用的是yarn-cluster部署模式，num-executors指定启动的executor数量，driver-memory指定drive端所需内存大小，executor-memory指定executor所需内存大小，executor-cores指定每个executor使用的内核数。运行如上脚本后，打开Hadoop的web页面可以看到运行正常，如下图所示：&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;/images/spark-on-yarn.png&quot; alt=&quot;spark-on-yarn&quot;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-build.html&quot;&gt;http://sharkdtu.com/posts/spark-build.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
-</content:encoded>
-      
-      
-    </item>
-    
-    <item>
-      <title>《活着》–让人瞬间安静的一本书</title>
-      <link>http://sharkdtu.com/posts/to-live.html</link>
-      <guid>http://sharkdtu.com/posts/to-live.html</guid>
-      <pubDate>Mon, 03 Nov 2014 13:20:25 GMT</pubDate>
-      <description>
-      
-        &lt;p&gt;&lt;img src=&quot;/images/to-live.jpg&quot; alt=&quot;to-live&quot;&gt;&lt;/p&gt;
-&lt;p&gt;之前是看了电影版的《活着》，不禁感慨老谋子前期的作品还是非常用心的，一般来说，被禁播的电影一定是非常值得看的，因为这类电影往往是不受Party意识形态的约束，自由地讲述故事。从这部电影中我们能清晰地看到，从民国到解放、从大跃进到文革时期的中国普通老百姓的生活状况，个人觉得不失为中小学的教育素材。当时看电影时就哽咽数次，如今现在工作找的差不多了，所以想到要把原著好好读一读，读完发现电影与原著还是有些差别，但基本路子还在，不知道是不是被阉割数次后结果。
-      
-      </description>
-      
-      <content:encoded>&lt;p&gt;&lt;img src=&quot;/images/to-live.jpg&quot; alt=&quot;to-live&quot;&gt;&lt;/p&gt;
-&lt;p&gt;之前是看了电影版的《活着》，不禁感慨老谋子前期的作品还是非常用心的，一般来说，被禁播的电影一定是非常值得看的，因为这类电影往往是不受Party意识形态的约束，自由地讲述故事。从这部电影中我们能清晰地看到，从民国到解放、从大跃进到文革时期的中国普通老百姓的生活状况，个人觉得不失为中小学的教育素材。当时看电影时就哽咽数次，如今现在工作找的差不多了，所以想到要把原著好好读一读，读完发现电影与原著还是有些差别，但基本路子还在，不知道是不是被阉割数次后结果。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;书中讲述主人公福贵从风光到破产再到艰难，展现了民国时期地主和解放后普通老百姓的生活现状，作者给我们讲述了人们纷纷在“活着”的信念下一一死去，这大概是“活着”书名的由来。刚开始读的时候，给人的第一感觉是抨击当时地主的那种骄奢淫逸的生活，当主人公把家产输光破产后，又营造出一种让人怜悯的氛围，接下来就是讲述与主人公有关的亲人一一死去的故事，在每个人死去之前都给死者一个人生小巅峰，让读者跟着欣慰一小下。&lt;/p&gt;
-&lt;p&gt;第一个死去的是主人公福贵的儿子有庆，这大概是我看到一半的时候，当时看后就觉得心寒，放下书发了个朋友圈，整个人都安静很多了，在这之前，作者还假装让有庆得个长跑第一名，然后就毫不犹豫的将其写死，当然这一过程是做了大量的铺垫，漓淋尽致地反映出当时的社会状况。当时正处大跃进时期，全国上下大张旗鼓地炼钢铁，而大多数人对于炼钢缺乏常识，书中描述福贵他们村挨家挨户的轮流守炉，最开始由于不知道该怎么炼，因为有庆天真的说了句需要加水才能煮钢铁，大伙儿就纷纷不停地加水，个个跟打了鸡血似的天天在那煮钢铁，还是有一次机缘巧合，福贵媳妇儿家珍累地忘了加水，才稍微将钢铁给煮成了，这足以让我们看到大跃进时期人们的愚昧无知。另外，在当时，底层老百姓生活疾苦，在政府看来，老百姓的生也不值一文，年仅12岁的有庆每天起早摸黑的去给羊割草喂食，为了不磨损鞋底，光着脚跑去上学，无论严寒地洞，最后为了抢着给县长夫人献血，被无良医生将血抽光，不幸死去，这在当时福贵和家珍只能跟着哭，却毫无反抗说理之力，最后也只能是感慨有庆命不好。&lt;/p&gt;
-&lt;p&gt;福贵的女儿凤霞在一次高烧中落下了不能说话的毛病，一直以来是听话懂事，为家里分担大大小小的活，说到这里，得提一句我姐，小时候也是因为家里比较苦，为了减轻家里的负担，辍学出去打工（也有可能是她学习太差真心不想读:)），在我读书期间给了我很多的关怀和帮助，现在常常觉得有姐真心是件很幸福的事。有点跑偏了，回到凤霞的故事，凤霞的死是正值文革时期，全国上下铺天盖地的打斗，哪哪都是宣传报毛主席像，凤霞在这个时候却很幸运的嫁出去了，福贵和家珍都为她高兴，对方是个老老实实的工人阶层，对福贵和家珍也非常孝顺，看到这里，心中不由地会有些小欣慰，紧接着凤霞怀有孩子，给一家子掀起了一个小高潮，然而，作者真的是毫不留情，就在凤霞生孩子的时候，由于大出血不幸的死去了，所幸孩子还在，这一段在书中貌似没过多的描述，在电影里是这样的一个镜头，凤霞在医院生产时，当时医院的一些医生大夫都被打倒为走资派，整个医院被红卫兵小护士占领，凤霞生完孩子后大出血，然而这个时候医院却没有权威的或者懂得处理的医生，导致不幸丧命。当时整个社会一片混乱，知识分子个个都被打倒，甚至一直任劳任怨的村里队长也被他们一句话就视为走资派，毫无反抗之力。然而福贵和家珍还是一样只能感慨凤霞的命不好。&lt;/p&gt;
-&lt;p&gt;家珍一直是拖着病干活，只为了多赚几分工，在当时，如果不能干活，则会被人说闲话，自己也找不到任何存在感，终于家珍也倒下了，一辈子任劳任怨，没过过几天好日子，想想下自己的妈妈，又何尝不是像家珍一样的为家里上上下下操着一辈子的心呢。后来福贵的女婿也在一次工作事故中不幸身亡，留下福贵和小外孙，紧接着小外孙也因为发高烧吃坏了东西离开了，越是看到后面，心里越是一阵阵刺痛，有着这等活着的信念，却还是不能逃离死神。&lt;/p&gt;
-&lt;p&gt;通读整篇小说，看到一个个对活着充满希望的人一一死去，不禁感慨作者的血腥，然而正是由于作者这种无情的写法，给我们展现了民国后期到文革结束这一段时间中国老百姓的疾苦生活，同时抨击了大跃进、文化大革命给人民带来的种种伤痛，让我们这些未曾经历那个时代的人也能感受到当时的种种境况，真为作者叫好。&lt;/p&gt;
-&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/to-live.html&quot;&gt;http://sharkdtu.com/posts/to-live.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
       
