@@ -60,6 +60,7 @@ tag_map:
   反射: reflect
   决策树: decision-tree
   随机森林: random-forest
+  逻辑回归: logistic-regression
 
 
 # Date / Time format
