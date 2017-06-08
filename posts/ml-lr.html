@@ -96,7 +96,7 @@
 <meta property="og:description" content="逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。">
 <meta property="og:image" content="http://sharkdtu.com/images/sigmoid.png">
 <meta property="og:image" content="http://sharkdtu.com/images/lr-boundary.png">
-<meta property="og:updated_time" content="2017-06-04T15:27:32.000Z">
+<meta property="og:updated_time" content="2017-06-08T00:39:57.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="机器学习套路--逻辑回归">
 <meta name="twitter:description" content="逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。">
@@ -385,11 +385,11 @@
 <p>通常来说在模型中会加个偏置项，模型变成如下形式：<br>$$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$</p>
 <p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
 <ul>
-<li>L1:  $\lambda \left |  \theta \right |$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导</li>
-<li>L2:  $\frac {\lambda} {2}  {\left |  \theta \right |}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
-<li>L1&amp;L2:  $\alpha \left |  \theta \right | + \frac {\beta} {2} {\left |  \theta \right |}^2$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
+<li>L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导</li>
+<li>L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
+<li>L1&amp;L2:  $\alpha \left \|  \theta \right \| + \frac {\beta} {2} {\left \|  \theta \right \|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
 </ul>
-<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\<br>&amp;+ \frac {\alpha} {m} \left |  \theta \right | + \frac {\beta} {2m} {\left |  \theta \right |}^2<br>\end{split}<br>$$</p>
+<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\<br>&amp;+ \frac {\alpha} {m} \left \|  \theta \right \| + \frac {\beta} {2m} {\left \|  \theta \right \|}^2<br>\end{split}<br>$$</p>
 <blockquote>
 <p> $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
 </blockquote>
