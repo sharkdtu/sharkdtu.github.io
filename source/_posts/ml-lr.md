@@ -49,15 +49,15 @@ $$
 $$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$
 
 为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：
-* L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导
-* L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导
-* L1&L2:  $\alpha \left \|  \theta \right \| + \frac {\beta} {2} {\left \|  \theta \right \|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&L2的双重特性
+* L1:  $\lambda \left \\|  \theta \right \\|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导
+* L2:  $\frac {\lambda} {2}  {\left \\|  \theta \right \\|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导
+* L1&L2:  $\alpha \left \\|  \theta \right \\| + \frac {\beta} {2} {\left \\|  \theta \right \\|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&L2的双重特性
 
 加上正则项后，代价函数变成如下形式：
 $$
 \begin{split}
 J(\theta, b) =& - \frac {1} {m} \sum\_{i=1}^m \left( y^{(i)} log h\_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h\_{\theta,b}(X^{(i)}) \right) \\\
-&+ \frac {\alpha} {m} \left \|  \theta \right \| + \frac {\beta} {2m} {\left \|  \theta \right \|}^2
+&+ \frac {\alpha} {m} \left \\|  \theta \right \\| + \frac {\beta} {2m} {\left \\|  \theta \right \\|}^2
 \end{split}
 $$
 >  $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。
