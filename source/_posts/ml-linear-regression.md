@@ -54,7 +54,7 @@ $$
 ### 正则化
 
 为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：
-* L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导
+* L1:  $\lambda \left \\|  \theta \right \\|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导
 * L2:  $\frac {\lambda} {2}  {\left \\|  \theta \right \\|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导
 * L1&L2:  $\lambda \left(\alpha \left \\|  \theta \right \\| + \frac {1-\alpha} {2} {\left \\|  \theta \right \\|}^2 \right)$,  也称之为弹性网络(ElasticNet)，具备L1&L2的双重特性
 
