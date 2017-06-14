@@ -26,15 +26,10 @@
 </blockquote>
 <h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a>应用套路</h2><p>在实际应用时，基于上述基本套路可能会有些小变化，下面还是从模型、代价函数以及参数梯度来描述。</p>
 <p>通常来说在模型中会加个偏置项，模型变成如下形式：<br>$$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$</p>
-<p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
-<ul>
-<li>L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导</li>
-<li>L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
-<li>L1&amp;L2:  $\alpha \left \|  \theta \right \| + \frac {\beta} {2} {\left \|  \theta \right \|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
-</ul>
-<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\<br>&amp;+ \frac {\alpha} {m} \left \|  \theta \right \| + \frac {\beta} {2m} {\left \|  \theta \right \|}^2<br>\end{split}<br>$$</p>
+<p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法参考前面的文章<a href="http://sharkdtu.com/posts/ml-linear-regression.html#正则化">“线性回归”</a>。</p>
+<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\<br>&amp;+ \frac {\lambda} {m} \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)<br>\end{split}<br>$$</p>
 <blockquote>
-<p> $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
+<p> $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
 </blockquote>
 <p>由于 $sigmoid$ 函数在两端靠近极值点附近特别平缓，如果使用梯度下降优化算法，收敛非常慢，通常实际应用时，会使用拟牛顿法，它是沿着梯度下降最快的方向搜索，收敛相对较快，常见的拟牛顿法为<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="external">L-BFGS</a>和<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>。L-BFGS只能处理可导的代价函数，由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能使用L-BFGS，OWL-QN是基于L-BFGS算法的可用于求解L1正则的算法，所以当 $\alpha$ 不为0，可以使用OWL-QN。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：<br>$$<br>\begin{split}<br>\bigtriangledown_{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right) X^{(i)}_j + \frac {\beta} {m}  {\theta_j}^\ast \\<br>\bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)<br>\end{split}<br>$$</p>
 <blockquote>
@@ -59,6 +54,61 @@
 <li>缺点：容易欠拟合，分类的精度可能不高。</li>
 </ul>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-lr.html">http://sharkdtu.com/posts/ml-lr.html</a></em></span></p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[机器学习套路--线性回归]]></title>
+      <url>http://sharkdtu.com/posts/ml-linear-regression.html</url>
+      <content type="html"><![CDATA[<p>线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。<a id="more"></a></p>
+<p><img src="/images/linear_regression.png" alt="Alt text | center"></p>
+<h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a>基本套路</h2><p>机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法(<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="external">L-BFGS</a>或<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>)，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。</p>
+<p><strong>基本模型</strong>：<br>$$ \begin{split}<br>h_ \theta(X) &amp;=  \theta^T X  \\<br>&amp;= \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n<br>\end{split} $$</p>
+<blockquote>
+<p>$X$ 为表示样本特征，为 $n$ 维向量，$\theta$ 为模型参数，为 $n+1$ 维向量，包括一个偏置 $\theta_0$</p>
+</blockquote>
+<p><strong>代价函数</strong>：<br>$$ J(\theta) = \frac {1} {2m} \sum_{i=1}^m \left ( y^{(i)}-h_\theta(X) \right ) ^2 $$</p>
+<blockquote>
+<p>上述公式也称之为平方误差，$m$ 为样本个数，$(X^{(i)}, y^{(i)})$ 为第 $i$ 个样本。</p>
+</blockquote>
+<p><strong>参数梯度</strong>：<br>$$ \bigtriangledown_{\theta_j} J(\theta)  =  \frac {1} {m} \sum_{i=1}^m \left[\left ( y^{(i)} - h_ \theta(X^{(i)}) \right ) X^{(i)}_j \right] $$</p>
+<blockquote>
+<p>$\theta_j$ 表示第 $j$ 个参数，$X^{(i)}_j$ 表示样本 $X^{(i)}$ 的第 $j$ 个特征值。</p>
+</blockquote>
+<p>上述描述是按照常规的机器学习方法来描述线性回归，模型参数一般是通过梯度下降或拟牛顿法优化迭代得到，其实线性回归问题是可解的，只是在样本维度较大时很难求解才使用优化迭代的方法来逼近，如果样本维度并不是很大的情况下，是可以解方程一次性得到样本参数。</p>
+<p><strong>最小二乘</strong>：<br>$$ \theta = {\left( X^T X \right)} ^{-1} X^T y$$</p>
+<blockquote>
+<p>注意这里 $X$ 为 $m \times n$ 矩阵，$n$ 为特征维度，$m$ 为样本个数； $y$ 为 $m \times 1$ 向量，表示每个样本的标签。</p>
+</blockquote>
+<p><strong>加权最小二乘</strong>：<br>$$ \theta = {\left( X^T W X \right)} ^{-1} X^T W y$$</p>
+<blockquote>
+<p>$W$ 为 $m \times m$ 对角矩阵，对角线上的每个值表示对应样本实例的权重。</p>
+</blockquote>
+<h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a>应用套路</h2><p>在实际应用时，基于上述基本套路可能会有些小变化，下面首先还是从模型、代价函数以及参数梯度来描述。把基本套路中模型公式中的 $\theta_0$ 改成 $b$，表示截距项，模型变成如下形式：<br>$$<br>\begin{split}<br>h_{\theta,b}(X) &amp;=  \theta^T X  + b \\<br>&amp;= \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n + b<br>\end{split}<br>$$</p>
+<h3 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h3><p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
+<ul>
+<li>L1:  $\lambda \left |  \theta \right |$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导</li>
+<li>L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
+<li>L1&amp;L2:  $\lambda \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
+</ul>
+<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; \frac {1} {2m} \sum_{i=1}^m \left ( y^{(i)}-h_{\theta,b}(X) \right ) ^2  +  \frac {\lambda} {m} \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)<br>\end{split}<br>$$</p>
+<blockquote>
+<p> $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
+</blockquote>
+<p>由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能简单的套用梯度下降或L-BFGS，需要采用借助<a href="http://blog.csdn.net/jbb0523/article/details/52103257" target="_blank" rel="external">软阈值(Soft Thresholding)</a>函数解决，如果是使用拟牛顿法，可以采用<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>，它是基于L-BFGS算法的可用于求解L1正则的算法。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：<br>$$<br>\begin{split}<br>\bigtriangledown_{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left ( y^{(i)} - h_{\theta,b} (X^{(i)}) \right ) X^{(i)}_j + \frac {\lambda (1-\alpha)} {m}  {\theta_j}^\ast \\<br>\bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)<br>\end{split}<br>$$</p>
+<blockquote>
+<p>${\theta_j}^\ast$ 为上一次迭代得到的参数值。</p>
+</blockquote>
+<p>实际上，使用L2正则，是将前面所述的最小二乘方程改成如下形式:<br>$$ \theta = {\left( X^T X + kI \right)}^{-1} X^T y$$</p>
+<blockquote>
+<p>这样可以降低矩阵 $X^T X $ 奇异的可能，否则就不能求逆了。</p>
+</blockquote>
+<h3 id="标准化"><a href="#标准化" class="headerlink" title="标准化"></a>标准化</h3><p>一般来说，一个特征的值可能在区间 $(0, 1)$ 之间，另一特征的值可能在区间$(-\infty, \infty)$  ，这就是所谓的样本特征之间量纲不同，这样会导致优化迭代过程中的不稳定。当参数有不同初始值时，其收敛速度差异性较大，得到的结果可能也有较大的差异性，如下图所示，可以看到X和Y这两个变量的变化幅度不一致，如果直接使用梯度下降来优化迭代，那么量纲较大的特征信息量会被放大，量纲较小的特征信息量会被缩小。</p>
+<p><img src="/images/ml-no-normalize.png" width="400" height="230" alt="ml-no-normalize" align="center"></p>
+<p>所以一般要对数据作无量纲化处理，通常会采用标准化方法 $(x-u)/\sigma$ ，得到如下数据分布，这样无论从哪个点开始，其迭代方向的抖动都不会太大，每个特征的信息也不至于被放大和缩小。</p>
+<p><img src="/images/ml-normalize.png" width="400" height="230" alt="ml-normalize.png" align="center"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然线性回归现在可能很少用于解决实际问题，但是因为其简单易懂，学习它有助于对机器学习有个入门级的初步掌握，了解机器学习的套路等。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-linear-regression.html">http://sharkdtu.com/posts/ml-linear-regression.html</a></em></span></p>
 ]]></content>
     </entry>
     

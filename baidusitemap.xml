@@ -5,17 +5,39 @@
     
   <url>
     <loc>http://sharkdtu.com/posts/ml-lr.html</loc>
-    <lastmod>2017-06-08T00:39:57.000Z</lastmod>
+    <lastmod>2017-06-14T14:41:24.000Z</lastmod>
     <data>
         <display>
         <title>机器学习套路--逻辑回归</title>
-        <pubTime>2017-06-03T14:45:33.000Z</pubTime>
+        <pubTime>2017-06-14T09:23:14.000Z</pubTime>
         
         <tag>逻辑回归</tag>
          
         <tag>LR</tag>
          
         <tag>Softmax</tag>
+         
+         
+           
+             
+              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sharkdtu.com/posts/ml-linear-regression.html</loc>
+    <lastmod>2017-06-14T14:39:19.000Z</lastmod>
+    <data>
+        <display>
+        <title>机器学习套路--线性回归</title>
+        <pubTime>2017-06-03T14:45:33.000Z</pubTime>
+        
+        <tag>线性回归</tag>
+         
+        <tag>LinearRegression</tag>
          
          
            
@@ -35,9 +57,9 @@
         <title>Spark SQL 之 Join 实现</title>
         <pubTime>2017-05-29T13:33:29.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
         <tag>sql</tag>
          
@@ -61,13 +83,13 @@
         <title>从PageRank Example谈Spark应用程序调优</title>
         <pubTime>2017-05-11T14:11:29.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>分布式计算</tag>
          
-        <tag>优化</tag>
+        <tag>spark</tag>
          
         <tag>benchmark</tag>
+         
+        <tag>优化</tag>
          
          
            
@@ -87,11 +109,11 @@
         <title>Spark Shuffle原理及相关调优</title>
         <pubTime>2016-11-04T07:21:44.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>大数据</tag>
          
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
         <tag>shuffle</tag>
          
@@ -114,11 +136,11 @@
         <title>Spark Scheduler内部原理剖析</title>
         <pubTime>2016-10-23T13:33:14.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>大数据</tag>
          
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
         <tag>Scheduler</tag>
          
@@ -140,11 +162,11 @@
         <title>Spark核心概念RDD</title>
         <pubTime>2016-09-18T12:12:03.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>大数据</tag>
          
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
         <tag>rdd</tag>
          
@@ -166,11 +188,11 @@
         <title>Spark 底层网络模块</title>
         <pubTime>2016-12-12T14:11:29.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>大数据</tag>
          
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
         <tag>network</tag>
          
@@ -192,13 +214,13 @@
         <title>Spark Cache性能测试</title>
         <pubTime>2017-03-22T14:11:29.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>分布式计算</tag>
          
-        <tag>benchmark</tag>
+        <tag>spark</tag>
          
         <tag>cache</tag>
+         
+        <tag>benchmark</tag>
          
          
            
@@ -308,11 +330,11 @@
         <title>Spark 应用程序调优</title>
         <pubTime>2015-06-17T06:22:33.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>大数据</tag>
          
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
          
            
@@ -332,11 +354,11 @@
         <title>Spark源码编译并在YARN上运行WordCount实例</title>
         <pubTime>2014-11-06T12:33:25.000Z</pubTime>
         
-        <tag>spark</tag>
-         
         <tag>大数据</tag>
          
         <tag>分布式计算</tag>
+         
+        <tag>spark</tag>
          
          
            
@@ -474,9 +496,9 @@
         <title>CentOS下Hadoop-2.2.0集群安装配置</title>
         <pubTime>2014-10-25T11:54:25.000Z</pubTime>
         
-        <tag>大数据</tag>
-         
         <tag>hadoop</tag>
+         
+        <tag>大数据</tag>
          
         <tag>分布式计算</tag>
          

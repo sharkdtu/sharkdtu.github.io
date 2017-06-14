@@ -8,14 +8,14 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Thu, 08 Jun 2017 00:39:57 GMT</pubDate>
+    <pubDate>Wed, 14 Jun 2017 14:41:24 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
       <title>机器学习套路--逻辑回归</title>
       <link>http://sharkdtu.com/posts/ml-lr.html</link>
       <guid>http://sharkdtu.com/posts/ml-lr.html</guid>
-      <pubDate>Sat, 03 Jun 2017 14:45:33 GMT</pubDate>
+      <pubDate>Wed, 14 Jun 2017 09:23:14 GMT</pubDate>
       <description>
       
         &lt;p&gt;逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。
@@ -42,15 +42,10 @@
 &lt;/blockquote&gt;
 &lt;h2 id=&quot;应用套路&quot;&gt;&lt;a href=&quot;#应用套路&quot; class=&quot;headerlink&quot; title=&quot;应用套路&quot;&gt;&lt;/a&gt;应用套路&lt;/h2&gt;&lt;p&gt;在实际应用时，基于上述基本套路可能会有些小变化，下面还是从模型、代价函数以及参数梯度来描述。&lt;/p&gt;
 &lt;p&gt;通常来说在模型中会加个偏置项，模型变成如下形式：&lt;br&gt;$$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$&lt;/p&gt;
-&lt;p&gt;为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导&lt;/li&gt;
-&lt;li&gt;L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导&lt;/li&gt;
-&lt;li&gt;L1&amp;amp;L2:  $\alpha \left \|  \theta \right \| + \frac {\beta} {2} {\left \|  \theta \right \|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&amp;amp;L2的双重特性&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;加上正则项后，代价函数变成如下形式：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;J(\theta, b) =&amp;amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\&lt;br&gt;&amp;amp;+ \frac {\alpha} {m} \left \|  \theta \right \| + \frac {\beta} {2m} {\left \|  \theta \right \|}^2&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;p&gt;为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法参考前面的文章&lt;a href=&quot;http://sharkdtu.com/posts/ml-linear-regression.html#正则化&quot;&gt;“线性回归”&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;加上正则项后，代价函数变成如下形式：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;J(\theta, b) =&amp;amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\&lt;br&gt;&amp;amp;+ \frac {\lambda} {m} \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt; $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。&lt;/p&gt;
+&lt;p&gt; $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;由于 $sigmoid$ 函数在两端靠近极值点附近特别平缓，如果使用梯度下降优化算法，收敛非常慢，通常实际应用时，会使用拟牛顿法，它是沿着梯度下降最快的方向搜索，收敛相对较快，常见的拟牛顿法为&lt;a href=&quot;http://blog.csdn.net/itplus/article/details/21896453&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;L-BFGS&lt;/a&gt;和&lt;a href=&quot;http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;OWL-QN&lt;/a&gt;。L-BFGS只能处理可导的代价函数，由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能使用L-BFGS，OWL-QN是基于L-BFGS算法的可用于求解L1正则的算法，所以当 $\alpha$ 不为0，可以使用OWL-QN。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;\bigtriangledown_{\theta_j} J(\theta, b) &amp;amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right) X^{(i)}_j + \frac {\beta} {m}  {\theta_j}^\ast \\&lt;br&gt;\bigtriangledown_b J(\theta, b) &amp;amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
 &lt;blockquote&gt;
@@ -75,6 +70,71 @@
 &lt;li&gt;缺点：容易欠拟合，分类的精度可能不高。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/ml-lr.html&quot;&gt;http://sharkdtu.com/posts/ml-lr.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
+</content:encoded>
+      
+      
+    </item>
+    
+    <item>
+      <title>机器学习套路--线性回归</title>
+      <link>http://sharkdtu.com/posts/ml-linear-regression.html</link>
+      <guid>http://sharkdtu.com/posts/ml-linear-regression.html</guid>
+      <pubDate>Sat, 03 Jun 2017 14:45:33 GMT</pubDate>
+      <description>
+      
+        &lt;p&gt;线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。
+      
+      </description>
+      
+      <content:encoded>&lt;p&gt;线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/linear_regression.png&quot; alt=&quot;Alt text | center&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;基本套路&quot;&gt;&lt;a href=&quot;#基本套路&quot; class=&quot;headerlink&quot; title=&quot;基本套路&quot;&gt;&lt;/a&gt;基本套路&lt;/h2&gt;&lt;p&gt;机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法(&lt;a href=&quot;http://blog.csdn.net/itplus/article/details/21896453&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;L-BFGS&lt;/a&gt;或&lt;a href=&quot;http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;OWL-QN&lt;/a&gt;)，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;基本模型&lt;/strong&gt;：&lt;br&gt;$$ \begin{split}&lt;br&gt;h_ \theta(X) &amp;amp;=  \theta^T X  \\&lt;br&gt;&amp;amp;= \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n&lt;br&gt;\end{split} $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$X$ 为表示样本特征，为 $n$ 维向量，$\theta$ 为模型参数，为 $n+1$ 维向量，包括一个偏置 $\theta_0$&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;代价函数&lt;/strong&gt;：&lt;br&gt;$$ J(\theta) = \frac {1} {2m} \sum_{i=1}^m \left ( y^{(i)}-h_\theta(X) \right ) ^2 $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;上述公式也称之为平方误差，$m$ 为样本个数，$(X^{(i)}, y^{(i)})$ 为第 $i$ 个样本。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;参数梯度&lt;/strong&gt;：&lt;br&gt;$$ \bigtriangledown_{\theta_j} J(\theta)  =  \frac {1} {m} \sum_{i=1}^m \left[\left ( y^{(i)} - h_ \theta(X^{(i)}) \right ) X^{(i)}_j \right] $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$\theta_j$ 表示第 $j$ 个参数，$X^{(i)}_j$ 表示样本 $X^{(i)}$ 的第 $j$ 个特征值。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上述描述是按照常规的机器学习方法来描述线性回归，模型参数一般是通过梯度下降或拟牛顿法优化迭代得到，其实线性回归问题是可解的，只是在样本维度较大时很难求解才使用优化迭代的方法来逼近，如果样本维度并不是很大的情况下，是可以解方程一次性得到样本参数。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;最小二乘&lt;/strong&gt;：&lt;br&gt;$$ \theta = {\left( X^T X \right)} ^{-1} X^T y$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;注意这里 $X$ 为 $m \times n$ 矩阵，$n$ 为特征维度，$m$ 为样本个数； $y$ 为 $m \times 1$ 向量，表示每个样本的标签。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;加权最小二乘&lt;/strong&gt;：&lt;br&gt;$$ \theta = {\left( X^T W X \right)} ^{-1} X^T W y$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$W$ 为 $m \times m$ 对角矩阵，对角线上的每个值表示对应样本实例的权重。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;应用套路&quot;&gt;&lt;a href=&quot;#应用套路&quot; class=&quot;headerlink&quot; title=&quot;应用套路&quot;&gt;&lt;/a&gt;应用套路&lt;/h2&gt;&lt;p&gt;在实际应用时，基于上述基本套路可能会有些小变化，下面首先还是从模型、代价函数以及参数梯度来描述。把基本套路中模型公式中的 $\theta_0$ 改成 $b$，表示截距项，模型变成如下形式：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;h_{\theta,b}(X) &amp;amp;=  \theta^T X  + b \\&lt;br&gt;&amp;amp;= \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n + b&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;h3 id=&quot;正则化&quot;&gt;&lt;a href=&quot;#正则化&quot; class=&quot;headerlink&quot; title=&quot;正则化&quot;&gt;&lt;/a&gt;正则化&lt;/h3&gt;&lt;p&gt;为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;L1:  $\lambda \left |  \theta \right |$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导&lt;/li&gt;
+&lt;li&gt;L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导&lt;/li&gt;
+&lt;li&gt;L1&amp;amp;L2:  $\lambda \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)$,  也称之为弹性网络(ElasticNet)，具备L1&amp;amp;L2的双重特性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;加上正则项后，代价函数变成如下形式：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;J(\theta, b) =&amp;amp; \frac {1} {2m} \sum_{i=1}^m \left ( y^{(i)}-h_{\theta,b}(X) \right ) ^2  +  \frac {\lambda} {m} \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt; $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能简单的套用梯度下降或L-BFGS，需要采用借助&lt;a href=&quot;http://blog.csdn.net/jbb0523/article/details/52103257&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;软阈值(Soft Thresholding)&lt;/a&gt;函数解决，如果是使用拟牛顿法，可以采用&lt;a href=&quot;http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;OWL-QN&lt;/a&gt;，它是基于L-BFGS算法的可用于求解L1正则的算法。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：&lt;br&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;\bigtriangledown_{\theta_j} J(\theta, b) &amp;amp;= \frac {1} {m} \sum_{i=1}^m \left ( y^{(i)} - h_{\theta,b} (X^{(i)}) \right ) X^{(i)}_j + \frac {\lambda (1-\alpha)} {m}  {\theta_j}^\ast \\&lt;br&gt;\bigtriangledown_b J(\theta, b) &amp;amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;${\theta_j}^\ast$ 为上一次迭代得到的参数值。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;实际上，使用L2正则，是将前面所述的最小二乘方程改成如下形式:&lt;br&gt;$$ \theta = {\left( X^T X + kI \right)}^{-1} X^T y$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这样可以降低矩阵 $X^T X $ 奇异的可能，否则就不能求逆了。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&quot;标准化&quot;&gt;&lt;a href=&quot;#标准化&quot; class=&quot;headerlink&quot; title=&quot;标准化&quot;&gt;&lt;/a&gt;标准化&lt;/h3&gt;&lt;p&gt;一般来说，一个特征的值可能在区间 $(0, 1)$ 之间，另一特征的值可能在区间$(-\infty, \infty)$  ，这就是所谓的样本特征之间量纲不同，这样会导致优化迭代过程中的不稳定。当参数有不同初始值时，其收敛速度差异性较大，得到的结果可能也有较大的差异性，如下图所示，可以看到X和Y这两个变量的变化幅度不一致，如果直接使用梯度下降来优化迭代，那么量纲较大的特征信息量会被放大，量纲较小的特征信息量会被缩小。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/ml-no-normalize.png&quot; width=&quot;400&quot; height=&quot;230&quot; alt=&quot;ml-no-normalize&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
+&lt;p&gt;所以一般要对数据作无量纲化处理，通常会采用标准化方法 $(x-u)/\sigma$ ，得到如下数据分布，这样无论从哪个点开始，其迭代方向的抖动都不会太大，每个特征的信息也不至于被放大和缩小。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/ml-normalize.png&quot; width=&quot;400&quot; height=&quot;230&quot; alt=&quot;ml-normalize.png&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;虽然线性回归现在可能很少用于解决实际问题，但是因为其简单易懂，学习它有助于对机器学习有个入门级的初步掌握，了解机器学习的套路等。&lt;/p&gt;
+&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/ml-linear-regression.html&quot;&gt;http://sharkdtu.com/posts/ml-linear-regression.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
       
@@ -1378,96 +1438,6 @@ Pi:     3.1415648
 Spend:  9678 milliseconds
 [success] Total time: 10 s, completed Dec 12, 2014 10:22:06 PM
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/start-akka-actor.html&quot;&gt;http://sharkdtu.com/posts/start-akka-actor.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
-</content:encoded>
-      
-      
-    </item>
-    
-    <item>
-      <title>Spark源码编译并在YARN上运行WordCount实例</title>
-      <link>http://sharkdtu.com/posts/spark-build.html</link>
-      <guid>http://sharkdtu.com/posts/spark-build.html</guid>
-      <pubDate>Thu, 06 Nov 2014 12:33:25 GMT</pubDate>
-      <description>
-      
-        &lt;p&gt;在学习一门新语言时，想必我们都是”Hello World”程序开始，类似地，分布式计算框架的一个典型实例就是WordCount程序，接触过Hadoop的人肯定都知道用MapReduce实现WordCount，当前内存分布式计算框架Spark因为其计算速度之快，并且可以部署到Hadoop YARN中运行，已经受到各大公司的青睐，Spark社区提供了一些编译好的jar包，但是其中没有适配Hadoop-2.2.0的jar包，为了避免版本问题，需要自己编译指定hadoop版本的Spark jar包。下面介绍如何编译Spark源码并在YARN上运行WordCount程序。
-      
-      </description>
-      
-      <content:encoded>&lt;p&gt;在学习一门新语言时，想必我们都是”Hello World”程序开始，类似地，分布式计算框架的一个典型实例就是WordCount程序，接触过Hadoop的人肯定都知道用MapReduce实现WordCount，当前内存分布式计算框架Spark因为其计算速度之快，并且可以部署到Hadoop YARN中运行，已经受到各大公司的青睐，Spark社区提供了一些编译好的jar包，但是其中没有适配Hadoop-2.2.0的jar包，为了避免版本问题，需要自己编译指定hadoop版本的Spark jar包。下面介绍如何编译Spark源码并在YARN上运行WordCount程序。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Spark是由Scala编写的，虽然我们也可以通过Spark的Java或Python接口来编写应用程序，但是为了能更好的学习Spark，建议采用Scala来编写应用程序，Scala是一种函数式编程语言，其简洁和优雅的编程风格相信在不久后会让你喜欢上它的。之前我已经安装配置好Hadoop环境，请参考本站前面的一篇文章”&lt;a href=&quot;/posts/centos-hadoop-setup.html&quot;&gt;CentOS下Hadoop-2.2.0集群安装配置&lt;/a&gt;“，下面我们来安装Scala编译环境。&lt;/p&gt;
-&lt;h2 id=&quot;Scala安装配置&quot;&gt;&lt;a href=&quot;#Scala安装配置&quot; class=&quot;headerlink&quot; title=&quot;Scala安装配置&quot;&gt;&lt;/a&gt;Scala安装配置&lt;/h2&gt;&lt;p&gt;去&lt;a href=&quot;http://www.scala-lang.org/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Scala官网&lt;/a&gt;下载Scala，我下载的是Scala-2.10.4（因为官方提供的spark-1.1.0编译好的jar包都是基于scala-2.10.4编译的），将下载后的软件包解压到用户根目录，并配置好环境变量。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master ~]$ tar zxvf scala-2.10.4.tgz
-[hadoop@master ~]$ vim ~/.bash_profile
- #添加Scala环境变量
- export SCALA_HOME=$HOME/scala-2.10.4
- export PATH=$SCALA_HOME/bin:$PATH
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&quot;Spark安装配置&quot;&gt;&lt;a href=&quot;#Spark安装配置&quot; class=&quot;headerlink&quot; title=&quot;Spark安装配置&quot;&gt;&lt;/a&gt;Spark安装配置&lt;/h2&gt;&lt;p&gt;去&lt;a href=&quot;http://spark.apache.org/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Spark社区&lt;/a&gt;下载Spark源码，我下载的是spark-1.1.0版本，解压，并进入源码根目录，执行以下命令编译：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master ~]$ tar zxvf spark-1.1.0.tgz
-[hadoop@master ~]$ cd spark-1.1.0
-[hadoop@master ~]$ sbt/sbt assembly -Pyarn -Phadoop-2.2 -Pspark-ganglia-lgpl -Pkinesis-asl -Phive
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;值得说明的是，我指定编译规则是集成hadoop2.2的，以便与我的Hadoop环境适配，这里需要等待漫长的编译过程…中途要下载大量的依赖包。编译完成后，可以在目录assembly中找到编译打包好的jar包：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master scala-2.10]$ ls
-spark-assembly-1.1.0-hadoop2.2.0.jar
-[hadoop@master scala-2.10]$ pwd
-/home/hadoop/spark-1.1.0/assembly/target/scala-2.10
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;下面我们配置Spark的环境变量：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master ~]$ vim ~/.bash_profile
- #添加Spark环境变量
- export SPARK_HOME=$HOME/spark-1.1.0
- export PATH=$SPARK_HOME/bin:$PATH
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; 如何让Spark能知道我们的YARN在哪呢，这里需要在Spark配置文件中指定一下YARN的位置：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master ~]$ cd $SPARK_HOME/conf/
-[hadoop@master conf]$ cp spark-env.sh.template spark-env.sh
-[hadoop@master conf]$ vim spark-env.sh
- #添加如下两行，指定你的java和yarn的位置
- export JAVA_HOME=/home/hadoop/jdk1.7.0_40/
- export YARN_CONF_DIR=/home/hadoop/hadoop-2.2.0/etc/hadoop/
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;环境都准备好了，下面我们介绍如何构建Spark WordCount项目，并将其部署到YARN上运行。&lt;/p&gt;
-&lt;h2 id=&quot;构建WordCount项目&quot;&gt;&lt;a href=&quot;#构建WordCount项目&quot; class=&quot;headerlink&quot; title=&quot;构建WordCount项目&quot;&gt;&lt;/a&gt;构建WordCount项目&lt;/h2&gt;&lt;p&gt;这里采用sbt的方式来构建项目，需要满足sbt的项目目录结构（其中target目录是编译后自动生成的）：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;|--build.sbt
-|--lib
-|--project
-|--src
-|   |--main
-|   |    |--scala
-|   |--test
-|         |--scala
-|--sbt
-|--target
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;先创建出项目的目录结构，并从spark目录中拷贝sbt构建工具和前面编译好的jar包：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master ~]$ mkdir -p spark-wordcount/lib
-[hadoop@master ~]$ mkdir -p spark-wordcount/project
-[hadoop@master ~]$ mkdir -p spark-wordcount/src/main/scala
-[hadoop@master ~]$ mkdir -p spark-wordcount/src/test/scala
-[hadoop@master ~]$ cp -R $SPARK_HOME/sbt spark-wordcount/
-[hadoop@master ~]$ cp -R $SPARK_HOME/assembly/target/scala-2.10/spark-assembly-1.1.0-hadoop2.2.0.jar spark-wordcount/lib/
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;创建sbt项目构建文件build.sbt，该文件指定项目名、scala版本以及声明依赖，但是本实例先不加入依赖，直接将依赖的jar包放到项目的lib目录下:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master ~]$ cd spark-wordcount
-[hadoop@master spark-wordcount]$ vim build.sbt
-name := &amp;quot;WordCount&amp;quot;
-[空行]
-version := &amp;quot;1.0.0&amp;quot;
-[空行]
-scalaVersion := &amp;quot;2.10.4&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在project目录下新建文件build.properties，里面指定sbt的版本：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master project]$ vim build.properties
-sbt.version=0.13.5
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;到这里，WordCount项目的准备工作都已做好了，下面我们用scala来编写Spark WordCount程序，在目录src/main/scala/目录下新建文件WordCount.scala：&lt;/p&gt;
-&lt;figure class=&quot;highlight scala&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;17&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;18&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; org.apache.spark._&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;type&quot;&gt;SparkContext&lt;/span&gt;._&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;WordCount&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;main&lt;/span&gt;&lt;/span&gt;(args: &lt;span class=&quot;type&quot;&gt;Array&lt;/span&gt;[&lt;span class=&quot;type&quot;&gt;String&lt;/span&gt;]) &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; (args.length &amp;lt; &lt;span class=&quot;number&quot;&gt;2&lt;/span&gt;) &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &lt;span class=&quot;type&quot;&gt;System&lt;/span&gt;.err.println(&lt;span class=&quot;string&quot;&gt;&quot;Usage: WordCount &amp;lt;inputfile&amp;gt; &amp;lt;outputfile&amp;gt;&quot;&lt;/span&gt;);&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &lt;span class=&quot;type&quot;&gt;System&lt;/span&gt;.exit(&lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;);&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;val&lt;/span&gt; conf = &lt;span class=&quot;keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;type&quot;&gt;SparkConf&lt;/span&gt;().setAppName(&lt;span class=&quot;string&quot;&gt;&quot;WordCount&quot;&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;val&lt;/span&gt; sc = &lt;span class=&quot;keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;type&quot;&gt;SparkContext&lt;/span&gt;(conf)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;val&lt;/span&gt; result = sc.textFile(args(&lt;span class=&quot;number&quot;&gt;0&lt;/span&gt;))&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                   .flatMap(line =&amp;gt; line.split(&lt;span class=&quot;string&quot;&gt;&quot; &quot;&lt;/span&gt;))&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                   .map(word =&amp;gt; (word, &lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;))&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                   .reduceByKey(_ + _)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    result.saveAsTextFile(args(&lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;))&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#125;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;代码编写完毕后，开始编译打包，在项目根目录下用sbt编译打包：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master spark-wordcount]$ sbt/sbt clean compile package
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;编译完成后，我们能看到会多出一个target目录，里面就包括了编译后的.class文件和打好的jar包：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master spark-wordcount]$ sbt/sbt clean compile package
-[hadoop@master spark-wordcount]$ ls target/scala-2.10/
-classes  wordcount_2.10-1.0.0.jar
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&quot;在YARN上运行WordCount&quot;&gt;&lt;a href=&quot;#在YARN上运行WordCount&quot; class=&quot;headerlink&quot; title=&quot;在YARN上运行WordCount&quot;&gt;&lt;/a&gt;在YARN上运行WordCount&lt;/h2&gt;&lt;p&gt;在hdfs上首先上传一些待处理的文本：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[hadoop@master spark-wordcount]$ $HADOOP_HOME/bin/hdfs dfs -put ~/test.txt input
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;编写如下启动脚本，将Spark WordCount提交到YARN上运行：&lt;/p&gt;
-&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;#!/usr/bin/env bash&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PROJECT_HOME=/home/hadoop/project/spark-wordcount&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;#以防万一，确保删除输出目录&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;$HADOOP_HOME/bin/hdfs dfs -rmr /user/hadoop/output&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;$SPARK_HOME/bin/spark-submit \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--class WordCount \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--master yarn-cluster \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--num-executors 2 \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--driver-memory 1g \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--executor-memory 1g \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;--executor-cores 1 \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;$PROJECT_HOME/target/scala-2.10/wordcount_2.10-1.0.0.jar \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;hdfs://master:9000/user/hadoop/input \&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;hdfs://master:9000/user/hadoop/output&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;这里采用的是yarn-cluster部署模式，num-executors指定启动的executor数量，driver-memory指定drive端所需内存大小，executor-memory指定executor所需内存大小，executor-cores指定每个executor使用的内核数。运行如上脚本后，打开Hadoop的web页面可以看到运行正常，如下图所示：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/images/spark-on-yarn.png&quot; alt=&quot;spark-on-yarn&quot;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-build.html&quot;&gt;http://sharkdtu.com/posts/spark-build.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
       

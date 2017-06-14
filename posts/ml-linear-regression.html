@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="反射,scala," />
+  <meta name="keywords" content="线性回归,LinearRegression," />
 
 
 
@@ -88,16 +88,20 @@
 
 
 
-<meta name="description" content="我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反">
+<meta name="description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="初识Scala反射">
-<meta property="og:url" content="http://sharkdtu.com/posts/scala-reflect.html">
+<meta property="og:title" content="机器学习套路--线性回归">
+<meta property="og:url" content="http://sharkdtu.com/posts/ml-linear-regression.html">
 <meta property="og:site_name" content="守护之鲨">
-<meta property="og:description" content="我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反">
-<meta property="og:updated_time" content="2017-03-25T09:21:03.000Z">
+<meta property="og:description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。">
+<meta property="og:image" content="http://sharkdtu.com/images/linear_regression.png">
+<meta property="og:image" content="http://sharkdtu.com/images/ml-no-normalize.png">
+<meta property="og:image" content="http://sharkdtu.com/images/ml-normalize.png">
+<meta property="og:updated_time" content="2017-06-14T14:39:19.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="初识Scala反射">
-<meta name="twitter:description" content="我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反">
+<meta name="twitter:title" content="机器学习套路--线性回归">
+<meta name="twitter:description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。">
+<meta name="twitter:image" content="http://sharkdtu.com/images/linear_regression.png">
 
 
 
@@ -115,7 +119,7 @@
   };
 </script>
 
-  <title> 初识Scala反射 | 守护之鲨 </title>
+  <title> 机器学习套路--线性回归 | 守护之鲨 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -287,7 +291,7 @@
             
             
               
-                初识Scala反射
+                机器学习套路--线性回归
               
             
           </h1>
@@ -299,8 +303,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-04-23T10:04:25+08:00" content="2016-04-23">
-              2016-04-23
+            <time itemprop="dateCreated" datetime="2017-06-03T22:45:33+08:00" content="2017-06-03">
+              2017-06-03
             </time>
           </span>
 
@@ -313,8 +317,8 @@
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/programming-language/" itemprop="url" rel="index">
-                    <span itemprop="name">程序语言</span>
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
+                    <span itemprop="name">机器学习</span>
                   </a>
                 </span>
 
@@ -345,9 +349,9 @@
     
       <div class="post-tags">
         
-          <a href="/tags/reflect/" rel="tag">反射</a>
+          <a href="/tags/linear-regression/" rel="tag">线性回归</a>
         
-          <a href="/tags/scala/" rel="tag">scala</a>
+          <a href="/tags/LinearRegression/" rel="tag">LinearRegression</a>
         
       </div>
     
@@ -358,148 +362,55 @@
       
 
       
-        <p>我们知道，scala编译器会将scala代码编译成JVM字节码，编译过程中会擦除scala特有的一些类型信息，在scala-2.10以前，只能在scala中利用java的反射机制，但是通过java反射机制得到的是只是擦除后的类型信息，并不包括scala的一些特定类型信息。从scala-2.10起，scala实现了自己的反射机制，我们可以通过scala的反射机制得到scala的类型信息。scala反射包括运行时反射和编译时反射，本文主要阐述运行时反射的一些用法，方便scala开发人员参考，具体原理细节请查看官方文档。<a id="more"></a>本文涉及到的代码示例是基于scala-2.10.4，如有不同请勿对号入座。</p>
-<p>给定类型或者对象实例，通过scala运行时反射，可以做到：1）获取运行时类型信息；2）通过类型信息实例化新对象；3）访问或调用对象的方法和属性等。下面分别举例阐述运行时反射的功能。</p>
-<h2 id="获取运行时类型信息"><a href="#获取运行时类型信息" class="headerlink" title="获取运行时类型信息"></a>获取运行时类型信息</h2><p>scala运行时类型信息是保存在<code>TypeTag</code>对象中，编译器在编译过程中将类型信息保存到<code>TypeTag</code>中，并将其携带到运行期。我们可以通过<code>typeTag</code>方法获取<code>TypeTag</code>类型信息。</p>
-<pre><code>scala&gt; import scala.reflect.runtime.universe._
-import scala.reflect.runtime.universe._
-
-scala&gt; typeTag[List[Int]]
-res0: reflect.runtime.universe.TypeTag[List[Int]] = TypeTag[scala.List[Int]]
-
-scala&gt; res0.tpe
-res1: reflect.runtime.universe.Type = scala.List[Int]
-</code></pre><p>如上述scala REPL显示，通过<code>typeTag</code>方法获取<code>List[Int]</code>类型的<code>TypeTag</code>对象，该对象包含了<code>List[Int]</code>的详细类型信息，通过<code>TypeTag</code>对象的<code>tpe</code>方法得到由<code>Type</code>对象封装具体的类型信息，可以看到该<code>Type</code>对象的类型信息精确到了类型参数<code>Int</code>。如果仅仅是获取类型信息，还有一个更简便的方法，那就是通过<code>typeOf</code>方法。</p>
-<pre><code>scala&gt; import scala.reflect.runtime.universe._
-import scala.reflect.runtime.universe._
-
-scala&gt; typeOf[List[Int]]
-res0: reflect.runtime.universe.Type = scala.List[Int]
-</code></pre><p>这时有人就会问，<code>typeTag</code>方法需要传一个具体的类型，事先知道类型还要<code>TypeTag</code>有啥用啊。我们不妨写个方法，获取任意对象的类型信息。</p>
-<pre><code>scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@6dae22e7
-
-scala&gt; def getTypeTag[T: ru.TypeTag](obj: T) = ru.typeTag[T]
-getTypeTag: [T](obj: T)(implicit evidence$1: ru.TypeTag[T])ru.TypeTag[T]
-
-scala&gt; val list = List(1, 2, 3)
-list: List[Int] = List(1, 2, 3)
-
-scala&gt; val theType = getTypeTag(list).tpe
-theType: ru.Type = List[Int]
-</code></pre><p>如上scala REPL显示，方法<code>getTypeTag</code>可以获取任意对象的类型信息，注意方法中的上下文界定<code>T: ru.TypeTag</code> ,它表示存在一个从<code>T</code>到<code>TypeTag[T]</code>的隐式转换，前面已经讲到，<code>TypeTag</code>对象是在编译期间由编译器生成的，如果不加这个上下文界定，编译器就不会为T生成<code>TypeTag</code>对象。当然也可以通过隐式参数替代上下文界定，就如同REPL中显示的<code>implicit evidence$1: ru.TypeTag[T]</code>那样。一旦我们获取到了类型信息(Type instance)，我们就可以通过该<code>Type</code>对象查询更详尽的类型信息。</p>
-<pre><code>scala&gt; val decls = theType.declarations.take(10)
-decls: Iterable[ru.Symbol] = List(constructor List, method companion, method isEmpty, method head, method tail, method ::, method :::, method reverse_:::, method mapConserve, method ++)
-</code></pre><p>到这里我们知道<code>TypeTag</code>对象封装了<code>Type</code>对象，通过<code>Type</code>对象可以获取详尽的类型信息，包括方法和属性等，通过<code>typeTag</code>方法可以得到<code>TypeTag</code>对象，通过<code>typeOf</code>方法可以得到<code>Type</code>对象，它包含没有被编译器擦除的含完整的scala类型信息，与之对应地，如果想获取擦除后的类型信息，传统的方法可以通过java的反射机制来实现，但是scala也提供了该功能，通过<code>classTag</code>方法可以获取<code>ClassTag</code>对象，<code>ClassTag</code>封装了擦除后的类型信息，通过<code>classOf</code>方法可以获取<code>Class</code>对象，这与java反射中的<code>Class</code>对象一致。</p>
-<pre><code>scala&gt; import scala.reflect._
-import scala.reflect._
-
-scala&gt; val clsTag = classTag[List[Int]]
-clsTag: scala.reflect.ClassTag[List[Int]] = scala.collection.immutable.List
-
-scala&gt; clsTag.runtimeClass
-res0: Class[_] = class scala.collection.immutable.List
-
-scala&gt; val cls = classOf[List[Int]]
-cls: Class[List[Int]] = class scala.collection.immutable.List
-
-scala&gt; cls.[tab键补全]
-asInstanceOf              asSubclass          cast
-desiredAssertionStatus    getAnnotation
-getAnnotations            getCanonicalName    ...   
-</code></pre><p>从上述scala REPL中可以看到，<code>ClassTag</code>对象包含了<code>Class</code>对象，通过<code>Class</code>对象仅仅可以获取擦除后的类型信息，通过在scala REPL中用tab补全可以看到通过<code>Class</code>对象可以获取的信息。</p>
-<h2 id="运行时类型实例化"><a href="#运行时类型实例化" class="headerlink" title="运行时类型实例化"></a>运行时类型实例化</h2><p>我们已经知道通过<code>Type</code>对象可以获取未擦除的详尽的类型信息，下面我们通过<code>Type</code>对象中的信息找到构造方法并实例化类型的一个对象。</p>
-<pre><code>scala&gt; case class Person(id: Int, name: String)
-defined class Person
-
-scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@3e9ed70d
-
-scala&gt; val m = ru.runtimeMirror(getClass.getClassLoader)
-m: ru.Mirror = JavaMirror with scala.tools.nsc.interpreter.IMain$TranslatingClassLoader@a57fc5f ...
-
-scala&gt; val classPerson = ru.typeOf[Person].typeSymbol.asClass
-classPerson: ru.ClassSymbol = class Person
-
-scala&gt; val cm = m.reflectClass(classPerson)
-cm: ru.ClassMirror = class mirror for Person (bound to null)
-
-scala&gt; val ctor = ru.typeOf[Person].declaration(ru.nme.CONSTRUCTOR).asMethod
-ctor: ru.MethodSymbol = constructor Person
-
-scala&gt; val ctorm = cm.reflectConstructor(ctor)
-ctorm: ru.MethodMirror = constructor mirror for Person.&lt;init&gt;(id: scala.Int, name: String): Person (bound to null)
-
-scala&gt; val p = ctorm(1, &quot;Mike&quot;)
-p: Any = Person(1,Mike)
-</code></pre><p>如上scala REPL代码，要想通过<code>Type</code>对象获取相关信息，必须借助<code>Mirror</code>，<code>Mirror</code>是按层级划分的，有<code>ClassLoaderMirror</code>, <code>ClassMirror</code>, <code>InstanceMirror</code>, <code>ModuleMirror</code>, <code>MethodMirror</code>, <code>FieldMirror</code>。通过<code>ClassLoaderMirror</code>可以创建<code>ClassMirror</code>, <code>InstanceMirror</code>, <code>ModuleMirror</code>,  <code>MethodMirror</code>, <code>FieldMirror</code>。通过<code>ClassMirror</code>, <code>InstanceMirror</code>可以创建<code>MethodMirror</code>,  <code>FieldMirror</code>。<code>ModuleMirror</code>用于处理单例对象，通常是由<code>object</code>定义的。从上述代码中可以发现，首先获取一个<code>ClassLoaderMirror</code>，然后通过该<code>Mirror</code>创建一个<code>ClassMirror</code>，继续创建<code>MethodMirror</code>，通过该<code>MethodMirror</code>调用构造函数。从一个<code>Mirror</code>创建另一个<code>Mirror</code>，需要指定一个<code>Symbol</code>，<code>Symbol</code>其实就是绑定名字和一个实体，有<code>ClassSymbol</code>、 <code>MethodSymbol</code>、 <code>FieldSymbol</code>等，<code>Symbol</code>的获取是通过<code>Type</code>对象方法去查询，例如上述代码中通过<code>declaration</code>方法查询构造函数的<code>Symbol</code>。</p>
-<h2 id="运行时类成员访问"><a href="#运行时类成员访问" class="headerlink" title="运行时类成员访问"></a>运行时类成员访问</h2><p>下面举例阐述访问运行时类成员，同理，我们只需逐步创建<code>FieldMirror</code>来访问类成员。</p>
-<pre><code>scala&gt; case class Person(id: Int, name: String)
-defined class Person
-
-scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@3e9ed70d
-
-scala&gt; val m = ru.runtimeMirror(getClass.getClassLoader)
-m: ru.Mirror = JavaMirror with scala.tools.nsc.interpreter.IMain$TranslatingClassLoader@a57fc5f ...
-
-scala&gt; val p = Person(1, &quot;Mike&quot;)
-p: Person = Person(1,Mike)
-
-scala&gt; val nameTermSymb = ru.typeOf[Person].declaration(ru.newTermName(&quot;name&quot;)).asTerm
-nameTermSymb: ru.TermSymbol = value name
-
-scala&gt; val im = m.reflect(p)
-im: ru.InstanceMirror = instance mirror for Person(1,Mike)
-
-scala&gt; val nameFieldMirror = im.reflectField(nameTermSymb)
-nameFieldMirror: ru.FieldMirror = field mirror for Person.name (bound to Person(1,Mike))
-
-scala&gt; nameFieldMirror.get
-res0: Any = Mike
-
-scala&gt; nameFieldMirror.set(&quot;Jim&quot;)
-
-scala&gt; p.name
-res2: String = Jim
-</code></pre><p>如上代码所示，通过层级<code>ClassLoaderMirror</code>-&gt;<code>InstanceMirror</code>-&gt;<code>FieldMirror</code>得到<code>FieldMirror</code>，通过<code>Type</code>对象调用方法<code>declaration(ru.newTermName(&quot;name&quot;))</code>获取name字段的<code>Symbol</code>，通过<code>FieldMirror</code>的<code>get</code>和<code>set</code>方法去访问和修改成员变量。</p>
-<p>说了这么多，貌似利用java的反射机制也可以实现上述功能，还不用这么的费劲。关键还是在于你要访问编译器擦除后的类型信息还是擦除前的类型信息，如果是访问擦除后的类型信息，使用java和scala的反射都可以，但是访问擦除前的类型信息，那就必须要使用scala的反射，因为java的反射并不知道擦除前的信息。</p>
-<p>举个栗子，一步步剖析，首先定义一个基类<code>A</code>，它包含一个抽象类型成员<code>T</code>，然后分别派生出两个子类<code>B</code>和<code>C</code>。</p>
-<pre><code>scala&gt; class A {
-     | type T
-     | val x: Option[T] = None
-     | }
-defined class A
-
-scala&gt; class B extends A
-defined class B
-
-scala&gt; class C extends B
-defined class C
-</code></pre><p>现在分别实例化<code>B</code>和<code>C</code>的一个对象，并将抽象类型<code>T</code>具体化为<code>String</code>类型。</p>
-<pre><code>scala&gt; val b = new B { type T = String }
-b: B{type T = String} = $anon$1@446344a8
-
-scala&gt; val c = new C { type T = String }
-c: C{type T = String} = $anon$1@195bc0a4
-</code></pre><p>现在通过java的反射机制判断对象<code>b</code>和<code>c</code>的运行时类型是否是父子关系。</p>
-<pre><code>scala&gt; b.getClass.isAssignableFrom(c.getClass)
-res3: Boolean = false
-</code></pre><p>可以看到通过java的反射判断对象<code>c</code>的运行时类型并不是对象<code>b</code>的运行时类型的子类。然而从我们的定义来看，对象<code>c</code>的类型本应该是对象<code>b</code>的类型的子类，到这里我们就会想到编译器，在实例化对象<code>b</code>和<code>c</code>时实际上是通过匿名类来实例化的，一开始定义类型信息在编译的时候被擦除了，转为匿名类了。下面通过scala的反射机制判断对象<code>b</code>和<code>c</code>的运行时类型是否是父子关系。</p>
-<pre><code>scala&gt; val ru = scala.reflect.runtime.universe
-ru: scala.reflect.api.JavaUniverse = scala.reflect.runtime.JavaUniverse@3e9ed70d
-
-scala&gt; def isSubClass[T: ru.TypeTag, S: ru.TypeTag](x: T, y: S): Boolean = {
-     | val leftTag = ru.typeTag[T]
-     | val rightTag = ru.typeTag[S]
-     | leftTag.tpe &lt;:&lt; rightTag.tpe
-     | }
-isSubClass: [T, S](x: T, y: S)(implicit evidence$1: ru.TypeTag[T], implicit evidence$2: ru.TypeTag[S])Boolean
-
-scala&gt; isSubClass(c, b)
-res5: Boolean = true
-</code></pre><p>从上述代码中可以看到，通过scala的反射得到的类型信息符合我们一开始定义。所以在scala中最好是使用scala的反射而不要使用java的反射，因为很有可能编译后通过java的反射得到的结果并不是想象的那样。</p>
-<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/scala-reflect.html">http://sharkdtu.com/posts/scala-reflect.html</a></em></span></p>
+        <p>线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。<a id="more"></a></p>
+<p><img src="/images/linear_regression.png" alt="Alt text | center"></p>
+<h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a>基本套路</h2><p>机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法(<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="external">L-BFGS</a>或<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>)，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。</p>
+<p><strong>基本模型</strong>：<br>$$ \begin{split}<br>h_ \theta(X) &amp;=  \theta^T X  \\<br>&amp;= \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n<br>\end{split} $$</p>
+<blockquote>
+<p>$X$ 为表示样本特征，为 $n$ 维向量，$\theta$ 为模型参数，为 $n+1$ 维向量，包括一个偏置 $\theta_0$</p>
+</blockquote>
+<p><strong>代价函数</strong>：<br>$$ J(\theta) = \frac {1} {2m} \sum_{i=1}^m \left ( y^{(i)}-h_\theta(X) \right ) ^2 $$</p>
+<blockquote>
+<p>上述公式也称之为平方误差，$m$ 为样本个数，$(X^{(i)}, y^{(i)})$ 为第 $i$ 个样本。</p>
+</blockquote>
+<p><strong>参数梯度</strong>：<br>$$ \bigtriangledown_{\theta_j} J(\theta)  =  \frac {1} {m} \sum_{i=1}^m \left[\left ( y^{(i)} - h_ \theta(X^{(i)}) \right ) X^{(i)}_j \right] $$</p>
+<blockquote>
+<p>$\theta_j$ 表示第 $j$ 个参数，$X^{(i)}_j$ 表示样本 $X^{(i)}$ 的第 $j$ 个特征值。</p>
+</blockquote>
+<p>上述描述是按照常规的机器学习方法来描述线性回归，模型参数一般是通过梯度下降或拟牛顿法优化迭代得到，其实线性回归问题是可解的，只是在样本维度较大时很难求解才使用优化迭代的方法来逼近，如果样本维度并不是很大的情况下，是可以解方程一次性得到样本参数。</p>
+<p><strong>最小二乘</strong>：<br>$$ \theta = {\left( X^T X \right)} ^{-1} X^T y$$</p>
+<blockquote>
+<p>注意这里 $X$ 为 $m \times n$ 矩阵，$n$ 为特征维度，$m$ 为样本个数； $y$ 为 $m \times 1$ 向量，表示每个样本的标签。</p>
+</blockquote>
+<p><strong>加权最小二乘</strong>：<br>$$ \theta = {\left( X^T W X \right)} ^{-1} X^T W y$$</p>
+<blockquote>
+<p>$W$ 为 $m \times m$ 对角矩阵，对角线上的每个值表示对应样本实例的权重。</p>
+</blockquote>
+<h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a>应用套路</h2><p>在实际应用时，基于上述基本套路可能会有些小变化，下面首先还是从模型、代价函数以及参数梯度来描述。把基本套路中模型公式中的 $\theta_0$ 改成 $b$，表示截距项，模型变成如下形式：<br>$$<br>\begin{split}<br>h_{\theta,b}(X) &amp;=  \theta^T X  + b \\<br>&amp;= \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n + b<br>\end{split}<br>$$</p>
+<h3 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h3><p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
+<ul>
+<li>L1:  $\lambda \left |  \theta \right |$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导</li>
+<li>L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
+<li>L1&amp;L2:  $\lambda \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
+</ul>
+<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; \frac {1} {2m} \sum_{i=1}^m \left ( y^{(i)}-h_{\theta,b}(X) \right ) ^2  +  \frac {\lambda} {m} \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)<br>\end{split}<br>$$</p>
+<blockquote>
+<p> $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
+</blockquote>
+<p>由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能简单的套用梯度下降或L-BFGS，需要采用借助<a href="http://blog.csdn.net/jbb0523/article/details/52103257" target="_blank" rel="external">软阈值(Soft Thresholding)</a>函数解决，如果是使用拟牛顿法，可以采用<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>，它是基于L-BFGS算法的可用于求解L1正则的算法。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：<br>$$<br>\begin{split}<br>\bigtriangledown_{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left ( y^{(i)} - h_{\theta,b} (X^{(i)}) \right ) X^{(i)}_j + \frac {\lambda (1-\alpha)} {m}  {\theta_j}^\ast \\<br>\bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)<br>\end{split}<br>$$</p>
+<blockquote>
+<p>${\theta_j}^\ast$ 为上一次迭代得到的参数值。</p>
+</blockquote>
+<p>实际上，使用L2正则，是将前面所述的最小二乘方程改成如下形式:<br>$$ \theta = {\left( X^T X + kI \right)}^{-1} X^T y$$</p>
+<blockquote>
+<p>这样可以降低矩阵 $X^T X $ 奇异的可能，否则就不能求逆了。</p>
+</blockquote>
+<h3 id="标准化"><a href="#标准化" class="headerlink" title="标准化"></a>标准化</h3><p>一般来说，一个特征的值可能在区间 $(0, 1)$ 之间，另一特征的值可能在区间$(-\infty, \infty)$  ，这就是所谓的样本特征之间量纲不同，这样会导致优化迭代过程中的不稳定。当参数有不同初始值时，其收敛速度差异性较大，得到的结果可能也有较大的差异性，如下图所示，可以看到X和Y这两个变量的变化幅度不一致，如果直接使用梯度下降来优化迭代，那么量纲较大的特征信息量会被放大，量纲较小的特征信息量会被缩小。</p>
+<p><img src="/images/ml-no-normalize.png" width="400" height="230" alt="ml-no-normalize" align="center"></p>
+<p>所以一般要对数据作无量纲化处理，通常会采用标准化方法 $(x-u)/\sigma$ ，得到如下数据分布，这样无论从哪个点开始，其迭代方向的抖动都不会太大，每个特征的信息也不至于被放大和缩小。</p>
+<p><img src="/images/ml-normalize.png" width="400" height="230" alt="ml-normalize.png" align="center"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然线性回归现在可能很少用于解决实际问题，但是因为其简单易懂，学习它有助于对机器学习有个入门级的初步掌握，了解机器学习的套路等。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-linear-regression.html">http://sharkdtu.com/posts/ml-linear-regression.html</a></em></span></p>
 
       
     </div>
@@ -545,16 +456,16 @@ res5: Boolean = true
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/posts/blog-reborn.html" rel="next" title="博客重生">
-                <i class="fa fa-chevron-left"></i> 博客重生
+              <a href="/posts/spark-sql-join.html" rel="next" title="Spark SQL 之 Join 实现">
+                <i class="fa fa-chevron-left"></i> Spark SQL 之 Join 实现
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/posts/tmp-hadoop-ugi-using.html" rel="prev" title="临时更换hadoop-ugi">
-                临时更换hadoop-ugi <i class="fa fa-chevron-right"></i>
+              <a href="/posts/ml-lr.html" rel="prev" title="机器学习套路--逻辑回归">
+                机器学习套路--逻辑回归 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -725,7 +636,7 @@ res5: Boolean = true
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取运行时类型信息"><span class="nav-number">1.</span> <span class="nav-text">获取运行时类型信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行时类型实例化"><span class="nav-number">2.</span> <span class="nav-text">运行时类型实例化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行时类成员访问"><span class="nav-number">3.</span> <span class="nav-text">运行时类成员访问</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本套路"><span class="nav-number">1.</span> <span class="nav-text">基本套路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用套路"><span class="nav-number">2.</span> <span class="nav-text">应用套路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#正则化"><span class="nav-number">2.1.</span> <span class="nav-text">正则化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标准化"><span class="nav-number">2.2.</span> <span class="nav-text">标准化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
             
           </div>
         </section>

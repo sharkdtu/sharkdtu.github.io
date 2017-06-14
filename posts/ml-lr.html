@@ -96,7 +96,7 @@
 <meta property="og:description" content="逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。">
 <meta property="og:image" content="http://sharkdtu.com/images/sigmoid.png">
 <meta property="og:image" content="http://sharkdtu.com/images/lr-boundary.png">
-<meta property="og:updated_time" content="2017-06-08T00:39:57.000Z">
+<meta property="og:updated_time" content="2017-06-14T14:41:24.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="机器学习套路--逻辑回归">
 <meta name="twitter:description" content="逻辑回归常用于解决二分类问题，它将具有 $n$ 维特征的样本 $X$，经过线性加权后，通过 $sigmoid$ 函数转换得到一个概率值 $y$，预测时根据一个门限 $threshold$ (例如0.5)来划分类别，$y &amp;lt; threshold$ 为负类，$y \geq threshold$ 为正类。">
@@ -302,8 +302,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-06-03T22:45:33+08:00" content="2017-06-03">
-              2017-06-03
+            <time itemprop="dateCreated" datetime="2017-06-14T17:23:14+08:00" content="2017-06-14">
+              2017-06-14
             </time>
           </span>
 
@@ -383,15 +383,10 @@
 </blockquote>
 <h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a>应用套路</h2><p>在实际应用时，基于上述基本套路可能会有些小变化，下面还是从模型、代价函数以及参数梯度来描述。</p>
 <p>通常来说在模型中会加个偏置项，模型变成如下形式：<br>$$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$</p>
-<p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
-<ul>
-<li>L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导</li>
-<li>L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
-<li>L1&amp;L2:  $\alpha \left \|  \theta \right \| + \frac {\beta} {2} {\left \|  \theta \right \|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
-</ul>
-<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\<br>&amp;+ \frac {\alpha} {m} \left \|  \theta \right \| + \frac {\beta} {2m} {\left \|  \theta \right \|}^2<br>\end{split}<br>$$</p>
+<p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法参考前面的文章<a href="http://sharkdtu.com/posts/ml-linear-regression.html#正则化">“线性回归”</a>。</p>
+<p>加上正则项后，代价函数变成如下形式：<br>$$<br>\begin{split}<br>J(\theta, b) =&amp; - \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} log h_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h_{\theta,b}(X^{(i)}) \right) \\<br>&amp;+ \frac {\lambda} {m} \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)<br>\end{split}<br>$$</p>
 <blockquote>
-<p> $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
+<p> $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
 </blockquote>
 <p>由于 $sigmoid$ 函数在两端靠近极值点附近特别平缓，如果使用梯度下降优化算法，收敛非常慢，通常实际应用时，会使用拟牛顿法，它是沿着梯度下降最快的方向搜索，收敛相对较快，常见的拟牛顿法为<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="external">L-BFGS</a>和<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>。L-BFGS只能处理可导的代价函数，由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能使用L-BFGS，OWL-QN是基于L-BFGS算法的可用于求解L1正则的算法，所以当 $\alpha$ 不为0，可以使用OWL-QN。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：<br>$$<br>\begin{split}<br>\bigtriangledown_{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right) X^{(i)}_j + \frac {\beta} {m}  {\theta_j}^\ast \\<br>\bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)<br>\end{split}<br>$$</p>
 <blockquote>
@@ -461,8 +456,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/posts/spark-sql-join.html" rel="next" title="Spark SQL 之 Join 实现">
-                <i class="fa fa-chevron-left"></i> Spark SQL 之 Join 实现
+              <a href="/posts/ml-linear-regression.html" rel="next" title="机器学习套路--线性回归">
+                <i class="fa fa-chevron-left"></i> 机器学习套路--线性回归
               </a>
             
           </div>
@@ -555,7 +550,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">22</span>
+              <span class="site-state-item-count">23</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -572,7 +567,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-count">37</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
