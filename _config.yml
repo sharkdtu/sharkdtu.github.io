@@ -61,6 +61,7 @@ tag_map:
   决策树: decision-tree
   随机森林: random-forest
   逻辑回归: logistic-regression
+  线性回归: linear-regression
 
 
 # Date / Time format

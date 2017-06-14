@@ -1,6 +1,6 @@
 ---
 title: 机器学习套路--逻辑回归
-date: 2017-06-03 22:45:33
+date: 2017-06-14 17:23:14
 categories: 机器学习
 comments: false
 tags:
@@ -48,19 +48,16 @@ $$
 通常来说在模型中会加个偏置项，模型变成如下形式：
 $$ h_ {\theta,b}(X) = \frac {1} {1 + e^{-(\theta^T X + b)}} $$
 
-为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：
-* L1:  $\lambda \left \\|  \theta \right \\|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，不可导
-* L2:  $\frac {\lambda} {2}  {\left \\|  \theta \right \\|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导
-* L1&L2:  $\alpha \left \\|  \theta \right \\| + \frac {\beta} {2} {\left \\|  \theta \right \\|}^2$,  也称之为弹性网络(ElasticNet)，具备L1&L2的双重特性
+为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法参考前面的文章["线性回归"](http://sharkdtu.com/posts/ml-linear-regression.html#正则化)。
 
 加上正则项后，代价函数变成如下形式：
 $$
 \begin{split}
 J(\theta, b) =& - \frac {1} {m} \sum\_{i=1}^m \left( y^{(i)} log h\_{\theta,b}(X^{(i)}) + (1-y^{(i)})(1-log h\_{\theta,b}(X^{(i)}) \right) \\\
-&+ \frac {\alpha} {m} \left \\|  \theta \right \\| + \frac {\beta} {2m} {\left \\|  \theta \right \\|}^2
+&+ \frac {\lambda} {m} \left(\alpha \left \\|  \theta \right \\| + \frac {1-\alpha} {2} {\left \\|  \theta \right \\|}^2 \right)
 \end{split}
 $$
->  $\alpha$ 和 $\beta$ 是正则项系数，为可调整的超参数，通过调整 $\alpha$ 和 $\beta$ 可以确定使用哪种正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。
+>  $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。
 
 由于 $sigmoid$ 函数在两端靠近极值点附近特别平缓，如果使用梯度下降优化算法，收敛非常慢，通常实际应用时，会使用拟牛顿法，它是沿着梯度下降最快的方向搜索，收敛相对较快，常见的拟牛顿法为[L-BFGS](http://blog.csdn.net/itplus/article/details/21896453)和[OWL-QN](http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf)。L-BFGS只能处理可导的代价函数，由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能使用L-BFGS，OWL-QN是基于L-BFGS算法的可用于求解L1正则的算法，所以当 $\alpha$ 不为0，可以使用OWL-QN。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：
 $$
