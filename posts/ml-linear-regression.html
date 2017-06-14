@@ -97,7 +97,7 @@
 <meta property="og:image" content="http://sharkdtu.com/images/linear_regression.png">
 <meta property="og:image" content="http://sharkdtu.com/images/ml-no-normalize.png">
 <meta property="og:image" content="http://sharkdtu.com/images/ml-normalize.png">
-<meta property="og:updated_time" content="2017-06-14T14:39:19.000Z">
+<meta property="og:updated_time" content="2017-06-14T14:44:53.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="机器学习套路--线性回归">
 <meta name="twitter:description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。">
@@ -389,7 +389,7 @@
 <h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a>应用套路</h2><p>在实际应用时，基于上述基本套路可能会有些小变化，下面首先还是从模型、代价函数以及参数梯度来描述。把基本套路中模型公式中的 $\theta_0$ 改成 $b$，表示截距项，模型变成如下形式：<br>$$<br>\begin{split}<br>h_{\theta,b}(X) &amp;=  \theta^T X  + b \\<br>&amp;= \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n + b<br>\end{split}<br>$$</p>
 <h3 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h3><p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
 <ul>
-<li>L1:  $\lambda \left |  \theta \right |$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导</li>
+<li>L1:  $\lambda \left \|  \theta \right \|$ , 也称之为套索回归(Lasso)，可将参数稀疏化，但是不可导</li>
 <li>L2:  $\frac {\lambda} {2}  {\left \|  \theta \right \|}^2$，也称之为岭回归(Ridge)，可将参数均匀化，可导</li>
 <li>L1&amp;L2:  $\lambda \left(\alpha \left \|  \theta \right \| + \frac {1-\alpha} {2} {\left \|  \theta \right \|}^2 \right)$,  也称之为弹性网络(ElasticNet)，具备L1&amp;L2的双重特性</li>
 </ul>
