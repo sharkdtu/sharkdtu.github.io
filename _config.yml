@@ -62,6 +62,7 @@ tag_map:
   随机森林: random-forest
   逻辑回归: logistic-regression
   线性回归: linear-regression
+  协同过滤: collaborative-filtering
 
 
 # Date / Time format
