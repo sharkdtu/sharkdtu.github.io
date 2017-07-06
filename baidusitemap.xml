@@ -4,6 +4,30 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/pyspark-internal.html</loc>
+    <lastmod>2017-07-06T14:35:37.000Z</lastmod>
+    <data>
+        <display>
+        <title>PySpark 的背后原理</title>
+        <pubTime>2017-07-05T14:10:45.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>分布式计算</tag>
+         
+        <tag>pyspark</tag>
+         
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/ml-als.html</loc>
     <lastmod>2017-07-01T10:53:58.000Z</lastmod>
     <data>
@@ -85,9 +109,9 @@
          
         <tag>分布式计算</tag>
          
-        <tag>sql</tag>
-         
         <tag>join</tag>
+         
+        <tag>sql</tag>
          
          
            
