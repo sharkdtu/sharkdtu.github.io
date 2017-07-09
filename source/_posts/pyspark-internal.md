@@ -49,7 +49,7 @@ PythonRunner入口main函数里主要做两件事：
 
 把前面运行时架构图中Driver部分单独拉出来，如下图所示，通过PythonRunner入口main函数拉起JVM和Python进程，JVM进程对应下图橙色部分，Python进程对应下图白色部分。Python进程通过Py4j调用Java方法提交Job，Job运行结果通过本地Socket被拉取到Python进程。还有一点是，对于大数据量，例如广播变量等，Python进程和JVM进程是通过本地文件系统来交互，以减少进程间的数据传输。
 
-<img src="/images/pyspark-driver.png" width="600" height="400" alt="pyspark-driver" align=center />
+<img src="/images/pyspark-driver.png" width="400" height="230" alt="pyspark-driver" align=center />
 
 ### Executor端运行原理
 
@@ -64,7 +64,7 @@ Executor端收到Task后，会通过launchTask运行Task，最后会调用到Pyt
 
 把前面运行时架构图中Executor部分单独拉出来，如下图所示，橙色部分为JVM进程，白色部分为Python进程，每个Executor上有一个公共的pyspark.deamon进程，负责接收Task请求，并fork pyspark.worker进程单独处理每个Task，实际数据处理过程中，pyspark.worker进程和JVM Task会较频繁地进行本地Socket数据通信。
 
-<img src="/images/pyspark-executor.png" width="400" height="230" alt="pyspark-executor.png" align=center />
+<img src="/images/pyspark-executor.png" width="300" height="130" alt="pyspark-executor.png" align=center />
 
 
 ## 总结
