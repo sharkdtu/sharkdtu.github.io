@@ -8,7 +8,7 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Thu, 06 Jul 2017 14:35:37 GMT</pubDate>
+    <pubDate>Sun, 09 Jul 2017 14:15:54 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
@@ -45,7 +45,7 @@
 &lt;/ul&gt;
 &lt;p&gt;经过上面两步后，SparkContext对象初始化完毕，Driver已经起来了，开始申请Executor资源，同时开始调度任务。用户Python脚本中定义的一系列处理逻辑最终遇到action方法后会触发Job的提交，提交Job时是直接通过Py4j调用Java的PythonRDD.runJob方法完成，映射到JVM中，会转给sparkContext.runJob方法，Job运行完成后，JVM中会开启一个本地Socket等待Python进程拉取，对应地，Python进程在调用PythonRDD.runJob后就会通过Socket去拉取结果。&lt;/p&gt;
 &lt;p&gt;把前面运行时架构图中Driver部分单独拉出来，如下图所示，通过PythonRunner入口main函数拉起JVM和Python进程，JVM进程对应下图橙色部分，Python进程对应下图白色部分。Python进程通过Py4j调用Java方法提交Job，Job运行结果通过本地Socket被拉取到Python进程。还有一点是，对于大数据量，例如广播变量等，Python进程和JVM进程是通过本地文件系统来交互，以减少进程间的数据传输。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/images/pyspark-driver.png&quot; width=&quot;600&quot; height=&quot;400&quot; alt=&quot;pyspark-driver&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/pyspark-driver.png&quot; width=&quot;400&quot; height=&quot;230&quot; alt=&quot;pyspark-driver&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
 &lt;h3 id=&quot;Executor端运行原理&quot;&gt;&lt;a href=&quot;#Executor端运行原理&quot; class=&quot;headerlink&quot; title=&quot;Executor端运行原理&quot;&gt;&lt;/a&gt;Executor端运行原理&lt;/h3&gt;&lt;p&gt;为了方便阐述，以Spark On Yarn为例，当Driver申请到Executor资源时，会通过CoarseGrainedExecutorBackend(其中有main方法)拉起JVM，启动一些必要的服务后等待Driver的Task下发，在还没有Task下发过来时，Executor端是没有Python进程的。当收到Driver下发过来的Task后，Executor的内部运行过程如下图所示。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;/images/pyspark-executor-runtime.png&quot; width=&quot;600&quot; height=&quot;400&quot; alt=&quot;pyspark-executor-runtime&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
 &lt;p&gt;Executor端收到Task后，会通过launchTask运行Task，最后会调用到PythonRDD的compute方法，来处理一个分区的数据，PythonRDD的compute方法的计算流程大致分三步走：&lt;/p&gt;
@@ -55,7 +55,7 @@
 &lt;li&gt;在一边喂数据的过程中，另一边则通过Socket去拉取pyspark.worker的计算结果。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;把前面运行时架构图中Executor部分单独拉出来，如下图所示，橙色部分为JVM进程，白色部分为Python进程，每个Executor上有一个公共的pyspark.deamon进程，负责接收Task请求，并fork pyspark.worker进程单独处理每个Task，实际数据处理过程中，pyspark.worker进程和JVM Task会较频繁地进行本地Socket数据通信。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/images/pyspark-executor.png&quot; width=&quot;400&quot; height=&quot;230&quot; alt=&quot;pyspark-executor.png&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/pyspark-executor.png&quot; width=&quot;300&quot; height=&quot;130&quot; alt=&quot;pyspark-executor.png&quot; align=&quot;center&quot;&gt;&lt;/p&gt;
 &lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;总体上来说，PySpark是借助Py4j实现Python调用Java，来驱动Spark应用程序，本质上主要还是JVM runtime，Java到Python的结果返回是通过本地Socket完成。虽然这种架构保证了Spark核心代码的独立性，但是在大数据场景下，JVM和Python进程间频繁的数据通信导致其性能损耗较多，恶劣时还可能会直接卡死，所以建议对于大规模机器学习或者Streaming应用场景还是慎用PySpark，尽量使用原生的Scala/Java编写应用程序，对于中小规模数据量下的简单离线任务，可以使用PySpark快速部署提交。&lt;/p&gt;
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/pyspark-internal.html&quot;&gt;http://sharkdtu.com/posts/pyspark-internal.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
