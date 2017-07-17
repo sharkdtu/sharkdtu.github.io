@@ -148,41 +148,41 @@ $$
 
 有了这个基本求解思路后，考虑 $u$ 的维度为 $k$，可以在单机上完成上述求解，那么就可以在不同task里完成不同物品 $v^T$ 的计算，实现分布式求解，由打分矩阵可以得到如下图所示的关系图。
 
-![mllib-als-reduce-1 | center](/images/mllib-als-reduce-1.png)
+<img src="/images/mllib-als-reduce-1.png" width="600" height="400" alt="mllib-als-reduce-1" align=center />
 
 基于上述思路，就是要把有打分关联的 u 和 v 想办法放到同一个分区里，这样就可以在一个task里完成对 v 的求解，例如要求解 $v_1$，就必须把 $u_1$ 和 $u_2$ 以及其对应地打分放到同一个分区，才能利用上述公式求解。首先对uid和vid以Hash分区的方式分区，假设分区数均为2，那么分区后的大致情况如下图所示，$v_1$ 和 $v_3$ 在同一个分区中被求解，$v_2$ 和 $v_4$ 在同一个分区中被求解。
 
-![als-id-partition | center](/images/als-id-partition.png)
+<img src="/images/als-id-partition.png" width="600" height="400" alt="als-id-partition" align=center />
 
 上面的图仅为感性认识图，实际上手头仅有的数据就是打分矩阵，可以通过一个RDD表示打分矩阵`ratings`，RDD中的每条记录为`(uid, vid, rating)`形式，由于是基于 $U$ 求解 $V$，把uid称之为`srcId`，vid称之为`dstId`，按照`srcId`和`dstId`的分区方式，将`ratings`重新分区，得到的RDD为`blockRatings`，其中的每条记录为`((srcBlockId, dstBlockId), RatingBlock)`形式，key为`srcId`和`dstId`对应的分区id组成的二元组，value(`RatingBlock`)包含一个三元组`(srcIds, dstIds, ratings)`。对于前面的打分关系，原始打分矩阵重新分区如下图所示。
 
-![als-ratings-partition | center](/images/als-ratings-partition.png)
+<img src="/images/als-ratings-partition.png" width="600" height="400" alt="als-ratings-partition" align=center />
 
 对于 u 来说，是要将自身信息发给不同的 v，对于 v 来说，是要接收来自不同 u 的信息，例如，要将 $u_1$ 发给 $v_1$、$v_2$、$v_3$ ，$v_1$ 要接收 $u_1$ 和 $u_2$。那么基于上述重新分区后的打分RDD，分别得到关于 u 的出口信息`userOutBlocks`，以及 v 的入口信息`itemInBlocks`，就可以通过`join`将两者联系起来计算了。由于后面基于 $V$ 求 $U$，也需要求解关于 u 的入口信息`userInBlocks`，以及 v 的出口信息`itemOutBlocks`，所以一次性计算好并缓存起来。以计算 u 的入口信息和出口信息为例，在前面得到的重新分区后的`blockRatings`基础上求解，如下图所示。
 
-![als-user-inblock | center](/images/als-user-inblock.png)
+<img src="/images/als-user-inblock.png" width="600" height="400" alt="als-user-inblock" align=center />
 
 首先通过一个`map`操作，将记录形式`((srcBlockId, dstBlockId), RatingBlock)`转换为`(srcBlockId, (dstBlockId, srcIds, dstLocalIndices, ratings))`，其中`dstLocalIndices`为`dstIds`去重排序后，每个`dstId`的索引，最后根据`srcBlockId`做`groupByKey`，合并相同`srcBlockId`对应的value，合并过程中，对`dstLocalIndices`中的每个元素加上其对应的`dstBlockId`，这里做了一个优化，就是将`localIndex`和`blockId`用一个`Int`编码表示，同时采用类似[CSC压缩编码](http://blog.csdn.net/Em_dark/article/details/54313539)的方式，进一步压缩`srcIds`和`dstIds`的对应关系。这样就按照 uid 进行分区后，得到 u 的入口信息，即将跟 u 关联的 v 绑定在一起了。基于该入口信息，可以进一步得到 u 的出口信息，如下图所示。
 
-![als-user-outblock | center](/images/als-user-outblock.png)
+<img src="/images/als-user-outblock.png" width="600" height="400" alt="als-user-outblock" align=center />
 
 在`userInBlocks`基础上根据`srcId`和`dstId`的对应关系，通过`map`操作将`(srcBlockId, (srcIds, dstPtrs, dstEncodedIndices, ratings))`形式的记录转换为`(srcBlockId, OutBlock)`得到`userOutBlocks`，其中`OutBlock`是一个二维数组，有`numDstBlock`行，每一行为`srcId`所在`srcBlockId`中的索引，意为当前`srcBlockId`应该往每个`dstBlockId`发送哪些用户信息。
 
 同理，在`userInBlocks`基础上初始化用户信息，得到`userFactors`，如下图所示，其中 $u_1$、$u_2$、$u_3$为随机初始化的向量($1 \times k$)。
 
-![als-user-factors | center](/images/als-user-factors.png)
+<img src="/images/als-user-factors.png" width="600" height="400" alt="als-user-factors" align=center />
 
 接着对`userOutBlocks`和`userFactors`做`join` 就可以模拟发送信息了，`userOutBlocks`中保存了应该往哪里发送的信息，`userFactors`中保存了用户信息，即一个掌握了方向，一个掌握了信息，如下图所示：
 
-![als-user-send](/images/als-user-send.png)
+<img src="/images/als-user-send.png" width="600" height="400" alt="als-user-send" align=center />
 
 完成了从 u 到 v 的信息发送，后面就是基于 v 的入口信息来收集来自不同 u 的信息了，计算 v 的入口信息跟计算 u 的入口信息一样，只是先要把打分数据`blockRatings`的src和dst交换一下，如下图所示。
 
-![als-item-inblock | center](/images/als-item-inblock.png)
+<img src="/images/als-item-inblock.png" width="600" height="400" alt="als-item-inblock" align=center />
 
 将`itemInBlocks`与前面的`userOut`做`join`，即可将具有相同`dstBlockId`的记录拉到一起，`userOut`中包含来自 u 的信息，`itemInBlocks`包含了与src的对应关系以及打分数据，针对每个 v 找到所有给它发送信息的 u，进而套最小二乘正规方程计算得到`itemFactors`。
 
-![als-item-factors | center](/images/als-item-factors.png)
+<img src="/images/als-item-factors.png" width="600" height="400" alt="als-item-factors" align=center />
 
 得到`itemFactors`后可以以同样的方法基于 $V$ 求解 $U$，如此交替求解，直到最大迭代次数为止。
 
