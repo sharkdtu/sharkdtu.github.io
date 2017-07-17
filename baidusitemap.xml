@@ -4,6 +4,30 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/ml-als.html</loc>
+    <lastmod>2017-07-17T15:19:56.000Z</lastmod>
+    <data>
+        <display>
+        <title>机器学习套路--协同过滤推荐ALS</title>
+        <pubTime>2017-06-24T11:34:28.000Z</pubTime>
+        
+        <tag>逻辑回归</tag>
+         
+        <tag>ALS</tag>
+         
+        <tag>协同过滤</tag>
+         
+         
+           
+             
+              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/ml-nb.html</loc>
     <lastmod>2017-07-17T14:35:05.000Z</lastmod>
     <data>
@@ -43,30 +67,6 @@
            
              
               <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://sharkdtu.com/posts/ml-als.html</loc>
-    <lastmod>2017-07-01T10:53:58.000Z</lastmod>
-    <data>
-        <display>
-        <title>机器学习套路--协同过滤推荐ALS</title>
-        <pubTime>2017-06-24T11:34:28.000Z</pubTime>
-        
-        <tag>逻辑回归</tag>
-         
-        <tag>ALS</tag>
-         
-        <tag>协同过滤</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
           
         </display>
     </data>
