@@ -4,6 +4,28 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/ml-nb.html</loc>
+    <lastmod>2017-07-17T14:25:46.000Z</lastmod>
+    <data>
+        <display>
+        <title>机器学习套路--朴素贝叶斯</title>
+        <pubTime>2017-07-17T14:23:54.000Z</pubTime>
+        
+        <tag>NaiveBayes</tag>
+         
+        <tag>Classification</tag>
+         
+         
+           
+             
+              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/pyspark-internal.html</loc>
     <lastmod>2017-07-09T14:15:54.000Z</lastmod>
     <data>
@@ -13,9 +35,9 @@
         
         <tag>spark</tag>
          
-        <tag>分布式计算</tag>
-         
         <tag>pyspark</tag>
+         
+        <tag>分布式计算</tag>
          
          
            
@@ -546,9 +568,9 @@
         
         <tag>大数据</tag>
          
-        <tag>hadoop</tag>
-         
         <tag>分布式计算</tag>
+         
+        <tag>hadoop</tag>
          
          
            

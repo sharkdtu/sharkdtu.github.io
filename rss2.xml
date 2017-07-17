@@ -8,8 +8,61 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Sun, 09 Jul 2017 14:15:54 GMT</pubDate>
+    <pubDate>Mon, 17 Jul 2017 14:25:46 GMT</pubDate>
     <generator>http://hexo.io/</generator>
+    
+    <item>
+      <title>机器学习套路--朴素贝叶斯</title>
+      <link>http://sharkdtu.com/posts/ml-nb.html</link>
+      <guid>http://sharkdtu.com/posts/ml-nb.html</guid>
+      <pubDate>Mon, 17 Jul 2017 14:23:54 GMT</pubDate>
+      <description>
+      
+        &lt;p&gt;朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。
+      
+      </description>
+      
+      <content:encoded>&lt;p&gt;朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;基本套路&quot;&gt;&lt;a href=&quot;#基本套路&quot; class=&quot;headerlink&quot; title=&quot;基本套路&quot;&gt;&lt;/a&gt;基本套路&lt;/h2&gt;&lt;p&gt;给定训练集 $T$，每个实例表示为 $(x, y)$，其中 $x$ 为 $n$ 维特征向量，定义 $X$ 为输入(特征)空间上的随机向量，$Y$ 为输出(类别)空间上的随机变量，根据训练集计算如下概率分布：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;先验概率分布，即每个类别在训练集中概率分布&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;$$&lt;br&gt;P\left( Y=c_k \right) ，k=1, 2,…, K \left(\text{其中K为类别个数}\right)&lt;br&gt;$$&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;条件概率分布，即在每个类别下，各特征的条件概率分布&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;$$&lt;br&gt;P\left( X=x \mid Y=c_k \right) = P\left( X_1=x_1,  X_2=x_2,…, X_n=x_n \mid Y=c_k \right)&lt;br&gt;$$&lt;/p&gt;
+&lt;p&gt;假设每个特征之间是独立的，那么上述条件概率分布可以展开为如下形式：&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;P\left( X=x \mid Y=c_k \right) &amp;amp;= P\left( X_1=x_1,  X_2=x_2,…, X_n=x_n \mid Y=c_k \right) \\&lt;br&gt;&amp;amp;= \prod_{j=1}^{n} P\left( X_j=x_j \mid Y=c_k \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;p&gt;如果有了每个类别的概率 $P\left( Y=c_k \right)$，以及 每个类别下每个特征的条件概率 $P\left( X_j=x_j \mid Y=c_k \right)$，那么对于一个未知类别的实例 $x$，就可以用贝叶斯公式求解其属于每个类别的后验概率：&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;P\left( Y=c_k \mid  X=x \right) &amp;amp;= \frac {P\left( X=x \mid Y=c_k \right) P\left( Y=c_k \right)} {\sum_{k}P\left( X=x \mid Y=c_k \right) P\left( Y=c_k \right)} \\&lt;br&gt;&amp;amp;= \frac {P\left( Y=c_k \right) \prod_{j} P\left( X_j=x_j \mid Y=c_k \right)} {\sum_{k} P\left( Y=c_k \right)\prod_{j} P\left( X_j=x_j \mid Y=c_k \right)}&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;p&gt;对于每个实例，分母都一样，则将该实例的类别判别为：&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;y = {arg \, max}_{c_k} \; P\left( Y=c_k \right) \prod_{j} P\left( X_j=x_j \mid Y=c_k \right)&lt;br&gt;$$&lt;/p&gt;
+&lt;h2 id=&quot;应用套路&quot;&gt;&lt;a href=&quot;#应用套路&quot; class=&quot;headerlink&quot; title=&quot;应用套路&quot;&gt;&lt;/a&gt;应用套路&lt;/h2&gt;&lt;p&gt;那么如何求解 $P\left( Y=c_k \right)$ 和 $P\left( X_j=x_j \mid Y=c_k \right)$ 这些概率值呢？答案是极大似然估计。先验概率的极大似然估计为：&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;P\left( Y=c_k \right) = \frac {N_{y=c_k} + \lambda} {\sum_i^K N_{y=c_i} + K\lambda}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;其中 $N_{y=c_k}$ 为类别 $c_k$ 的实例个数，$K$ 为类别个数，$\lambda$ 为平滑系数，避免估计的概率为0的情况。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;对于条件概率 $P\left( X_j=x_j \mid Y=c_k \right)$ 的极大似然估计通常有两种模型：多项式模型和伯努利模型。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;多项式模型&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;P\left( X_j=x_j \mid Y=c_k \right) = \frac {N_{x_j \mid y=c_k} + \lambda} {\sum_i^{n}N_{x_j \mid y=c_k} + n\lambda}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;其中 $N_{x_j \mid y=c_k}$ 为类别 $c_k$ 下特征 $x_j$ 出现的总次数， $n$ 为特征维度。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;伯努利模型&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;对于每个特征 $x_j$，只能有{0, 1}两种可能的取值：&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;P\left( X_j=1 \mid Y=c_k \right) &amp;amp;= \frac {N_{y=c_k, x_j=1} + \lambda} {N_{y=c_k} + 2\lambda} \\&lt;br&gt;P\left( X_j=0 \mid Y=c_k \right) &amp;amp;= 1- P\left( X_j=1 \mid Y=c_k \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;其中 $N_{y=c_k, x_j=1}$ 为类别 $c_k$ 下特征 $x_j=1$ 出现的总次数。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;通过给定的训练集，根据上述极大似然估计方法，可以求得朴素贝叶斯模型的参数(即上述的先验概率和条件概率)，基于这些参数即可根据下面的模型对未知类别的数据进行预测。&lt;/p&gt;
+&lt;p&gt;$$&lt;br&gt;y = {arg \, max}_{c_k} \; P\left( Y=c_k \right) \prod_{j} P\left( X_j=x_j \mid Y=c_k \right)&lt;br&gt;$$&lt;/p&gt;
+&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;朴素贝叶斯模型是基于特征之间独立的假设，这是个非常强的假设，这也是其名字的由来，它属于生成学习方法，训练时不需要迭代拟合，模型简单易于理解，常用于文本分类等，并能取得较好的效果。&lt;/p&gt;
+&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/ml-nb.html&quot;&gt;http://sharkdtu.com/posts/ml-nb.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
+</content:encoded>
+      
+      
+    </item>
     
     <item>
       <title>PySpark 的背后原理</title>
@@ -1411,26 +1464,6 @@ res5: Boolean = true
 &lt;figure class=&quot;highlight scala&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;rdd. aggregateByKey(&lt;span class=&quot;type&quot;&gt;Seq&lt;/span&gt; ())(&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;(u, v) =&amp;gt; v::u,&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;(u1, u2) =&amp;gt; u1 ++ u2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;)&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
 &lt;p&gt;以上是简单提出几个需要注意的接口调用，如果不了解RDD接口的使用，可以参见&lt;a href=&quot;http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;社区文档&lt;/a&gt;。&lt;/p&gt;
 &lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/spark-tun.html&quot;&gt;http://sharkdtu.com/posts/spark-tun.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
-</content:encoded>
-      
-      
-    </item>
-    
-    <item>
-      <title>写在最后一个寒假前</title>
-      <link>http://sharkdtu.com/posts/before-last-winter-vacation.html</link>
-      <guid>http://sharkdtu.com/posts/before-last-winter-vacation.html</guid>
-      <pubDate>Fri, 23 Jan 2015 03:22:09 GMT</pubDate>
-      <description>
-      
-        &lt;p&gt;明天回家，这应该是我的上学生涯最后的一个寒假，寒假过后差不多就开始步入职场。突然觉得要好好珍惜这个假期，但是又不知从何去珍惜。记得每次寒假前总是计划着要看好多书学好多东西，最终证明带的书终究还是压箱底的，在家宁可过着猪一般的生活，躺在被子里发呆也不愿意做任何事。不过想想，家里真的是不适合学习，大冬天，没暖气，手端着书本拿着鼠标都会冻得发紫，所有的学习热情都被冻得拔凉拔凉的，假期前的美好计划也都不了了之。又想着最后一个长假，这样过去真是有点敷衍人生，还是激励下自己克服寒冷，借着本站点好好写点东西，但凡假期遇到的好玩或者有所感触的事都把它记录下来，培养自己码字的习惯，要是自己能坚持下来写东西，也就无悔了。
-      
-      </description>
-      
-      <content:encoded>&lt;p&gt;明天回家，这应该是我的上学生涯最后的一个寒假，寒假过后差不多就开始步入职场。突然觉得要好好珍惜这个假期，但是又不知从何去珍惜。记得每次寒假前总是计划着要看好多书学好多东西，最终证明带的书终究还是压箱底的，在家宁可过着猪一般的生活，躺在被子里发呆也不愿意做任何事。不过想想，家里真的是不适合学习，大冬天，没暖气，手端着书本拿着鼠标都会冻得发紫，所有的学习热情都被冻得拔凉拔凉的，假期前的美好计划也都不了了之。又想着最后一个长假，这样过去真是有点敷衍人生，还是激励下自己克服寒冷，借着本站点好好写点东西，但凡假期遇到的好玩或者有所感触的事都把它记录下来，培养自己码字的习惯，要是自己能坚持下来写东西，也就无悔了。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;想想这学期过得其实还是挺舒服的，没有以前那样苦逼地为导师折腾这折腾那，也没有忍受导师一些无理取闹的要求，这学期心态也特别好，遇到困难时心里也只是想着忍耐，没有抱怨，反正离毕业也不远了。总的来说，从暑假到现在进行的还是很顺心的，这学期应该说是我读研以来最为辉煌的一段时间，工作早早地搞定了，即将去自己喜欢的城市，论文也进展地有条不紊，两年多的痛苦到这学期也显现出点价值来了，不久前拿了国奖，因为前段时间被导师的一些破事折腾的心情极其烦躁，之前说好的拿国奖请客也没有开展下去，只是请了几个平时较为熟悉的实验室同学，一直觉得这确实有点不对。&lt;/p&gt;
-&lt;p&gt;说说找工作吧，我的找工作历程相对来说比较简单，追求也没有太高，见好就收了，所有没有太多的波折。倒是找暑期实习挺曲折的，大概是5-6月份的时候，投简历真是面一家挂一家，要么是不对口，要么是自己水平太差，平时在实验室干的活跟找工作也好像没有两毛钱关系，互联网公司对刚毕业的学生来说主要还是看基础，外企基本就是问算法，leetcode上的题刷几遍后就可以八九不离十的拿下，甚至有同学直接去github上找现成的代码打印，跟考期复习一样背熟也行。我本身是比较熟悉C/C++的，也研读过apue/unp这两本书，一直是冲着linux后台这个方向去找，但是事与愿违，可能是自我感觉太良好了。不过好在我努力地复习基础，仔细研究我心仪公司（其实主要是该公司总部在心仪的城市）的笔试面试题，最后顺利地拿下暑期实习offer，可是从事php开发，当时也不爽了一段时间，毕竟要重新开始学，不过心态调整的还不错，学习起来也很快，作为初级程序员真的不能逃避学新东西，否则成长起来会很慢。虽说实习进了心仪的公司，但是由于实验室的很多破事，需要经常回学校露露脸，所以万般无奈没选择去心仪的城市，最后在实习生转正阶段大费周折地调岗换城市，这应该算是找工作中最为波折的一段了，好在付出没有白白浪费，顺利地去了心仪的城市，岗位也换成了一个较为喜欢的方向（大数据平台开发），整个过程下来觉得我还算幸运的。&lt;/p&gt;
-&lt;p&gt;&lt;span style=&quot;color:red&quot;&gt;&lt;em&gt;转载请注明出处，本文永久链接：&lt;a href=&quot;http://sharkdtu.com/posts/before-last-winter-vacation.html&quot;&gt;http://sharkdtu.com/posts/before-last-winter-vacation.html&lt;/a&gt;&lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
 </content:encoded>
       
       
