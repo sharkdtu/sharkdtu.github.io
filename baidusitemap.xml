@@ -5,7 +5,7 @@
     
   <url>
     <loc>http://sharkdtu.com/posts/ml-nb.html</loc>
-    <lastmod>2017-07-17T14:25:46.000Z</lastmod>
+    <lastmod>2017-07-17T14:35:05.000Z</lastmod>
     <data>
         <display>
         <title>机器学习套路--朴素贝叶斯</title>
@@ -35,9 +35,9 @@
         
         <tag>spark</tag>
          
-        <tag>pyspark</tag>
-         
         <tag>分布式计算</tag>
+         
+        <tag>pyspark</tag>
          
          
            
@@ -568,9 +568,9 @@
         
         <tag>大数据</tag>
          
-        <tag>分布式计算</tag>
-         
         <tag>hadoop</tag>
+         
+        <tag>分布式计算</tag>
          
          
            

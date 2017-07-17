@@ -8,13 +8,13 @@
       <url>http://sharkdtu.com/posts/ml-nb.html</url>
       <content type="html"><![CDATA[<p>朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。<a id="more"></a></p>
 <h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a>基本套路</h2><p>给定训练集 $T$，每个实例表示为 $(x, y)$，其中 $x$ 为 $n$ 维特征向量，定义 $X$ 为输入(特征)空间上的随机向量，$Y$ 为输出(类别)空间上的随机变量，根据训练集计算如下概率分布：</p>
-<ol>
+<ul>
 <li>先验概率分布，即每个类别在训练集中概率分布</li>
-</ol>
+</ul>
 <p>$$<br>P\left( Y=c_k \right) ，k=1, 2,…, K \left(\text{其中K为类别个数}\right)<br>$$</p>
-<ol>
+<ul>
 <li>条件概率分布，即在每个类别下，各特征的条件概率分布</li>
-</ol>
+</ul>
 <p>$$<br>P\left( X=x \mid Y=c_k \right) = P\left( X_1=x_1,  X_2=x_2,…, X_n=x_n \mid Y=c_k \right)<br>$$</p>
 <p>假设每个特征之间是独立的，那么上述条件概率分布可以展开为如下形式：</p>
 <p>$$<br>\begin{split}<br>P\left( X=x \mid Y=c_k \right) &amp;= P\left( X_1=x_1,  X_2=x_2,…, X_n=x_n \mid Y=c_k \right) \\<br>&amp;= \prod_{j=1}^{n} P\left( X_j=x_j \mid Y=c_k \right)<br>\end{split}<br>$$</p>

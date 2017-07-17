@@ -8,7 +8,7 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Mon, 17 Jul 2017 14:25:46 GMT</pubDate>
+    <pubDate>Mon, 17 Jul 2017 14:35:05 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
@@ -24,13 +24,13 @@
       
       <content:encoded>&lt;p&gt;朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&quot;基本套路&quot;&gt;&lt;a href=&quot;#基本套路&quot; class=&quot;headerlink&quot; title=&quot;基本套路&quot;&gt;&lt;/a&gt;基本套路&lt;/h2&gt;&lt;p&gt;给定训练集 $T$，每个实例表示为 $(x, y)$，其中 $x$ 为 $n$ 维特征向量，定义 $X$ 为输入(特征)空间上的随机向量，$Y$ 为输出(类别)空间上的随机变量，根据训练集计算如下概率分布：&lt;/p&gt;
-&lt;ol&gt;
+&lt;ul&gt;
 &lt;li&gt;先验概率分布，即每个类别在训练集中概率分布&lt;/li&gt;
-&lt;/ol&gt;
+&lt;/ul&gt;
 &lt;p&gt;$$&lt;br&gt;P\left( Y=c_k \right) ，k=1, 2,…, K \left(\text{其中K为类别个数}\right)&lt;br&gt;$$&lt;/p&gt;
-&lt;ol&gt;
+&lt;ul&gt;
 &lt;li&gt;条件概率分布，即在每个类别下，各特征的条件概率分布&lt;/li&gt;
-&lt;/ol&gt;
+&lt;/ul&gt;
 &lt;p&gt;$$&lt;br&gt;P\left( X=x \mid Y=c_k \right) = P\left( X_1=x_1,  X_2=x_2,…, X_n=x_n \mid Y=c_k \right)&lt;br&gt;$$&lt;/p&gt;
 &lt;p&gt;假设每个特征之间是独立的，那么上述条件概率分布可以展开为如下形式：&lt;/p&gt;
 &lt;p&gt;$$&lt;br&gt;\begin{split}&lt;br&gt;P\left( X=x \mid Y=c_k \right) &amp;amp;= P\left( X_1=x_1,  X_2=x_2,…, X_n=x_n \mid Y=c_k \right) \\&lt;br&gt;&amp;amp;= \prod_{j=1}^{n} P\left( X_j=x_j \mid Y=c_k \right)&lt;br&gt;\end{split}&lt;br&gt;$$&lt;/p&gt;
