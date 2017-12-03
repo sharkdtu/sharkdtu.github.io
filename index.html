@@ -281,6 +281,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/spark-streaming-state.html" itemprop="url">
+                  Spark-Streaming状态管理应用优化之路
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-12-02T10:04:25+08:00" content="2017-12-02">
+              2017-12-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在整个计算过程中维护一个状态来保存近一个小时的用户行为。在Spark-1.6以前，可以通过<code>updateStateByKey</code>操作实现有状态的流式计算，从spark-1.6开始，新增了<code>mapWithState</code>操作，引入了一种新的流式状态管理机制。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/spark-streaming-state.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/ml-nb.html" itemprop="url">
                   机器学习套路--朴素贝叶斯
                 </a>
@@ -720,121 +835,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/ml-linear-regression.html" itemprop="url">
-                  机器学习套路--线性回归
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-06-03T22:45:33+08:00" content="2017-06-03">
-              2017-06-03
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
-                    <span itemprop="name">机器学习</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/ml-linear-regression.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
   </section>
 
   
@@ -880,7 +880,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-count">27</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -897,7 +897,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-count">45</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

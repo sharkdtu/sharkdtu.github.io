@@ -4,6 +4,36 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/spark-streaming-state.html</loc>
+    <lastmod>2017-12-03T09:06:13.265Z</lastmod>
+    <data>
+        <display>
+        <title>Spark-Streaming状态管理应用优化之路</title>
+        <pubTime>2017-12-02T02:04:25.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>大数据</tag>
+         
+        <tag>分布式计算</tag>
+         
+        <tag>streaming</tag>
+         
+        <tag>updateStateByKey</tag>
+         
+        <tag>mapWithState</tag>
+         
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/ml-als.html</loc>
     <lastmod>2017-07-17T15:19:56.000Z</lastmod>
     <data>

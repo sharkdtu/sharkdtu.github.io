@@ -281,6 +281,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/tmp-hadoop-ugi-using.html" itemprop="url">
+                  临时更换hadoop-ugi
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-12T21:45:11+08:00" content="2016-05-12">
+              2016-05-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/stackoverflow/" itemprop="url" rel="index">
+                    <span itemprop="name">问题总结</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/tmp-hadoop-ugi-using.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/scala-reflect.html" itemprop="url">
                   初识Scala反射
                 </a>
@@ -721,121 +836,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/spark-tun.html" itemprop="url">
-                  Spark 应用程序调优
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2015-06-17T14:22:33+08:00" content="2015-06-17">
-              2015-06-17
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>对于很多刚接触Spark的人来说，可能主要关心数据处理的逻辑，而对于如何高效运行Spark应用程序了解较少。由于Spark是一种分布式内存计算框架，其性能往往受限于CPU、内存、网络等多方面的因素，对于用户来说，如何在有限的资源下高效地运行Spark应用程序显得尤为重要。下面只针对Spark-On-Yarn的一些常用调优策略做详细分析。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/spark-tun.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
   </section>
 
   
@@ -881,7 +881,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-count">27</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -898,7 +898,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-count">45</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://sharkdtu.com/posts/spark-streaming-state.html</loc>
+    
+    <lastmod>2017-12-03T09:06:13.265Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/ml-als.html</loc>
     
     <lastmod>2017-07-17T15:19:56.000Z</lastmod>
