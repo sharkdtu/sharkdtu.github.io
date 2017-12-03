@@ -342,7 +342,7 @@
 
       
         
-          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在整个计算过程中维护一个状态来保存近一个小时的用户行为。在Spark-1.6以前，可以通过<code>updateStateByKey</code>操作实现有状态的流式计算，从spark-1.6开始，新增了<code>mapWithState</code>操作，引入了一种新的流式状态管理机制。
+          <p>通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在整个计算过程中维护一个状态来保存近一个小时的用户行为。在Spark-1.6以前，可以通过<code>updateStateByKey</code>操作实现有状态的流式计算，从spark-1.6开始，新增了<code>mapWithState</code>操作，引入了一种新的流式状态管理机制。
           <div class="post-more-link text-center">
             <a class="btn" href="/posts/spark-streaming-state.html#more" rel="contents">
               阅读全文 &raquo;

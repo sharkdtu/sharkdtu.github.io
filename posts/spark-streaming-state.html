@@ -88,21 +88,21 @@
 
 
 
-<meta name="description" content="背景通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需">
+<meta name="description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark-Streaming状态管理应用优化之路">
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-streaming-state.html">
 <meta property="og:site_name" content="守护之鲨">
-<meta property="og:description" content="背景通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需">
+<meta property="og:description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-updateStateByKey.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-mapWithState-1.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-mapWithState-2.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-cache.png">
 <meta property="og:image" content="http://sharkdtu.com/images/sparkstreaming+redis.png">
-<meta property="og:updated_time" content="2017-12-03T09:06:13.265Z">
+<meta property="og:updated_time" content="2017-12-03T09:10:44.090Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark-Streaming状态管理应用优化之路">
-<meta name="twitter:description" content="背景通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需">
+<meta name="twitter:description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
 <meta name="twitter:image" content="http://sharkdtu.com/images/spark-streaming-updateStateByKey.png">
 
 
@@ -362,8 +362,8 @@
       
 
       
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在整个计算过程中维护一个状态来保存近一个小时的用户行为。在Spark-1.6以前，可以通过<code>updateStateByKey</code>操作实现有状态的流式计算，从spark-1.6开始，新增了<code>mapWithState</code>操作，引入了一种新的流式状态管理机制。<a id="more"></a></p>
-<p>为了更形象的介绍Spark-Streaming中的状态管理，我们从一个简单的问题展开：我们需要实时统计近一小时内每个用户的行为(点击、购买等)，为了简单，就把这个行为看成点击列表吧，来一条记录，则加到指定用户的点击列表中，并保证点击列表无重复。计算时间间隔为1分钟，即每1分钟更新近一小时用户行为，并将有状态变化的用户行为输出。</p>
+        <p>通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在整个计算过程中维护一个状态来保存近一个小时的用户行为。在Spark-1.6以前，可以通过<code>updateStateByKey</code>操作实现有状态的流式计算，从spark-1.6开始，新增了<code>mapWithState</code>操作，引入了一种新的流式状态管理机制。<a id="more"></a></p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>为了更形象的介绍Spark-Streaming中的状态管理，我们从一个简单的问题展开：我们需要实时统计近一小时内每个用户的行为(点击、购买等)，为了简单，就把这个行为看成点击列表吧，来一条记录，则加到指定用户的点击列表中，并保证点击列表无重复。计算时间间隔为1分钟，即每1分钟更新近一小时用户行为，并将有状态变化的用户行为输出。</p>
 <h2 id="updateStateByKey"><a href="#updateStateByKey" class="headerlink" title="updateStateByKey"></a>updateStateByKey</h2><p>在Spark-1.6以前，可以通过<code>updateStateByKey</code>实现状态管理，其内部维护一个状态流来保存状态，上述问题可以通过如下实现完成：</p>
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 更新一个用户的状态</span></span><br><span class="line"><span class="comment">// values: 单个用户实时过来的数据，这里为Seq类型，表示一分钟内可能有多条数据.</span></span><br><span class="line"><span class="comment">// state：单个用户上一个时刻的状态，如果没有这个用户的状态，则默认为空.</span></span><br><span class="line"><span class="keyword">val</span> updateState = (values: <span class="type">Seq</span>[<span class="type">Int</span>], state: <span class="type">Option</span>[<span class="type">Set</span>[<span class="type">Int</span>]]) =&gt; &#123;</span><br><span class="line">  <span class="keyword">val</span> currentValues = values.toSet</span><br><span class="line">  <span class="keyword">val</span> previousValues = state.getOrElse(<span class="type">Set</span>.empty[<span class="type">Int</span>])</span><br><span class="line">  <span class="type">Some</span>(currentValues ++ previousValues)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新一个分区内用户的状态</span></span><br><span class="line"><span class="keyword">val</span> updateFunc =</span><br><span class="line">  (iterator: <span class="type">Iterator</span>[(<span class="type">String</span>, <span class="type">Seq</span>[<span class="type">Int</span>], <span class="type">Option</span>[<span class="type">Set</span>[<span class="type">Int</span>]])]) =&gt; &#123;</span><br><span class="line">  iterator.flatMap(t =&gt; updateFunc(t._2, t._3).map(s =&gt; (t._1, s)))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原始数据流，经过过滤清洗，得到的记录形式为(userId, clickId)</span></span><br><span class="line"><span class="keyword">val</span> liveDStream = ... <span class="comment">// (userId, clickId)</span></span><br><span class="line"><span class="comment">// 使用updateStateByKey更新状态</span></span><br><span class="line"><span class="keyword">val</span> stateDstream = liveDStream.updateStateByKey(updateFunc)</span><br><span class="line"></span><br><span class="line">stateDstream.foreach(...)</span><br></pre></td></tr></table></figure>
 <p>上述代码显示，我们只需要定义一个状态更新函数，传给<code>updateStateByKey</code>即可，Spark-Streaming会根据我们定义的更新函数，在每个计算时间间隔内更新内部维护的状态，最后把更新后的状态返回给我们。那么其内部是怎么做到的呢，简单来说就是cache+checkpoint+cogroup，状态更新流程如下图所示。</p>
