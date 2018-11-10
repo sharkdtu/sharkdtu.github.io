@@ -88,12 +88,14 @@
 
 
 
-<meta name="description" content="通过文章“Spark Scheduler内部原理剖析”我们知道，Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map工作，下游Stage做reduce工作，其本质上还是MapReduce计算框架。Shuffle是连接map和reduce之间的桥梁，它将map的输出对应到reduce输入中，这期间涉及到序列化反序列化、跨节点网络IO以及磁盘读写IO等，所以说Shuff">
+<meta name="description" content="通过文章“Spark Scheduler内部原理剖析”我们知道，Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map工作，下游Stage做reduce工作，其本质上还是MapReduce计算框架。Shuffle是连接map和reduce之间的桥梁，它将map的输出对应到reduce输入中">
+<meta name="keywords" content="spark,大数据,分布式计算,shuffle">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark Shuffle原理及相关调优">
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-shuffle.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="通过文章“Spark Scheduler内部原理剖析”我们知道，Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map工作，下游Stage做reduce工作，其本质上还是MapReduce计算框架。Shuffle是连接map和reduce之间的桥梁，它将map的输出对应到reduce输入中，这期间涉及到序列化反序列化、跨节点网络IO以及磁盘读写IO等，所以说Shuff">
+<meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-shuffle-overview.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-shuffle-evolution.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-shuffle-v1.png">
@@ -537,7 +539,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">27</span>
+              <span class="site-state-item-count">28</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -554,7 +556,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">45</span>
+                <span class="site-state-item-count">46</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -638,7 +640,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -88,18 +88,20 @@
 
 
 
-<meta name="description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
+<meta name="description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是">
+<meta name="keywords" content="spark,大数据,分布式计算,streaming,updateStateByKey,mapWithState">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark-Streaming状态管理应用优化之路">
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-streaming-state.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
+<meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-updateStateByKey.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-mapWithState-1.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-mapWithState-2.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-cache.png">
 <meta property="og:image" content="http://sharkdtu.com/images/sparkstreaming+redis.png">
-<meta property="og:updated_time" content="2017-12-03T09:10:44.090Z">
+<meta property="og:updated_time" content="2017-12-03T09:11:19.738Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark-Streaming状态管理应用优化之路">
 <meta name="twitter:description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
@@ -490,6 +492,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/posts/spark-mpi.html" rel="prev" title="借助Spark调度MPI作业">
+                借助Spark调度MPI作业 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -576,7 +582,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">27</span>
+              <span class="site-state-item-count">28</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -593,7 +599,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">45</span>
+                <span class="site-state-item-count">46</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -677,7 +683,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

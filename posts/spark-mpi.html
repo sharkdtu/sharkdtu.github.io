@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="sharkd, 鲨鱼, 小刚" />
+  <meta name="keywords" content="spark,大数据,分布式计算,mpi," />
 
 
 
@@ -88,16 +88,18 @@
 
 
 
-<meta name="description" content="No pains, no gain.">
-<meta property="og:type" content="website">
-<meta property="og:title" content="守护之鲨">
-<meta property="og:url" content="http://sharkdtu.com/tags/actor-remote/index.html">
+<meta name="description" content="在Spark-2.4.0中社区提出一种新的Spark调度执行方式，名为Barrier Execution Mode，旨在通过Spark去调度分布式ML/DL(机器学习/深度学习)训练作业，这种训练作业一般是通过其他框架实现，例如MPI、TensorFlow等。由于Spark本身的计算框架是遵循MapReduce架构的，">
+<meta name="keywords" content="spark,大数据,分布式计算,mpi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="借助Spark调度MPI作业">
+<meta property="og:url" content="http://sharkdtu.com/posts/spark-mpi.html">
 <meta property="og:site_name" content="守护之鲨">
-<meta property="og:description" content="No pains, no gain.">
+<meta property="og:description" content="在Spark-2.4.0中社区提出一种新的Spark调度执行方式，名为Barrier Execution Mode，旨在通过Spark去调度分布式ML/DL(机器学习/深度学习)训练作业，这种训练作业一般是通过其他框架实现，例如MPI、TensorFlow等。由于Spark本身的计算框架是遵循MapReduce架构的，所以在调度执行时，每个Task都是独立执行的。然而，MPI这类分布式计算作业运行">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-11-10T13:06:58.755Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="守护之鲨">
-<meta name="twitter:description" content="No pains, no gain.">
+<meta name="twitter:title" content="借助Spark调度MPI作业">
+<meta name="twitter:description" content="在Spark-2.4.0中社区提出一种新的Spark调度执行方式，名为Barrier Execution Mode，旨在通过Spark去调度分布式ML/DL(机器学习/深度学习)训练作业，这种训练作业一般是通过其他框架实现，例如MPI、TensorFlow等。由于Spark本身的计算框架是遵循MapReduce架构的，所以在调度执行时，每个Task都是独立执行的。然而，MPI这类分布式计算作业运行">
 
 
 
@@ -115,7 +117,7 @@
   };
 </script>
 
-  <title> 标签: actor-remote | 守护之鲨 </title>
+  <title> 借助Spark调度MPI作业 | 守护之鲨 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -145,7 +147,7 @@
     
   
 
-  <div class="container one-collumn sidebar-position-right  ">
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -256,46 +258,199 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-collapse">
-    <div class="collection-title">
-      <h2 >
-        actor-remote
-        <small>标签</small>
-      </h2>
-    </div>
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
 
     
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                借助Spark调度MPI作业
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-11-04T15:21:44+08:00" content="2018-11-04">
+              2018-11-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+              &nbsp; | &nbsp;
+              <span class="page-pv">阅读量
+              <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+              </span>
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">spark</a>
+        
+          <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+          <a href="/tags/mpi/" rel="tag">mpi</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
       
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+      
+        <p>在Spark-2.4.0中社区提出一种新的Spark调度执行方式，名为<a href="https://jira.apache.org/jira/browse/SPARK-24374" target="_blank" rel="noopener">Barrier Execution Mode</a>，旨在通过Spark去调度分布式ML/DL(机器学习/深度学习)训练作业，这种训练作业一般是通过其他框架实现，例如MPI、TensorFlow等。由于Spark本身的计算框架是遵循MapReduce架构的，所以在调度执行时，每个Task都是独立执行的。然而，MPI这类分布式计算作业运行时需要所有Task一起执行，Task与Task之间需要相互通信。为了将诸如MPI分布式机器学习作业很好地与Spark结合，Spark社区提出一种新的Barrier Scheduler，可保证所有的Task全部调起(当然要保证资源足够)。<a id="more"></a></p>
+<h2 id="API风格介绍"><a href="#API风格介绍" class="headerlink" title="API风格介绍"></a>API风格介绍</h2><p>众所周知，Spark其实本质上仍然是MapReduce架构，它能颠覆Hadoop的很重要一点是它提供了极其易用的API，用户不再需要绞尽脑汁将问题抽象成Map和Reduce，而是直接通过Spark提供的一个个算子来组织业务逻辑。新增Barrier Execution Mode当然不能破坏Spark本身的易用性，沿用原有的RDD API风格，例如调起一个MPI作业的大致轮廓为：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">rdd.barrier().mapPartitions &#123; (iter, context) =&gt;</span><br><span class="line">  <span class="comment">// Maybe write iter to disk.</span></span><br><span class="line">  ???</span><br><span class="line">  <span class="comment">// Wait until all tasks finished writing.</span></span><br><span class="line">  context.barrier()</span><br><span class="line">  <span class="comment">// The 0-th task launches an MPI job.</span></span><br><span class="line">  <span class="keyword">if</span> (context.partitionId() == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">val</span> hosts = context.getTaskInfos().map(_.host)</span><br><span class="line">    <span class="comment">// Set up MPI machine file using host infos.</span></span><br><span class="line">    ???</span><br><span class="line">    <span class="comment">// Launch the MPI job by calling mpirun.</span></span><br><span class="line">    ???</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Wait until the MPI job finished.</span></span><br><span class="line">  context.barrier()</span><br><span class="line">  <span class="comment">// Collect output and return.</span></span><br><span class="line">  ???</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上述代码首先将数据写到本地磁盘，以供mpi程序读取，在正式启动mpi程序前，先通过<code>barrier</code>操作同步等待所有Task完成前序工作，然后通过第一个Task(一般为rank=0的mpi进程)去拉起一个mpi job，拉起mpi job的参数通过<code>context</code>相关方法获取，最后等待所有mpi任务执行完毕，mpi任务将结果写到本地磁盘，由spark最后完成结果收集。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>如今大数据平台或机器学习平台一般都会提供Spark作业的调度，而对mpi作业的支持可能没有统一的调度方式，如果你的作业恰好需要mpi来实现，却没有一个平台来支持，这个时候我们可能会给平台方提需求，要求其支持你的mpi作业调度，但是这就拉长了你的开发周期，很多东西变得不可控，通过上述spark拉起mpi作业的方式，你可以将你的mpi作业变成一个spark作业，快速完成部署。另一方面，mpi作业的输入数据一般是要提前预处理好，这部分工作spark完全可以胜任，这样就可以通过pipeline的方式将整个业务逻辑串起来。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-mpi.html">http://sharkdtu.com/posts/spark-mpi.html</a></em></span></p>
 
-      <h1 class="post-title">
+      
+    </div>
+    
+    <div>
+      
         
-            <a class="post-title-link" href="/posts/start-akka-remote.html" itemprop="url">
-              
-                <span itemprop="name">Akka-remote使用入门</span>
-              
-            </a>
-        
-      </h1>
+      
+    </div>
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2014-12-20T20:15:33+08:00"
-              content="2014-12-20" >
-          12-20
-        </time>
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton", disable="enable", onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}", style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onMouseOut="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <p>微信打赏</p>
       </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
 
-    </header>
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/spark-streaming-state.html" rel="next" title="Spark-Streaming状态管理应用优化之路">
+                <i class="fa fa-chevron-left"></i> Spark-Streaming状态管理应用优化之路
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
   </article>
 
 
-    
-  </div>
 
-  
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
 
 
           </div>
@@ -322,8 +477,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel  sidebar-panel-active ">
+      <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.png"
@@ -409,6 +573,17 @@
 
       </section>
 
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#API风格介绍"><span class="nav-number">1.</span> <span class="nav-text">API风格介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">2.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+          </div>
+        </section>
       
 
     </div>
@@ -517,6 +692,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
 
   
 

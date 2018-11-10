@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title><![CDATA[借助Spark调度MPI作业]]></title>
+      <url>http://sharkdtu.com/posts/spark-mpi.html</url>
+      <content type="html"><![CDATA[<p>在Spark-2.4.0中社区提出一种新的Spark调度执行方式，名为<a href="https://jira.apache.org/jira/browse/SPARK-24374" target="_blank" rel="noopener">Barrier Execution Mode</a>，旨在通过Spark去调度分布式ML/DL(机器学习/深度学习)训练作业，这种训练作业一般是通过其他框架实现，例如MPI、TensorFlow等。由于Spark本身的计算框架是遵循MapReduce架构的，所以在调度执行时，每个Task都是独立执行的。然而，MPI这类分布式计算作业运行时需要所有Task一起执行，Task与Task之间需要相互通信。为了将诸如MPI分布式机器学习作业很好地与Spark结合，Spark社区提出一种新的Barrier Scheduler，可保证所有的Task全部调起(当然要保证资源足够)。<a id="more"></a></p>
+<h2 id="API风格介绍"><a href="#API风格介绍" class="headerlink" title="API风格介绍"></a>API风格介绍</h2><p>众所周知，Spark其实本质上仍然是MapReduce架构，它能颠覆Hadoop的很重要一点是它提供了极其易用的API，用户不再需要绞尽脑汁将问题抽象成Map和Reduce，而是直接通过Spark提供的一个个算子来组织业务逻辑。新增Barrier Execution Mode当然不能破坏Spark本身的易用性，沿用原有的RDD API风格，例如调起一个MPI作业的大致轮廓为：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">rdd.barrier().mapPartitions &#123; (iter, context) =&gt;</span><br><span class="line">  <span class="comment">// Maybe write iter to disk.</span></span><br><span class="line">  ???</span><br><span class="line">  <span class="comment">// Wait until all tasks finished writing.</span></span><br><span class="line">  context.barrier()</span><br><span class="line">  <span class="comment">// The 0-th task launches an MPI job.</span></span><br><span class="line">  <span class="keyword">if</span> (context.partitionId() == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">val</span> hosts = context.getTaskInfos().map(_.host)</span><br><span class="line">    <span class="comment">// Set up MPI machine file using host infos.</span></span><br><span class="line">    ???</span><br><span class="line">    <span class="comment">// Launch the MPI job by calling mpirun.</span></span><br><span class="line">    ???</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// Wait until the MPI job finished.</span></span><br><span class="line">  context.barrier()</span><br><span class="line">  <span class="comment">// Collect output and return.</span></span><br><span class="line">  ???</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上述代码首先将数据写到本地磁盘，以供mpi程序读取，在正式启动mpi程序前，先通过<code>barrier</code>操作同步等待所有Task完成前序工作，然后通过第一个Task(一般为rank=0的mpi进程)去拉起一个mpi job，拉起mpi job的参数通过<code>context</code>相关方法获取，最后等待所有mpi任务执行完毕，mpi任务将结果写到本地磁盘，由spark最后完成结果收集。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>如今大数据平台或机器学习平台一般都会提供Spark作业的调度，而对mpi作业的支持可能没有统一的调度方式，如果你的作业恰好需要mpi来实现，却没有一个平台来支持，这个时候我们可能会给平台方提需求，要求其支持你的mpi作业调度，但是这就拉长了你的开发周期，很多东西变得不可控，通过上述spark拉起mpi作业的方式，你可以将你的mpi作业变成一个spark作业，快速完成部署。另一方面，mpi作业的输入数据一般是要提前预处理好，这部分工作spark完全可以胜任，这样就可以通过pipeline的方式将整个业务逻辑串起来。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-mpi.html">http://sharkdtu.com/posts/spark-mpi.html</a></em></span></p>
+]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> mpi </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[Spark-Streaming状态管理应用优化之路]]></title>
       <url>http://sharkdtu.com/posts/spark-streaming-state.html</url>
       <content type="html"><![CDATA[<p>通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在整个计算过程中维护一个状态来保存近一个小时的用户行为。在Spark-1.6以前，可以通过<code>updateStateByKey</code>操作实现有状态的流式计算，从spark-1.6开始，新增了<code>mapWithState</code>操作，引入了一种新的流式状态管理机制。<a id="more"></a></p>
@@ -82,6 +113,30 @@
 <p>经过上述配置优化后，基本可以保证程序7*24小时稳定运行，实际测试显示每个batch的计算时间可以稳定在30秒以内，没有上升趋势。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-streaming-state.html">http://sharkdtu.com/posts/spark-streaming-state.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> streaming </tag>
+            
+            <tag> updateStateByKey </tag>
+            
+            <tag> mapWithState </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -125,6 +180,22 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>朴素贝叶斯模型是基于特征之间独立的假设，这是个非常强的假设，这也是其名字的由来，它属于生成学习方法，训练时不需要迭代拟合，模型简单易于理解，常用于文本分类等，并能取得较好的效果。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-nb.html">http://sharkdtu.com/posts/ml-nb.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> NaiveBayes </tag>
+            
+            <tag> Classification </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -167,6 +238,24 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总体上来说，PySpark是借助Py4j实现Python调用Java，来驱动Spark应用程序，本质上主要还是JVM runtime，Java到Python的结果返回是通过本地Socket完成。虽然这种架构保证了Spark核心代码的独立性，但是在大数据场景下，JVM和Python进程间频繁的数据通信导致其性能损耗较多，恶劣时还可能会直接卡死，所以建议对于大规模机器学习或者Streaming应用场景还是慎用PySpark，尽量使用原生的Scala/Java编写应用程序，对于中小规模数据量下的简单离线任务，可以使用PySpark快速部署提交。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/pyspark-internal.html">http://sharkdtu.com/posts/pyspark-internal.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> pyspark </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -258,6 +347,24 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ALS从基本原理上来看应该是很好理解的，但是要通过分布式计算来实现它，相对而言还是较为复杂的，本文重点阐述了Spark ML库中ALS的实现，要看懂以上计算流程，请务必结合源代码理解，凭空理解上述流程可能比较困难，在实际源码实现中，使用了很多优化技巧，例如使用在分区中的索引代替实际uid或vid，实现<code>Int</code>代替<code>Long</code>，使用数组等连续内存数据结构避免由于过多对象造成JVM GC后的内存碎片等。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-als.html">http://sharkdtu.com/posts/ml-als.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 逻辑回归 </tag>
+            
+            <tag> ALS </tag>
+            
+            <tag> 协同过滤 </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -312,6 +419,24 @@
 </ul>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-lr.html">http://sharkdtu.com/posts/ml-lr.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 逻辑回归 </tag>
+            
+            <tag> LR </tag>
+            
+            <tag> Softmax </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -367,6 +492,22 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然线性回归现在可能很少用于解决实际问题，但是因为其简单易懂，学习它有助于对机器学习有个入门级的初步掌握，了解机器学习的套路等。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-linear-regression.html">http://sharkdtu.com/posts/ml-linear-regression.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 线性回归 </tag>
+            
+            <tag> LinearRegression </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -425,6 +566,26 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Join是数据库查询中一个非常重要的语法特性，在数据库领域可以说是“得join者的天下”，SparkSQL作为一种分布式数据仓库系统，给我们提供了全面的join支持，并在内部实现上无声无息地做了很多优化，了解join的实现将有助于我们更深刻的了解我们的应用程序的运行轨迹。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-sql-join.html">http://sharkdtu.com/posts/spark-sql-join.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> sql </tag>
+            
+            <tag> join </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -561,6 +722,26 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spark给我们提供了一种简单灵活的大数据编程框架，但是对于很多实际问题的处理，还应该多思考下如何让我们写出来的应用程序更高效更节约，以上几个调优点是可以推广到其他应用的，在我们编写spark应用程序时，通过这种思考也可以加速我们对spark的理解。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-app-optimize.html">http://sharkdtu.com/posts/spark-app-optimize.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> 优化 </tag>
+            
+            <tag> benchmark </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -705,6 +886,26 @@
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Spark的Cache并不是总是会加速任务运行，Cache的方式不同，对任务产生的影响不同。并不是能用内存Cache就用内存，而是要考虑是否有充足的内存Cache住你的数据，否则可能适得其反。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-cache-benchmark.html">http://sharkdtu.com/posts/spark-cache-benchmark.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> benchmark </tag>
+            
+            <tag> cache </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -748,6 +949,26 @@
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文主要阐述spark-network公共模块，详细分析spark底层网络编解码以及消息处理的抽象，在后续文章中会更加详细地介绍具体spark中的RPC、ShuffleService、BlockTransformService以及FileServer的实现，这些功能服务都是基于spark-network公共模块来实现的。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-network.html">http://sharkdtu.com/posts/spark-network.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> network </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -790,6 +1011,26 @@
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文详细阐述了spark shuffle的原理以及实现演进，清楚地知道shuffle原理有助于调优应用程序，并了解应用程序执行的每个过程。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-shuffle.html">http://sharkdtu.com/posts/spark-shuffle.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> shuffle </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -872,6 +1113,26 @@
 <h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>本文详细阐述了Spark的任务调度，着重讨论Spark on Yarn的部署调度，剖析了从应用程序提交到运行的全过程。Spark Schedule算是Spark中的一个大模块，它负责任务下发与监控等，基本上扮演了Spark大脑的角色。了解Spark Schedule有助于帮助我们清楚地认识Spark应用程序的运行轨迹，同时在我们实现其他系统时，也可以借鉴Spark的实现。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-scheduler.html">http://sharkdtu.com/posts/spark-scheduler.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> Scheduler </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -904,6 +1165,26 @@
 <h3 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h3><p>基于RDD实现的Spark相比于传统的Hadoop MapReduce有什么优势呢？总结起来应该至少有三点：1）RDD提供了丰富的操作算子，不再是只有map和reduce两个操作了，对于描述应用程序来说更加方便；2）通过RDDs之间的转换构建DAG，中间结果不用落地；3）RDD支持缓存，可以在内存中快速完成计算。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-rdd.html">http://sharkdtu.com/posts/spark-rdd.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+            <tag> rdd </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -913,6 +1194,22 @@
 <p>通过以上方法仅仅可以让你的代码编译通过，如果要把这个本地jar包打进assembly jar包，那么需要在pom中添加如下配置，其中jar包文件tools-0.0.1.jar放在根目录下的lib目录下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-assembly-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">descriptorRef</span>&gt;</span>jar-with-dependencies<span class="tag">&lt;/<span class="name">descriptorRef</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>single<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">resource</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">directory</span>&gt;</span>lib/<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span>&gt;</span>tools-0.0.1.jar<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">resource</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/maven-assembly-native-jar.html">http://sharkdtu.com/posts/maven-assembly-native-jar.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 问题总结 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> maven </tag>
+            
+            <tag> java </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1022,6 +1319,28 @@
 <h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>[1]. Bengio Y, Schwenk H, Senécal J S, et al. Neural probabilistic language models[M]//Innovations in Machine Learning. Springer Berlin Heidelberg, 2006: 137-186.MLA.<br>[2]. Mikolov T, Sutskever I, Chen K, et al. Distributed representations of words and phrases and their compositionality[C]//Advances in neural information processing systems. 2013: 3111-3119.<br>[3]. Mikolov T, Le Q V, Sutskever I. Exploiting similarities among languages for machine translation[J]. arXiv preprint arXiv:1309.4168, 2013.<br>[4]. Gutmann M U, Hyvärinen A. Noise-contrastive estimation of unnormalized statistical models, with applications to natural image statistics[J]. The Journal of Machine Learning Research, 2012, 13(1): 307-361.<br>[5]. Vector Representations of Words. <a href="https://www.tensorflow.org/versions/r0.8/tutorials/word2vec/index.html#vector-representations-of-words" target="_blank" rel="external">https://www.tensorflow.org/versions/r0.8/tutorials/word2vec/index.html#vector-representations-of-words</a><br>[6]. word2vec 中的数学原理详解. <a href="http://www.cnblogs.com/peghoty/p/3857839.html" target="_blank" rel="external">http://www.cnblogs.com/peghoty/p/3857839.html</a><br>[7]. Understanding LSTM Networks. <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/" target="_blank" rel="external">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</a><br>[8]. Bengio Y, Simard P, Frasconi P. Learning long-term dependencies with gradient descent is difficult[J]. Neural Networks, IEEE Transactions on, 1994, 5(2): 157-166.<br>[9]. Graves A. Generating sequences with recurrent neural networks[J]. arXiv preprint arXiv:1308.0850, 2013.<br>[10]. Recurrent Neural Networks. <a href="https://www.tensorflow.org/versions/r0.8/tutorials/recurrent/index.html#recurrent-neural-networks" target="_blank" rel="external">https://www.tensorflow.org/versions/r0.8/tutorials/recurrent/index.html#recurrent-neural-networks</a><br>[11]. Srivastava N. Improving neural networks with dropout[D]. University of Toronto, 2013.<br>[12]. Zaremba W, Sutskever I, Vinyals O. Recurrent neural network regularization[J]. arXiv preprint arXiv:1409.2329, 2014.                                                                                    </p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/nn-nlp.html">http://sharkdtu.com/posts/nn-nlp.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 深度学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> NLP </tag>
+            
+            <tag> TensorFlow </tag>
+            
+            <tag> Word2Vec </tag>
+            
+            <tag> RNN </tag>
+            
+            <tag> LSTM </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1033,6 +1352,24 @@
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">JobConf</span>(rdd.context.hadoopConfiguration)</span><br><span class="line">conf.set(<span class="string">"hadoop.job.ugi"</span>, <span class="string">"newuser,newgroup"</span>)</span><br><span class="line"><span class="keyword">val</span> ugi = <span class="type">UserGroupInformation</span>.getCurrentUser(conf)</span><br><span class="line">ugi.doAs(<span class="keyword">new</span> <span class="type">PrivilegeAction</span>[unit] &#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>()&#123;</span><br><span class="line">    rdd.saveAsHadoopFile(path, keyClass, valueClass, outputFormatClass, conf)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html">http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 问题总结 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> hadoop </tag>
+            
+            <tag> ugi </tag>
+            
+            <tag> hdfs </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1181,6 +1518,22 @@ res5: Boolean = true
 </code></pre><p>从上述代码中可以看到，通过scala的反射得到的类型信息符合我们一开始定义。所以在scala中最好是使用scala的反射而不要使用java的反射，因为很有可能编译后通过java的反射得到的结果并不是想象的那样。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/scala-reflect.html">http://sharkdtu.com/posts/scala-reflect.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 程序语言 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 反射 </tag>
+            
+            <tag> scala </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1190,6 +1543,14 @@ res5: Boolean = true
 <p>通过一番调研，在网上看了很多关于在github上搭建博客的文章，github官网推荐用jekyll来生成静态网页，自己也尝试了一番，由于对html、js、css等前端知识不是很了解，所以找了一些现成的主题玩玩，总是找不到称心如意的，想办法自定义的话又太费事了。突然在网上看到一篇文章“<a href="http://sunwhut.com/2015/10/30/buildBlog/" target="_blank" rel="external">如何利用GitHub Pages和Hexo快速搭建个人博客</a>”，发现<a href="https://hexo.io/" target="_blank" rel="external">hexo</a>＋github搭建博客是如此的简单，而且<a href="https://github.com/iissnan/hexo-theme-next" target="_blank" rel="external">next主题</a>正合我的口味，所以按照上面提到的这篇文章开始着手起来搭建本博客了，整个过程非常的简单，只需改改配置就可以建立功能完善界面简约的博客了。接下来希望自己能好好沉淀，努力码字，妈妈再也不担心我的博客数据被清理掉了。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/blog-reborn.html">http://sharkdtu.com/posts/blog-reborn.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 随笔 </category>
+            
+        </categories>
+        
+        
     </entry>
     
     <entry>
@@ -1241,6 +1602,28 @@ res5: Boolean = true
 <h3 id="梯度提升树"><a href="#梯度提升树" class="headerlink" title="梯度提升树"></a>梯度提升树</h3><p>梯度提升树(Gradient-Boosted Tree)简称GBT，是一种更加复杂的模型，它实质上是采用Boost方法，利用基本决策树模型得到的一种集成树模型。GBT的训练是每次训练一颗树，然后利用这颗树对每个实例进行预测，通过一个损失函数，计算损失函数的负梯度值作为残差，利用这个残差更新样本实例的label，然后再次训练一颗树去拟合残差，如此进行迭代，直到满足模型参数需求。GBT只适用于二分类和回归，不支持多分类，在预测的时候，不像随机森林那样求平均值，GBT是将所有树的预测值相加求和。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/mllib-tree.html">http://sharkdtu.com/posts/mllib-tree.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> mllib </tag>
+            
+            <tag> 决策树 </tag>
+            
+            <tag> GBDT </tag>
+            
+            <tag> 随机森林 </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1252,6 +1635,14 @@ res5: Boolean = true
 <p>可以说，这半年来我算是比较幸运的，因为我热爱我的工作，并且对它更加有激情，这得益于我们项目组新来的leader。刚入职的时候，我接手前人留下的垃圾代码，各种bug各种坑，不知道这种代码是怎么允许上线到生产环境中的，每天处理用户的bug反馈及抱怨，帮用户看问题，有种崩溃的感觉，这期间有跟mentor提过把代码重写一遍，但是mentor说成本太大，虽然代码有点乱，但是大部分还算稳定的，最好不要去动它。所以一直忍痛维护这套垃圾代码，自己实在受不了，私下默默地在重写，重写完后，跟mentor提过一次，还是同样的答复：风险太大。没办法，忍着，后面被安排到做另一个项目，同样，代码也是极其的乱，仅仅关注于功能实现，完全不考虑系统的整体结构以及可维护性，感觉特没意思。这个项目做了大概一个月后，项目组来了新leader，我对工作的激情从此也点燃起来了，新leader来的第一件事就是规范代码管理，以及调整人员组织结构，通过沟通尽量安排我们做自己喜欢的方向。这时我也有机会把我重写的代码完善上线，上线后虽然有少数几个小bug（很快得到修复），但是得到多数用户的好评，心中还是会有小成就感的。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/half-year-work-feeling.html">http://sharkdtu.com/posts/half-year-work-feeling.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 随笔 </category>
+            
+        </categories>
+        
+        
     </entry>
     
     <entry>
@@ -1335,6 +1726,24 @@ res5: Boolean = true
 <p>以上是简单提出几个需要注意的接口调用，如果不了解RDD接口的使用，可以参见<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package" target="_blank" rel="external">社区文档</a>。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-tun.html">http://sharkdtu.com/posts/spark-tun.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1345,6 +1754,14 @@ res5: Boolean = true
 <p>说说找工作吧，我的找工作历程相对来说比较简单，追求也没有太高，见好就收了，所有没有太多的波折。倒是找暑期实习挺曲折的，大概是5-6月份的时候，投简历真是面一家挂一家，要么是不对口，要么是自己水平太差，平时在实验室干的活跟找工作也好像没有两毛钱关系，互联网公司对刚毕业的学生来说主要还是看基础，外企基本就是问算法，leetcode上的题刷几遍后就可以八九不离十的拿下，甚至有同学直接去github上找现成的代码打印，跟考期复习一样背熟也行。我本身是比较熟悉C/C++的，也研读过apue/unp这两本书，一直是冲着linux后台这个方向去找，但是事与愿违，可能是自我感觉太良好了。不过好在我努力地复习基础，仔细研究我心仪公司（其实主要是该公司总部在心仪的城市）的笔试面试题，最后顺利地拿下暑期实习offer，可是从事php开发，当时也不爽了一段时间，毕竟要重新开始学，不过心态调整的还不错，学习起来也很快，作为初级程序员真的不能逃避学新东西，否则成长起来会很慢。虽说实习进了心仪的公司，但是由于实验室的很多破事，需要经常回学校露露脸，所以万般无奈没选择去心仪的城市，最后在实习生转正阶段大费周折地调岗换城市，这应该算是找工作中最为波折的一段了，好在付出没有白白浪费，顺利地去了心仪的城市，岗位也换成了一个较为喜欢的方向（大数据平台开发），整个过程下来觉得我还算幸运的。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/before-last-winter-vacation.html">http://sharkdtu.com/posts/before-last-winter-vacation.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 随笔 </category>
+            
+        </categories>
+        
+        
     </entry>
     
     <entry>
@@ -1431,6 +1848,24 @@ parameters {//参数
 <p>用sbt编译后，可以在一个终端里直接<code>sbt run</code>运行，也可以开三个终端，先开启worker，然后开启master，最后开启driver。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/start-akka-remote.html">http://sharkdtu.com/posts/start-akka-remote.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 程序语言 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> scala </tag>
+            
+            <tag> akka </tag>
+            
+            <tag> actor-remote </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1485,6 +1920,24 @@ Spend:  9678 milliseconds
 [success] Total time: 10 s, completed Dec 12, 2014 10:22:06 PM
 </code></pre><p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/start-akka-actor.html">http://sharkdtu.com/posts/start-akka-actor.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 程序语言 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> scala </tag>
+            
+            <tag> akka </tag>
+            
+            <tag> actor </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1565,6 +2018,24 @@ classes  wordcount_2.10-1.0.0.jar
 <p><img src="/images/spark-on-yarn.png" alt="spark-on-yarn"></p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-build.html">http://sharkdtu.com/posts/spark-build.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> spark </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spark </tag>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+        </tags>
+        
     </entry>
     
     <entry>
@@ -1579,6 +2050,14 @@ classes  wordcount_2.10-1.0.0.jar
 <p>通读整篇小说，看到一个个对活着充满希望的人一一死去，不禁感慨作者的血腥，然而正是由于作者这种无情的写法，给我们展现了民国后期到文革结束这一段时间中国老百姓的疾苦生活，同时抨击了大跃进、文化大革命给人民带来的种种伤痛，让我们这些未曾经历那个时代的人也能感受到当时的种种境况，真为作者叫好。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/to-live.html">http://sharkdtu.com/posts/to-live.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> 读书笔记 </category>
+            
+        </categories>
+        
+        
     </entry>
     
     <entry>
@@ -1687,6 +2166,24 @@ slave2
 </code></pre><p>作业提交后，可以访问web ui页面，观察MapReduce作业的运行情况。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/centos-hadoop-setup.html">http://sharkdtu.com/posts/centos-hadoop-setup.html</a></em></span></p>
 ]]></content>
+      
+        <categories>
+            
+            <category> hadoop </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 大数据 </tag>
+            
+            <tag> hadoop </tag>
+            
+            <tag> 分布式计算 </tag>
+            
+        </tags>
+        
     </entry>
     
   

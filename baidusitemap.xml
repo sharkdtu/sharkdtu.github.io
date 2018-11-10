@@ -4,8 +4,34 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/spark-mpi.html</loc>
+    <lastmod>2018-11-10T13:06:58.755Z</lastmod>
+    <data>
+        <display>
+        <title>借助Spark调度MPI作业</title>
+        <pubTime>2018-11-04T07:21:44.000Z</pubTime>
+        
+        <tag>spark</tag>
+         
+        <tag>大数据</tag>
+         
+        <tag>分布式计算</tag>
+         
+        <tag>mpi</tag>
+         
+         
+           
+             
+              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/spark-streaming-state.html</loc>
-    <lastmod>2017-12-03T09:10:44.090Z</lastmod>
+    <lastmod>2017-12-03T09:11:19.738Z</lastmod>
     <data>
         <display>
         <title>Spark-Streaming状态管理应用优化之路</title>
