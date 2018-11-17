@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="spark,分布式计算,benchmark,cache," />
+  <meta name="keywords" content="spark,分布式计算,cache,benchmark," />
 
 
 
@@ -89,7 +89,7 @@
 
 
 <meta name="description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
-<meta name="keywords" content="spark,分布式计算,benchmark,cache">
+<meta name="keywords" content="spark,分布式计算,cache,benchmark">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark Cache性能测试">
 <meta property="og:url" content="http://sharkdtu.com/posts/spark-cache-benchmark.html">
@@ -341,9 +341,9 @@
         
           <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
         
-          <a href="/tags/benchmark/" rel="tag">benchmark</a>
-        
           <a href="/tags/cache/" rel="tag">cache</a>
+        
+          <a href="/tags/benchmark/" rel="tag">benchmark</a>
         
       </div>
     
@@ -355,7 +355,7 @@
 
       
         <p>采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。<a id="more"></a></p>
-<h2 id="测试准备"><a href="#测试准备" class="headerlink" title="测试准备"></a>测试准备</h2><p>训练数据是通过<a href="http://prof.ict.ac.cn/BigDataBench/dowloads/" target="_blank" rel="external">Facebook SNS公开数据集生成器</a>得到，在HDFS上大小为9.3G，100个文件，添加如下两个参数以保证所有资源全部到位后才启动task，训练时间为加载数据到训练完毕这期间的耗时。</p>
+<h2 id="测试准备"><a href="#测试准备" class="headerlink" title="测试准备"></a>测试准备</h2><p>训练数据是通过<a href="http://prof.ict.ac.cn/BigDataBench/dowloads/" target="_blank" rel="noopener">Facebook SNS公开数据集生成器</a>得到，在HDFS上大小为9.3G，100个文件，添加如下两个参数以保证所有资源全部到位后才启动task，训练时间为加载数据到训练完毕这期间的耗时。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--conf spark.scheduler.minRegisteredResourcesRatio=1</span><br><span class="line">--conf spark.scheduler.maxRegisteredResourcesWaitingTime=100000000</span><br></pre></td></tr></table></figure>
 <p>测试集群为3个节点的TS5机器搭建而成，其中一台作为RM，并运行着Alluxio Master，两个NM上同时运行着Alluxio Worker。除以上配置外，其他配置全部保持Spark默认状态。公共资源配置、分区设置以及算法参数如下表所示，executor_memory视不同的测试用例不同:</p>
 <table>
@@ -484,12 +484,12 @@
 </tbody>
 </table>
 <blockquote>
-<p><a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="external">采用Alluxio的Cache实现方式</a>为:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">data.saveAsTextFile(path)</span><br><span class="line"><span class="keyword">val</span> data = sc.textFile(path)</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="noopener">采用Alluxio的Cache实现方式</a>为:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">data.saveAsTextFile(path)</span><br><span class="line"><span class="keyword">val</span> data = sc.textFile(path)</span><br></pre></td></tr></table></figure></p>
 </blockquote>
 <p>从以上测试数据看来，让人有点出乎意料，一开始有点不太相信，但是多次测试后数据并没有多大的抖动，所以说Spark的性能受多方面因素的影响，单单Cache这块不同的Cache方式以及不同的资源情况下，其性能差别就相差较大，下面分析其内在原因。</p>
 <p>从HDFS加载训练数据后直接采用Spark原生的Cache，当executor_memory为2g时，不足以Cache住原始训练数据，从UI上看到Cache的比例只有33%左右，导致频繁的 rdd-block 剔除重建，同时由于内存吃紧，可能引发频发的Spill以及较重的GC，从UI上看到GC时间占到总的task运行时间的12%左右，已经成为瓶颈，其整体性能还不如不使用Cache的case1-1；当executor_memory为4g时，也不足以Cache住原始训练数据，但是其Cache的比例有90%左右，同样存在 rdd-block 剔除重建，频发Spill以及较重的GC，GC时间占总的task运行时间的7%左右，虽然比executor_memory为2g的情况有所好转，但是仍然不理想，只比不做Cache的case1-1好7%左右，但是内存却多用了20g，并不是特别划算；当executor_memory为6g时，可以全部Cache住原始训练数据，性能较优，GC占比较小，但是比不用Cache的case1-1要多用40g内存，有些代价。</p>
 <p>一般来说，当我们内存不够时，可以选择MEMORY_AND_DISK的缓存方式，但是测试发现MEMORY_AND_DISK的缓存效果并不是特别好，从测试数据来看，还不如直接使用DISK_ONLY的缓存方式，MEMORY_AND_DISK的缓存方式带来的GC开销非常大，可能是因为每次都尽可能地Cache数据到内存，不够再刷到磁盘，造成JVM频繁GC。</p>
-<p>另外测试了使用Alluxio作缓存的Case，发现并没有<a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="external">官方描述</a>的那样会提升Cache的性能，还不如直接使用Spark DISK_ONLY缓存，感觉官方给的测试对比数据存在一定的水分，值得一提的是在多个Application之间Alluxio能起到加速作用。</p>
+<p>另外测试了使用Alluxio作缓存的Case，发现并没有<a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="noopener">官方描述</a>的那样会提升Cache的性能，还不如直接使用Spark DISK_ONLY缓存，感觉官方给的测试对比数据存在一定的水分，值得一提的是在多个Application之间Alluxio能起到加速作用。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Spark的Cache并不是总是会加速任务运行，Cache的方式不同，对任务产生的影响不同。并不是能用内存Cache就用内存，而是要考虑是否有充足的内存Cache住你的数据，否则可能适得其反。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-cache-benchmark.html">http://sharkdtu.com/posts/spark-cache-benchmark.html</a></em></span></p>
 
@@ -758,7 +758,7 @@
 
 <div class="busuanzi-count">
 
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
   
 

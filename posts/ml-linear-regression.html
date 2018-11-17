@@ -356,7 +356,7 @@
       
         <p>线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线(或者高维空间中的平面)来拟合训练数据，进而对未知数据进行预测。<a id="more"></a></p>
 <p><img src="/images/linear_regression.png" alt="Alt text | center"></p>
-<h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a>基本套路</h2><p>机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法(<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="external">L-BFGS</a>或<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>)，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。</p>
+<h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a>基本套路</h2><p>机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法(<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="noopener">L-BFGS</a>或<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="noopener">OWL-QN</a>)，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。</p>
 <p><strong>基本模型</strong>：<br>$$ \begin{split}<br>h_ \theta(X) &amp;=  \theta^T X  \\<br>&amp;= \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n<br>\end{split} $$</p>
 <blockquote>
 <p>$X$ 为表示样本特征，为 $n$ 维向量，$\theta$ 为模型参数，为 $n+1$ 维向量，包括一个偏置 $\theta_0$</p>
@@ -389,7 +389,7 @@
 <blockquote>
 <p> $\lambda$ 为正则项系数，$\alpha$ 为ElasticNet参数，他们都是可调整的超参数， 当 $\alpha = 0$，则为L2正则， 当 $\alpha = 1$，则为L1正则。L1正则项增加 $1/m$ 以及L2正则项增加 $1/2m$ 系数，仅仅是为了使求导后的形式规整一些。</p>
 </blockquote>
-<p>由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能简单的套用梯度下降或L-BFGS，需要采用借助<a href="http://blog.csdn.net/jbb0523/article/details/52103257" target="_blank" rel="external">软阈值(Soft Thresholding)</a>函数解决，如果是使用拟牛顿法，可以采用<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="external">OWL-QN</a>，它是基于L-BFGS算法的可用于求解L1正则的算法。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：<br>$$<br>\begin{split}<br>\bigtriangledown_{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left ( y^{(i)} - h_{\theta,b} (X^{(i)}) \right ) X^{(i)}_j + \frac {\lambda (1-\alpha)} {m}  {\theta_j}^\ast \\<br>\bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)<br>\end{split}<br>$$</p>
+<p>由于L1正则项不可导，如果 $\alpha$ 不为0，那么不能简单的套用梯度下降或L-BFGS，需要采用借助<a href="http://blog.csdn.net/jbb0523/article/details/52103257" target="_blank" rel="noopener">软阈值(Soft Thresholding)</a>函数解决，如果是使用拟牛顿法，可以采用<a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="noopener">OWL-QN</a>，它是基于L-BFGS算法的可用于求解L1正则的算法。基于上述代价函数，下面仅列出包含L2正则项时的参数梯度：<br>$$<br>\begin{split}<br>\bigtriangledown_{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left ( y^{(i)} - h_{\theta,b} (X^{(i)}) \right ) X^{(i)}_j + \frac {\lambda (1-\alpha)} {m}  {\theta_j}^\ast \\<br>\bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum_{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right)<br>\end{split}<br>$$</p>
 <blockquote>
 <p>${\theta_j}^\ast$ 为上一次迭代得到的参数值。</p>
 </blockquote>
@@ -669,7 +669,7 @@
 
 <div class="busuanzi-count">
 
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
   
 

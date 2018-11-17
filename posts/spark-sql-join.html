@@ -108,7 +108,7 @@
 <meta property="og:image" content="http://sharkdtu.com/images/spark-sql-fullouter-join.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-sql-semi-join.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-sql-anti-join.png">
-<meta property="og:updated_time" content="2017-05-30T06:49:07.000Z">
+<meta property="og:updated_time" content="2018-11-17T06:49:01.029Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark SQL 之 Join 实现">
 <meta name="twitter:description" content="Join作为SQL中一个重要语法特性，几乎所有稍微复杂一点的数据分析场景都离不开Join，如今Spark SQL(Dataset/DataFrame)已经成为Spark应用程序开发的主流，作为开发者，我们有必要了解Join在Spark中是如何组织运行的。">
@@ -370,7 +370,7 @@
         <p>Join作为SQL中一个重要语法特性，几乎所有稍微复杂一点的数据分析场景都离不开Join，如今Spark SQL(<code>Dataset/DataFrame</code>)已经成为Spark应用程序开发的主流，作为开发者，我们有必要了解Join在Spark中是如何组织运行的。<a id="more"></a></p>
 <h2 id="SparkSQL总体流程介绍"><a href="#SparkSQL总体流程介绍" class="headerlink" title="SparkSQL总体流程介绍"></a>SparkSQL总体流程介绍</h2><p>在阐述Join实现之前，我们首先简单介绍SparkSQL的总体流程，一般地，我们有两种方式使用SparkSQL，一种是直接写sql语句，这个需要有元数据库支持，例如Hive等，另一种是通过<code>Dataset/DataFrame</code>编写Spark应用程序。如下图所示，sql语句被语法解析(SQL AST)成查询计划，或者我们通过<code>Dataset/DataFrame</code>提供的APIs组织成查询计划，查询计划分为两大类：逻辑计划和物理计划，这个阶段通常叫做逻辑计划，经过语法分析(Analyzer)、一系列查询优化(Optimizer)后得到优化后的逻辑计划，最后被映射成物理计划，转换成RDD执行。</p>
 <p><img src="/images/spark-sql-overview.png" width="600" height="400" alt="spark-sql-overview" align="center"></p>
-<p>更多关于SparkSQL的解析与执行请参考文章<a href="http://www.cnblogs.com/hseagle/p/3752917.html" target="_blank" rel="external">【sql的解析与执行】</a>。对于语法解析、语法分析以及查询优化，本文不做详细阐述，本文重点介绍Join的物理执行过程。</p>
+<p>更多关于SparkSQL的解析与执行请参考文章<a href="http://www.cnblogs.com/hseagle/p/3752917.html" target="_blank" rel="noopener">【sql的解析与执行】</a>。对于语法解析、语法分析以及查询优化，本文不做详细阐述，本文重点介绍Join的物理执行过程。</p>
 <h2 id="Join基本要素"><a href="#Join基本要素" class="headerlink" title="Join基本要素"></a>Join基本要素</h2><p>如下图所示，Join大致包括三个要素：Join方式、Join条件以及过滤条件。其中过滤条件也可以通过AND语句放在Join条件中。</p>
 <p><img src="/images/spark-sql-join-overview.png" width="600" height="400" alt="spark-sql-join-overview" align="center"></p>
 <p>Spark支持所有类型的Join，包括：</p>
@@ -404,11 +404,11 @@
 </ul>
 <p>所以说，使用hash join的条件其实是很苛刻的，在大多数实际场景中，即使能使用hash join，但是使用sort merge join也不会比hash join差很多，所以尽量使用hash</p>
 <p>下面我们分别阐述不同Join方式的实现流程。</p>
-<h2 id="inner-join"><a href="#inner-join" class="headerlink" title="inner join"></a>inner join</h2><p>inner join是一定要找到左右表中满足join条件的记录，我们在写sql语句或者使用<code>DataFrmae</code>时，可以不用关心哪个是左表，哪个是右表，在spark sql查询优化阶段，spark会自动将大表设为左表，即<code>streamIter</code>，将小表设为右表，即<code>buildIter</code>。这样对小表的查找相对更优。其基本实现流程如下图所示，在查找阶段，如果右表不存在满足join条件的记录，则跳过。</p>
+<h2 id="inner-join"><a href="#inner-join" class="headerlink" title="inner join"></a>inner join</h2><p>inner join是一定要找到左右表中满足join条件的记录，我们在写sql语句或者使用<code>DataFrame</code>时，可以不用关心哪个是左表，哪个是右表，在spark sql查询优化阶段，spark会自动将大表设为左表，即<code>streamIter</code>，将小表设为右表，即<code>buildIter</code>。这样对小表的查找相对更优。其基本实现流程如下图所示，在查找阶段，如果右表不存在满足join条件的记录，则跳过。</p>
 <p><img src="/images/spark-sql-inner-join.png" width="600" height="400" alt="spark-sql-inner-join" align="center"></p>
 <h2 id="left-outer-join"><a href="#left-outer-join" class="headerlink" title="left outer join"></a>left outer join</h2><p>left outer join是以左表为准，在右表中查找匹配的记录，如果查找失败，则返回一个所有字段都为null的记录。我们在写sql语句或者使用<code>DataFrmae</code>时，一般让大表在左边，小表在右边。其基本实现流程如下图所示。</p>
 <p><img src="/images/spark-sql-leftouter-join.png" width="600" height="400" alt="spark-sql-leftouter-join" align="center"></p>
-<h2 id="right-outer-join"><a href="#right-outer-join" class="headerlink" title="right outer join"></a>right outer join</h2><p>right outer join是以右表为准，在左表中查找匹配的记录，如果查找失败，则返回一个所有字段都为null的记录。所以说，右表是<code>streamIter</code>，左表是<code>buildIter</code>，我们在写sql语句或者使用<code>DataFrmae</code>时，一般让大表在右边，小表在左边。其基本实现流程如下图所示。</p>
+<h2 id="right-outer-join"><a href="#right-outer-join" class="headerlink" title="right outer join"></a>right outer join</h2><p>right outer join是以右表为准，在左表中查找匹配的记录，如果查找失败，则返回一个所有字段都为null的记录。所以说，右表是<code>streamIter</code>，左表是<code>buildIter</code>，我们在写sql语句或者使用<code>DataFrame</code>时，一般让大表在右边，小表在左边。其基本实现流程如下图所示。</p>
 <p><img src="/images/spark-sql-rightouter-join.png" width="600" height="400" alt="spark-sql-rightouter-join" align="center"></p>
 <h2 id="full-outer-join"><a href="#full-outer-join" class="headerlink" title="full outer join"></a>full outer join</h2><p>full outer join相对来说要复杂一点，总体上来看既要做left outer join，又要做right outer join，但是又不能简单地先left outer join，再right outer join，最后<code>union</code>得到最终结果，因为这样最终结果中就存在两份inner join的结果了。因为既然完成left outer join又要完成right outer join，所以full outer join仅采用sort merge join实现，左边和右表既要作为<code>streamIter</code>，又要作为<code>buildIter</code>，其基本实现流程如下图所示。</p>
 <p><img src="/images/spark-sql-fullouter-join.png" width="600" height="400" alt="spark-sql-fullouter-join" align="center"></p>
@@ -417,7 +417,7 @@
 <p><img src="/images/spark-sql-semi-join.png" width="600" height="400" alt="spark-sql-semi-join" align="center"></p>
 <h2 id="left-anti-join"><a href="#left-anti-join" class="headerlink" title="left anti join"></a>left anti join</h2><p>left anti join与left semi join相反，是以左表为准，在右表中查找匹配的记录，如果查找成功，则返回<code>null</code>，否则仅返回左边的记录，其基本实现流程如下图所示。</p>
 <p><img src="/images/spark-sql-anti-join.png" width="600" height="400" alt="spark-sql-anti-join" align="center"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Join是数据库查询中一个非常重要的语法特性，在数据库领域可以说是“得join者的天下”，SparkSQL作为一种分布式数据仓库系统，给我们提供了全面的join支持，并在内部实现上无声无息地做了很多优化，了解join的实现将有助于我们更深刻的了解我们的应用程序的运行轨迹。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Join是数据库查询中一个非常重要的语法特性，在数据库领域可以说是“得join者得天下”，SparkSQL作为一种分布式数据仓库系统，给我们提供了全面的join支持，并在内部实现上无声无息地做了很多优化，了解join的实现将有助于我们更深刻的了解我们的应用程序的运行轨迹。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-sql-join.html">http://sharkdtu.com/posts/spark-sql-join.html</a></em></span></p>
 
       
@@ -685,7 +685,7 @@
 
 <div class="busuanzi-count">
 
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
   
 

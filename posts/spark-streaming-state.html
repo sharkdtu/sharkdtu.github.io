@@ -101,7 +101,7 @@
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-mapWithState-2.png">
 <meta property="og:image" content="http://sharkdtu.com/images/spark-streaming-cache.png">
 <meta property="og:image" content="http://sharkdtu.com/images/sparkstreaming+redis.png">
-<meta property="og:updated_time" content="2017-12-03T09:11:19.738Z">
+<meta property="og:updated_time" content="2017-12-03T09:11:19.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark-Streaming状态管理应用优化之路">
 <meta name="twitter:description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
@@ -379,7 +379,7 @@
 <p>上图左边蓝色箭头为实时过来的数据流<code>liveDStream</code>，通过<code>liveDStream.mapWithState</code>的调用，会得到一个<code>MapWithStateDStream</code>，为方框中上面浅绿色的箭头，计算过程中，Spark-Streaming会遍历当前时间间隔内的数据rdd-x，在上一个时间间隔的状态state-(x-1)中查找指定的记录，并更新状态，更新操作就是我们前面定义的<code>mappingFunc</code>函数。这里的状态更新不再需要全量扫描状态数据了，状态数据是存在hashmap中，可以根据过来的数据快速定位到，详细的状态更新流程如下图所示。</p>
 <p><img src="/images/spark-streaming-mapWithState-2.png" width="600" height="300" alt="mapWithState-2" align="center"></p>
 <p>首先通过<code>partitionBy</code>将新来的数据分区到对应的状态分区上，每个状态分区中的仅有一条记录，类型为<code>MapWithStateRDDRecord</code>，它打包了两份数据，如下代码所示。</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">MapWithStateRDDRecord</span>[<span class="type">K</span>, <span class="type">S</span>, <span class="type">E</span>](<span class="params"></span><br><span class="line">    var stateMap: <span class="type">StateMap</span>[<span class="type">K</span>, <span class="type">S</span>], var mappedData: <span class="type">Seq</span>[<span class="type">E</span>]</span>)</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">MapWithStateRDDRecord</span>[<span class="type">K</span>, <span class="type">S</span>, <span class="type">E</span>](<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    var stateMap: <span class="type">StateMap</span>[<span class="type">K</span>, <span class="type">S</span>], var mappedData: <span class="type">Seq</span>[<span class="type">E</span>]</span>)</span></span><br></pre></td></tr></table></figure>
 <p>其中<code>stateMap</code>保存当前分区内所有的状态，底层为hashmap类型，<code>mappedData</code>保存经过<code>mappingFunc</code>处理后的结果。这样，<code>liveDStream</code>经过<code>mapWithState</code>后就可以得到两份数据，默认输出的是<code>mappedData</code>这份，如果需要输出全量状态，则可以在<code>mapWithState</code>后调用<code>snapshot</code>函数获取。</p>
 <table>
 <thead>
@@ -705,7 +705,7 @@
 
 <div class="busuanzi-count">
 
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
   
 

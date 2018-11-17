@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="spark,分布式计算,pyspark," />
+  <meta name="keywords" content="spark,pyspark,分布式计算," />
 
 
 
@@ -89,7 +89,7 @@
 
 
 <meta name="description" content="Spark主要是由Scala语言开发，为了方便和其他系统集成而不引入scala相关依赖，部分实现使用Java语言开发，例如External Shuffle Service等。总体来说，Spark是由JVM语言实现，会运行在JVM中。然而，Spark除了提供Scala/Java开发接口外，还提供了Python、R等语言的">
-<meta name="keywords" content="spark,分布式计算,pyspark">
+<meta name="keywords" content="spark,pyspark,分布式计算">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PySpark 的背后原理">
 <meta property="og:url" content="http://sharkdtu.com/posts/pyspark-internal.html">
@@ -347,9 +347,9 @@
         
           <a href="/tags/spark/" rel="tag">spark</a>
         
-          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
-        
           <a href="/tags/pyspark/" rel="tag">pyspark</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
         
       </div>
     
@@ -360,11 +360,11 @@
       
 
       
-        <p><a href="http://spark.apache.org/" target="_blank" rel="external">Spark</a>主要是由Scala语言开发，为了方便和其他系统集成而不引入scala相关依赖，部分实现使用Java语言开发，例如External Shuffle Service等。总体来说，Spark是由JVM语言实现，会运行在JVM中。然而，Spark除了提供Scala/Java开发接口外，还提供了Python、R等语言的开发接口，为了保证Spark核心实现的独立性，Spark仅在外围做包装，实现对不同语言的开发支持，本文主要介绍Python Spark的实现原理，剖析pyspark应用程序是如何运行起来的。<a id="more"></a></p>
+        <p><a href="http://spark.apache.org/" target="_blank" rel="noopener">Spark</a>主要是由Scala语言开发，为了方便和其他系统集成而不引入scala相关依赖，部分实现使用Java语言开发，例如External Shuffle Service等。总体来说，Spark是由JVM语言实现，会运行在JVM中。然而，Spark除了提供Scala/Java开发接口外，还提供了Python、R等语言的开发接口，为了保证Spark核心实现的独立性，Spark仅在外围做包装，实现对不同语言的开发支持，本文主要介绍Python Spark的实现原理，剖析pyspark应用程序是如何运行起来的。<a id="more"></a></p>
 <h2 id="Spark运行时架构"><a href="#Spark运行时架构" class="headerlink" title="Spark运行时架构"></a>Spark运行时架构</h2><p>首先我们先回顾下Spark的基本运行时架构，如下图所示，其中橙色部分表示为JVM，Spark应用程序运行时主要分为Driver和Executor，Driver负载总体调度及UI展示，Executor负责Task运行，Spark可以部署在多种资源管理系统中，例如Yarn、Mesos等，同时Spark自身也实现了一种简单的Standalone(独立部署)资源管理系统，可以不用借助其他资源管理系统即可运行。更多细节请参考<a href="/posts/spark-scheduler.html">Spark Scheduler内部原理剖析</a>。</p>
 <p><img src="/images/spark-structure.png" width="600" height="400" alt="spark-structure" align="center"></p>
 <p>用户的Spark应用程序运行在Driver上(某种程度上说，用户的程序就是Spark Driver程序)，经过Spark调度封装成一个个Task，再将这些Task信息发给Executor执行，Task信息包括代码逻辑以及数据信息，Executor不直接运行用户的代码。</p>
-<h2 id="PySpark运行时架构"><a href="#PySpark运行时架构" class="headerlink" title="PySpark运行时架构"></a>PySpark运行时架构</h2><p>为了不破坏Spark已有的运行时架构，Spark在外围包装一层Python API，借助<a href="https://www.py4j.org/" target="_blank" rel="external">Py4j</a>实现Python和Java的交互，进而实现通过Python编写Spark应用程序，其运行时架构如下图所示。</p>
+<h2 id="PySpark运行时架构"><a href="#PySpark运行时架构" class="headerlink" title="PySpark运行时架构"></a>PySpark运行时架构</h2><p>为了不破坏Spark已有的运行时架构，Spark在外围包装一层Python API，借助<a href="https://www.py4j.org/" target="_blank" rel="noopener">Py4j</a>实现Python和Java的交互，进而实现通过Python编写Spark应用程序，其运行时架构如下图所示。</p>
 <p><img src="/images/pyspark-structure.png" width="600" height="400" alt="pyspark-structure" align="center"></p>
 <p>其中白色部分是新增的Python进程，在Driver端，通过Py4j实现在Python中调用Java的方法，即将用户写的PySpark程序”映射”到JVM中，例如，用户在PySpark中实例化一个Python的SparkContext对象，最终会在JVM中实例化Scala的SparkContext对象；在Executor端，则不需要借助Py4j，因为Executor端运行的Task逻辑是由Driver发过来的，那是序列化后的字节码，虽然里面可能包含有用户定义的Python函数或Lambda表达式，Py4j并不能实现在Java里调用Python的方法，为了能在Executor端运行用户定义的Python函数或Lambda表达式，则需要为每个Task单独启一个Python进程，通过socket通信方式将Python函数或Lambda表达式发给Python进程执行。语言层面的交互总体流程如下图所示，实线表示方法调用，虚线表示结果返回。</p>
 <p><img src="/images/pyspark-call.png" width="600" height="400" alt="pyspark-call" align="center"></p>
@@ -662,7 +662,7 @@
 
 <div class="busuanzi-count">
 
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
   
 

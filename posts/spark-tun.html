@@ -427,7 +427,7 @@
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//rdd: RDD[(int, int)]</span></span><br><span class="line">rdd.groupByKey()</span><br></pre></td></tr></table></figure>
 <p>我们完全可以用aggregateByKey来实现上述功能：</p>
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rdd. aggregateByKey(<span class="type">Seq</span> ())(</span><br><span class="line">(u, v) =&gt; v::u,</span><br><span class="line">(u1, u2) =&gt; u1 ++ u2</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-<p>以上是简单提出几个需要注意的接口调用，如果不了解RDD接口的使用，可以参见<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package" target="_blank" rel="external">社区文档</a>。</p>
+<p>以上是简单提出几个需要注意的接口调用，如果不了解RDD接口的使用，可以参见<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package" target="_blank" rel="noopener">社区文档</a>。</p>
 <p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-tun.html">http://sharkdtu.com/posts/spark-tun.html</a></em></span></p>
 
       
@@ -695,7 +695,7 @@
 
 <div class="busuanzi-count">
 
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
   
 
