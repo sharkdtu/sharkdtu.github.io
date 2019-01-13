@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://sharkdtu.com/posts/spark-mpi-lda.html</loc>
+    
+    <lastmod>2019-01-13T10:10:43.869Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://sharkdtu.com/posts/spark-sql-join.html</loc>
     
     <lastmod>2018-11-17T06:49:01.029Z</lastmod>

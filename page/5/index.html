@@ -282,6 +282,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/mllib-tree.html" itemprop="url">
+                  MLlib决策树与集成树
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-12T21:45:11+08:00" content="2016-01-12">
+              2016-01-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
+                    <span itemprop="name">机器学习</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="模型简介"><a href="#模型简介" class="headerlink" title="模型简介"></a>模型简介</h2><p>决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。如此下去，一个实例从根节点开始，不断地被划分，直到叶子节点。对于分类问题，叶子节点输出其类别，对于回归问题，叶子节点输出其分值或概率。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/mllib-tree.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/half-year-work-feeling.html" itemprop="url">
                   工作半年小感
                 </a>
@@ -722,121 +837,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/start-akka-actor.html" itemprop="url">
-                  Akka-actor使用入门
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2014-12-12T21:45:11+08:00" content="2014-12-12">
-              2014-12-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/programming-language/" itemprop="url" rel="index">
-                    <span itemprop="name">程序语言</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐<a href="http://doc.akka.io/docs/akka/2.3.7/general/actor-systems.html" target="_blank" rel="noopener">Akka的官方文档</a>，里面讲的很清晰，另外，<a href="http://rerun.me/2014/09/11/introducing-actors-akka-notes-part-1/" target="_blank" rel="noopener">国外一个人的笔记</a>写的相当不错，原理加上其配图讲的非常形象。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/start-akka-actor.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
   </section>
 
   
@@ -882,7 +882,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -972,7 +972,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -282,6 +282,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/spark-mpi-lda.html" itemprop="url">
+                  WLDA--Spark与MPI碰撞的火花
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-01-05T16:01:23+08:00" content="2019-01-05">
+              2019-01-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>恰逢Spark-2.4.0发布不久之际，接到LDA算法实现需求，经过一番了解，算法同学反馈SparkLDA极其的慢，而且非常占资源，虽然业界也有各种各样的实现，但是很难跟现有的平台融合起来，始终找不到一个好用的版本，为此，我们开始着手自行开发实现LDA。Spark目前对LDA有两种实现，一种是基于GraphX实现的EM算法，使用Gibbs采样，但是这种实现训练速度慢，同时极其耗费内存，另一种是基于在线变分贝叶斯实现的Online LDA算法，训练速度相对于EM算法快，但是它的模型是全部存放在Driver上，每轮迭代需要广播，如果模型较大，性能会极度恶化。自行开发的话需要同时兼顾性能、易用性，同时要跟现有的平台完美融合，不能专门发明新的玩法，否则也只能用于吹牛。在Review Spark的新特性中发现，Spark-2.4.0版本提出一种新的调度方式<a href="https://jira.apache.org/jira/browse/SPARK-24374" target="_blank" rel="noopener">Barrier Scheduling</a>，通过该特性可以很好地将Spark与MPI融合，所以我们想到可以尝鲜这种新特性，通过MPI实现LDA核心算法，再通过Spark包装提升易用性，可以完美地解决用户的痛点。虽然Spark的Barrier Scheduling特性还处于实验阶段，但是总体上符合我们的需求，通过一些扩展，我们基于Spark和MPI开发了WLDA，性能上可以大幅超越SparkLDA，同时易用性方面可以与SparkLDA媲美。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/spark-mpi-lda.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/spark-mpi.html" itemprop="url">
                   借助Spark调度MPI作业
                 </a>
@@ -721,121 +836,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/ml-als.html" itemprop="url">
-                  机器学习套路--协同过滤推荐ALS
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-06-24T19:34:28+08:00" content="2017-06-24">
-              2017-06-24
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
-                    <span itemprop="name">机器学习</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>如今，协同过滤推荐(CollaboratIve Filtering)技术已广泛应用于各类推荐系统中，其通常分为两类，一种是基于用户的协同过滤算法(User-Based CF)，它是根据用户对物品的历史评价数据(如，喜欢、点击、购买等)，计算不同用户之间的相似度，在有相同喜好的用户间进行物品推荐，例如将跟我有相同电影爱好的人看过的电影推荐给我；另一种是基于物品的协同过滤算法(Item-Based CF)，它是根据用户对物品的历史评价数据，计算物品之间的相似度，用户如果喜欢A物品，那么可以给用户推荐跟A物品相似的其他物品，例如如果我们在购物网站上买过尿片，第二天你再到购物网站上浏览时，可能会被推荐奶瓶。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/ml-als.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
   </section>
 
   
@@ -881,7 +881,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -971,7 +971,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
