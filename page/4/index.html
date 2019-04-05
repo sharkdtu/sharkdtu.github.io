@@ -282,121 +282,6 @@
             
               
                 
-                <a class="post-title-link" href="/posts/maven-assembly-native-jar.html" itemprop="url">
-                  Maven 使用本地jar包
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-06-24T21:45:11+08:00" content="2016-06-24">
-              2016-06-24
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/stackoverflow/" itemprop="url" rel="index">
-                    <span itemprop="name">问题总结</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>通常maven管理的项目中的依赖都是在远程仓库中的，假如我需要在maven项目中添加一个本地的jar包依赖，该jar包在仓库中是不存在的，可能是项目组前人开发的一个库，但是没发布到maven仓库中。遇到这种情况我们可以通过在pom中指定本地的依赖
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/maven-assembly-native-jar.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
                 <a class="post-title-link" href="/posts/nn-nlp.html" itemprop="url">
                   运用TensorFlow处理简单的NLP问题
                 </a>
@@ -840,6 +725,121 @@
 
 
     
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/posts/mllib-tree.html" itemprop="url">
+                  MLlib决策树与集成树
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-12T21:45:11+08:00" content="2016-01-12">
+              2016-01-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
+                    <span itemprop="name">机器学习</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="模型简介"><a href="#模型简介" class="headerlink" title="模型简介"></a>模型简介</h2><p>决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。如此下去，一个实例从根节点开始，不断地被划分，直到叶子节点。对于分类问题，叶子节点输出其类别，对于回归问题，叶子节点输出其分值或概率。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/mllib-tree.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
   </section>
 
   
@@ -885,7 +885,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">29</span>
+              <span class="site-state-item-count">28</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

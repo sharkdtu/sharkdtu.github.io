@@ -4,32 +4,6 @@
 
     
   <url>
-    <loc>http://sharkdtu.com/posts/spark-mpi-lda.html</loc>
-    <lastmod>2019-01-13T10:10:43.869Z</lastmod>
-    <data>
-        <display>
-        <title>WLDA--Spark与MPI碰撞的火花</title>
-        <pubTime>2019-01-05T08:01:23.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>mpi</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://sharkdtu.com/posts/spark-sql-join.html</loc>
     <lastmod>2018-11-17T06:49:01.029Z</lastmod>
     <data>
