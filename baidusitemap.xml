@@ -4,6 +4,28 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/dist-tf-evolution.html</loc>
+    <lastmod>2019-04-07T08:53:08.470Z</lastmod>
+    <data>
+        <display>
+        <title>分布式TensorFlow编程模型演进</title>
+        <pubTime>2019-04-05T08:55:34.000Z</pubTime>
+        
+        <tag>分布式计算</tag>
+         
+        <tag>TensorFlow</tag>
+         
+         
+           
+             
+              <breadCrumb title="深度学习" url="http://sharkdtu.com/categories/deep-learning/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/spark-sql-join.html</loc>
     <lastmod>2018-11-17T06:49:01.029Z</lastmod>
     <data>
@@ -526,9 +548,9 @@
         <title>运用TensorFlow处理简单的NLP问题</title>
         <pubTime>2016-05-31T14:25:17.000Z</pubTime>
         
-        <tag>NLP</tag>
-         
         <tag>TensorFlow</tag>
+         
+        <tag>NLP</tag>
          
         <tag>Word2Vec</tag>
          
