@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="hadoop,ugi,hdfs," />
+  <meta name="keywords" content="TensorFlow," />
 
 
 
@@ -88,18 +88,18 @@
 
 
 
-<meta name="description" content="在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现。">
-<meta name="keywords" content="hadoop,ugi,hdfs">
+<meta name="description" content="在我们的很多推荐业务场景中，通常一个模型可能是一直不断增量训练的，如果哪天业务需要调整模型结构，去训练一个新模型，但是又不想完全从0开始，希望复用原来模型里面的部分参数，这样冷启动的代价就小很多了。">
+<meta name="keywords" content="TensorFlow">
 <meta property="og:type" content="article">
-<meta property="og:title" content="临时更换hadoop-ugi">
-<meta property="og:url" content="http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html">
+<meta property="og:title" content="TensorFlow 迁移学习实践小记">
+<meta property="og:url" content="http://sharkdtu.com/posts/tf-migrate-learning.html">
 <meta property="og:site_name" content="守护之鲨">
-<meta property="og:description" content="在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现。">
+<meta property="og:description" content="在我们的很多推荐业务场景中，通常一个模型可能是一直不断增量训练的，如果哪天业务需要调整模型结构，去训练一个新模型，但是又不想完全从0开始，希望复用原来模型里面的部分参数，这样冷启动的代价就小很多了。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-03-25T09:22:09.000Z">
+<meta property="og:updated_time" content="2021-01-17T01:41:29.895Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="临时更换hadoop-ugi">
-<meta name="twitter:description" content="在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现。">
+<meta name="twitter:title" content="TensorFlow 迁移学习实践小记">
+<meta name="twitter:description" content="在我们的很多推荐业务场景中，通常一个模型可能是一直不断增量训练的，如果哪天业务需要调整模型结构，去训练一个新模型，但是又不想完全从0开始，希望复用原来模型里面的部分参数，这样冷启动的代价就小很多了。">
 
 
 
@@ -117,7 +117,7 @@
   };
 </script>
 
-  <title> 临时更换hadoop-ugi | 守护之鲨 </title>
+  <title> TensorFlow 迁移学习实践小记 | 守护之鲨 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -279,7 +279,7 @@
             
             
               
-                临时更换hadoop-ugi
+                TensorFlow 迁移学习实践小记
               
             
           </h1>
@@ -291,8 +291,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-05-12T21:45:11+08:00" content="2016-05-12">
-              2016-05-12
+            <time itemprop="dateCreated" datetime="2020-12-02T21:23:01+08:00" content="2020-12-02">
+              2020-12-02
             </time>
           </span>
 
@@ -305,8 +305,8 @@
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/stackoverflow/" itemprop="url" rel="index">
-                    <span itemprop="name">问题总结</span>
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
+                    <span itemprop="name">机器学习</span>
                   </a>
                 </span>
 
@@ -337,11 +337,7 @@
     
       <div class="post-tags">
         
-          <a href="/tags/hadoop/" rel="tag">hadoop</a>
-        
-          <a href="/tags/ugi/" rel="tag">ugi</a>
-        
-          <a href="/tags/hdfs/" rel="tag">hdfs</a>
+          <a href="/tags/TensorFlow/" rel="tag">TensorFlow</a>
         
       </div>
     
@@ -352,11 +348,26 @@
       
 
       
-        <p>在用spark读写hdfs数据时，有时候当前用户对要读写的hdfs路径没有权限，需要临时改变用户去读写hdfs，操作完后回到原来的用户。我们的hdfs是没有权限认证的，一开始通过下面代码的方式来实现。<a id="more"></a></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">JobConf</span>(rdd.context.hadoopConfiguration)</span><br><span class="line">conf.set(<span class="string">"hadoop.job.ugi"</span>, <span class="string">"newuser,newgroup"</span>)</span><br><span class="line">rdd.saveAsHadoopFile(path, keyClass, valueClass, outputFormatClass, conf)</span><br></pre></td></tr></table></figure>
-<p>以上代码是在现有的 hadoop conf 上复制出一个 conf，然后修改ugi，利用这个新的 conf 去写数据，表面上看并没有什么错，没有改变原来的 conf，然而这种方式偶尔会不生效。经过排查发现，自从hdfs-2.0开始，ugi操作需要通过<code>UserGroupInformation</code>这个类来实现，在获取用户名时有个缓存，所以之前偶尔不生效的情况是因为它用了缓存里的用户名而还没来得及更新，为了规避这个问题，改成下面的实现就万无一失了，所有临时的操作在<code>doAs</code>方法里实现，出了这个方法就回到原来用户下。</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">JobConf</span>(rdd.context.hadoopConfiguration)</span><br><span class="line">conf.set(<span class="string">"hadoop.job.ugi"</span>, <span class="string">"newuser,newgroup"</span>)</span><br><span class="line"><span class="keyword">val</span> ugi = <span class="type">UserGroupInformation</span>.getCurrentUser(conf)</span><br><span class="line">ugi.doAs(<span class="keyword">new</span> <span class="type">PrivilegeAction</span>[unit] &#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>()&#123;</span><br><span class="line">    rdd.saveAsHadoopFile(path, keyClass, valueClass, outputFormatClass, conf)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html">http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</a></em></span></p>
+        <p>在我们的很多推荐业务场景中，通常一个模型可能是一直不断增量训练的，如果哪天业务需要调整模型结构，去训练一个新模型，但是又不想完全从0开始，希望复用原来模型里面的部分参数，这样冷启动的代价就小很多了。<a id="more"></a></p>
+<p>实际上 TensorFlow 提供了足够的灵活性，我们可以控制从其他模型 restore 部分参数到新的模型里。因为目前生产环境普遍还是在用 tf-1.x，下面分别介绍Low-Level API 和 Estimator API 两种实践。</p>
+<h2 id="Low-Level-API-实践"><a href="#Low-Level-API-实践" class="headerlink" title="Low-Level API 实践"></a>Low-Level API 实践</h2><p>在决定从已有的模型预热参数前，可以先将模型ckpt拉到本地，开一个 ipython 或 jupyter，列出模型中的所有参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">In [<span class="number">6</span>]: tf.train.list_variables(checkpoint_dir)</span><br><span class="line">Out[<span class="number">6</span>]:</span><br><span class="line">[(<span class="string">'dense/bias'</span>, [<span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'dense/bias/Adagrad'</span>, [<span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'dense/kernel'</span>, [<span class="number">17</span>, <span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'dense/kernel/Adagrad'</span>, [<span class="number">17</span>, <span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'fm/b'</span>, [<span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'fm/b/Adagrad'</span>, [<span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'fm/v'</span>, [<span class="number">4809162</span>, <span class="number">16</span>]),</span><br><span class="line"> (<span class="string">'fm/v/Adagrad'</span>, [<span class="number">4809162</span>, <span class="number">16</span>]),</span><br><span class="line"> (<span class="string">'fm/w'</span>, [<span class="number">4809162</span>, <span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'fm/w/Adagrad'</span>, [<span class="number">4809162</span>, <span class="number">1</span>]),</span><br><span class="line"> (<span class="string">'global_step'</span>, [])]</span><br></pre></td></tr></table></figure></p>
+<p>假如，我们想要从ckpt中预热 <code>fm/v</code> 和 <code>fm/w</code> 两个参数，很简单，通过自定义一个 <code>tf.train.Saver</code> 来控制加载哪些参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">w2 = tf.get_variable(</span><br><span class="line">    <span class="string">"w2"</span>, shape=[<span class="number">4809162</span>, <span class="number">1</span>],</span><br><span class="line">    dtype=tf.float32,</span><br><span class="line">    initializer=tf.initializers.zeros())</span><br><span class="line">v2 = tf.get_variable(</span><br><span class="line">    <span class="string">"v2"</span>,</span><br><span class="line">    shape=[<span class="number">4809162</span>, <span class="number">16</span>],</span><br><span class="line">    dtype=tf.float32,</span><br><span class="line">    initializer=tf.initializers.truncated_normal(mean=<span class="number">0.0</span>, stddev=<span class="number">1</span> / math.sqrt(<span class="number">16</span>)))</span><br><span class="line"></span><br><span class="line">ckpt_state = tf.train.get_checkpoint_state(checkpoint_dir)</span><br><span class="line">recover_vars = &#123;<span class="string">'fm/w'</span>: w2, <span class="string">'fm/v'</span>: v2&#125;</span><br><span class="line">saver = tf.train.Saver(recover_vars)</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">  ...</span><br><span class="line">  sess.run(init_op)</span><br><span class="line">  saver.restore(sess, ckpt_state.model_checkpoint_path)</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+<p>以上代码中 <code>recover_vars</code> 定义了要从 ckpt 中恢复的参数，是一个字典形式，key 为 ckpt 中的变量名，从上面我们 list 出来的变量里找即可，value 为要覆盖的变量，即从 ckpt 中找到名字为 key 的变量参数，去覆盖 value 指定的变量。</p>
+<h2 id="Estimator-API-实践"><a href="#Estimator-API-实践" class="headerlink" title="Estimator API 实践"></a>Estimator API 实践</h2><p>如果你是用高阶 Estimator API，其实完全可以借助 Estimator 自带的 <a href="https://www.tensorflow.org/api_docs/python/tf/estimator/WarmStartSettings" target="_blank" rel="noopener">warm_start</a> 功能来实现。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tf.estimator.WarmStartSettings(</span><br><span class="line">    ckpt_to_initialize_from, vars_to_warm_start=<span class="string">'.*'</span>, var_name_to_vocab_info=<span class="keyword">None</span>,</span><br><span class="line">    var_name_to_prev_var_name=<span class="keyword">None</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ckpt_to_initialize_from：预热模型的ckpt路径</li>
+<li>vars_to_warm_start：要加载哪些变量出来预热，可以通过上述 <code>tf.train.list_variables</code> 方法先列出变量名再决定要哪些变量</li>
+<li>var_name_to_vocab_info：动态词表信息</li>
+<li>var_name_to_prev_var_name：新模型中的变量名 -&gt; 旧模型中的变量名，意思就是加载出来的变量会预热到新模型的变量</li>
+</ul>
+<p>如果旧模型中有变量A，新模型有变量A、B，需要将旧模型的变量A恢复到新模型的变量B，如果使用tf warm_start，它既会将旧模型的变量A恢复到新模型的变量B，也会恢复到新模型的变量A。为解决名字冲突问题，我们可以自定义一个 Hook 将上述 low-level api 的使用方式封装一下，实现定制化恢复即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">VariableRecoverHook</span><span class="params">(tf.train.SessionRunHook)</span>:</span></span><br><span class="line">  <span class="string">"""Recover specified variables from checkpoint."""</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, ckp_dir, recover_vars)</span>:</span></span><br><span class="line">    <span class="string">"""Initializes a `VariableRecoverHook`.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">      ckp_dir: Checkpoint directory where variables recover from</span></span><br><span class="line"><span class="string">      recover_vars: A `dict` of names to variables</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    self._ckpt_state = tf.train.get_checkpoint_state(ckp_dir)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isinstance(recover_vars, dict):</span><br><span class="line">      <span class="keyword">raise</span> ValueError(<span class="string">"recover_vars must be a dict of names to variables"</span>)</span><br><span class="line">    self._vars = recover_vars</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">begin</span><span class="params">(self)</span>:</span></span><br><span class="line">    <span class="string">"""Create a tf saver for recover variables."""</span></span><br><span class="line">    self._saver = tf.train.Saver(self._vars)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">after_create_session</span><span class="params">(self, session, coord)</span>:</span></span><br><span class="line">    <span class="string">"""Recover variables from checkpoint."""</span></span><br><span class="line">    self._saver.restore(session, self._ckpt_state.model_checkpoint_path)</span><br></pre></td></tr></table></figure>
+<p>以上代码实现一个 Hook，其中初始化参数 <code>recover_vars</code> 表示要从 ckpt 中恢复的参数。一般在恢复参数前，也需要list一下旧模型中的参数，找到对应的变量名。有了这个 Hook 后，那么我们就可以在 <code>model_fn</code> 中插入这个 Hook 的实例即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">model_fn</span><span class="params">(features, labels, mode, params)</span>:</span></span><br><span class="line">  ...</span><br><span class="line">  spec = head.create_estimator_spec(...)</span><br><span class="line">  recover_hook = VariableRecoverHook(ckp_dir=old_ckpt_dir, recover_vars=recover_vars)</span><br><span class="line">  <span class="keyword">return</span> spec._replace(training_hooks=(spec.training_hooks + (recover_hook,)))</span><br></pre></td></tr></table></figure>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>实践中我们可以基于 TensorFlow 灵活保存以及恢复参数，当有迁移学习需求时，可以通过定制化 <code>tf.train.Saver</code> 的方式来控制预热指定的参数。目前 TensorFlow 也进入 2.x 时代了，官方主推Keras API，通过 Keras API 可以更加灵活的控制<a href="https://www.tensorflow.org/guide/checkpoint" target="_blank" rel="noopener">保存以及恢复参数</a>。但是如果你是用 Estimator，则可以直接复用 warm_start 或上述 Hook 实现。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/tf-migrate-learning.html">http://sharkdtu.com/posts/tf-migrate-learning.html</a></em></span></p>
 
       
     </div>
@@ -402,17 +413,13 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/posts/scala-reflect.html" rel="next" title="初识Scala反射">
-                <i class="fa fa-chevron-left"></i> 初识Scala反射
+              <a href="/posts/dist-tf-evolution.html" rel="next" title="分布式TensorFlow编程模型演进">
+                <i class="fa fa-chevron-left"></i> 分布式TensorFlow编程模型演进
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/posts/nn-nlp.html" rel="prev" title="运用TensorFlow处理简单的NLP问题">
-                运用TensorFlow处理简单的NLP问题 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -582,7 +589,7 @@
               
             
             
-              <p class="post-toc-empty">此文章未包含目录</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Low-Level-API-实践"><span class="nav-number">1.</span> <span class="nav-text">Low-Level API 实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Estimator-API-实践"><span class="nav-number">2.</span> <span class="nav-text">Estimator API 实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
             
           </div>
         </section>

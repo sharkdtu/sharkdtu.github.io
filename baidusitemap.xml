@@ -4,6 +4,26 @@
 
     
   <url>
+    <loc>http://sharkdtu.com/posts/tf-migrate-learning.html</loc>
+    <lastmod>2021-01-17T01:41:29.895Z</lastmod>
+    <data>
+        <display>
+        <title>TensorFlow 迁移学习实践小记</title>
+        <pubTime>2020-12-02T13:23:01.000Z</pubTime>
+        
+        <tag>TensorFlow</tag>
+         
+         
+           
+             
+              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://sharkdtu.com/posts/dist-tf-evolution.html</loc>
     <lastmod>2019-04-07T08:53:08.470Z</lastmod>
     <data>
