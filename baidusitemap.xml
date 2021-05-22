@@ -1,721 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-
-    
-    
   <url>
-    <loc>http://sharkdtu.com/posts/tf-migrate-learning.html</loc>
-    <lastmod>2021-01-17T01:41:29.895Z</lastmod>
-    <data>
-        <display>
-        <title>TensorFlow 迁移学习实践小记</title>
-        <pubTime>2020-12-02T13:23:01.000Z</pubTime>
-        
-        <tag>TensorFlow</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/tmp-hadoop-ugi-using.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/dist-tf-evolution.html</loc>
-    <lastmod>2019-04-07T08:53:08.470Z</lastmod>
-    <data>
-        <display>
-        <title>分布式TensorFlow编程模型演进</title>
-        <pubTime>2019-04-05T08:55:34.000Z</pubTime>
-        
-        <tag>分布式计算</tag>
-         
-        <tag>TensorFlow</tag>
-         
-         
-           
-             
-              <breadCrumb title="深度学习" url="http://sharkdtu.com/categories/deep-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/to-live.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-sql-join.html</loc>
-    <lastmod>2018-11-17T06:49:01.029Z</lastmod>
-    <data>
-        <display>
-        <title>Spark SQL 之 Join 实现</title>
-        <pubTime>2017-05-29T13:33:29.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>sql</tag>
-         
-        <tag>join</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/tf-migrate-learning.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-mpi.html</loc>
-    <lastmod>2018-11-10T13:06:58.755Z</lastmod>
-    <data>
-        <display>
-        <title>借助Spark调度MPI作业</title>
-        <pubTime>2018-11-04T07:21:44.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>mpi</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/start-akka-remote.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-streaming-state.html</loc>
-    <lastmod>2017-12-03T09:11:19.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark-Streaming状态管理应用优化之路</title>
-        <pubTime>2017-12-02T02:04:25.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>streaming</tag>
-         
-        <tag>updateStateByKey</tag>
-         
-        <tag>mapWithState</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-tun.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/ml-als.html</loc>
-    <lastmod>2017-07-17T15:19:56.000Z</lastmod>
-    <data>
-        <display>
-        <title>机器学习套路--协同过滤推荐ALS</title>
-        <pubTime>2017-06-24T11:34:28.000Z</pubTime>
-        
-        <tag>逻辑回归</tag>
-         
-        <tag>ALS</tag>
-         
-        <tag>协同过滤</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/start-akka-actor.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/ml-nb.html</loc>
-    <lastmod>2017-07-17T14:35:05.000Z</lastmod>
-    <data>
-        <display>
-        <title>机器学习套路--朴素贝叶斯</title>
-        <pubTime>2017-07-17T14:23:54.000Z</pubTime>
-        
-        <tag>NaiveBayes</tag>
-         
-        <tag>Classification</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-scheduler.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/pyspark-internal.html</loc>
-    <lastmod>2017-07-09T14:15:54.000Z</lastmod>
-    <data>
-        <display>
-        <title>PySpark 的背后原理</title>
-        <pubTime>2017-07-05T14:10:45.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>pyspark</tag>
-         
-        <tag>分布式计算</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-streaming-state.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/ml-linear-regression.html</loc>
-    <lastmod>2017-06-14T14:44:53.000Z</lastmod>
-    <data>
-        <display>
-        <title>机器学习套路--线性回归</title>
-        <pubTime>2017-06-03T14:45:33.000Z</pubTime>
-        
-        <tag>线性回归</tag>
-         
-        <tag>LinearRegression</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-shuffle.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/ml-lr.html</loc>
-    <lastmod>2017-06-14T14:41:24.000Z</lastmod>
-    <data>
-        <display>
-        <title>机器学习套路--逻辑回归</title>
-        <pubTime>2017-06-14T09:23:14.000Z</pubTime>
-        
-        <tag>逻辑回归</tag>
-         
-        <tag>LR</tag>
-         
-        <tag>Softmax</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-sql-join.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-app-optimize.html</loc>
-    <lastmod>2017-05-13T17:07:22.000Z</lastmod>
-    <data>
-        <display>
-        <title>从PageRank Example谈Spark应用程序调优</title>
-        <pubTime>2017-05-11T14:11:29.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>benchmark</tag>
-         
-        <tag>优化</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-rdd.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-shuffle.html</loc>
-    <lastmod>2017-05-13T16:17:47.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark Shuffle原理及相关调优</title>
-        <pubTime>2016-11-04T07:21:44.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>shuffle</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-cache-benchmark.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-scheduler.html</loc>
-    <lastmod>2017-04-05T15:25:35.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark Scheduler内部原理剖析</title>
-        <pubTime>2016-10-23T13:33:14.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>Scheduler</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-mpi.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-rdd.html</loc>
-    <lastmod>2017-04-05T15:23:53.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark核心概念RDD</title>
-        <pubTime>2016-09-18T12:12:03.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>rdd</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-network.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-network.html</loc>
-    <lastmod>2017-04-05T15:23:40.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark 底层网络模块</title>
-        <pubTime>2016-12-12T14:11:29.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>network</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/scala-reflect.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
-    <lastmod>2017-03-25T10:05:24.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark Cache性能测试</title>
-        <pubTime>2017-03-22T14:11:29.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>cache</tag>
-         
-        <tag>benchmark</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-app-optimize.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/to-live.html</loc>
-    <lastmod>2017-03-25T09:22:15.000Z</lastmod>
-    <data>
-        <display>
-        <title>《活着》–让人瞬间安静的一本书</title>
-        <pubTime>2014-11-03T13:20:25.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="读书笔记" url="http://sharkdtu.com/categories/reading-notes/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/spark-build.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</loc>
-    <lastmod>2017-03-25T09:22:09.000Z</lastmod>
-    <data>
-        <display>
-        <title>临时更换hadoop-ugi</title>
-        <pubTime>2016-05-12T13:45:11.000Z</pubTime>
-        
-        <tag>hadoop</tag>
-         
-        <tag>ugi</tag>
-         
-        <tag>hdfs</tag>
-         
-         
-           
-             
-              <breadCrumb title="问题总结" url="http://sharkdtu.com/categories/stackoverflow/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/nn-nlp.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
-    <lastmod>2017-03-25T09:21:45.000Z</lastmod>
-    <data>
-        <display>
-        <title>Akka-remote使用入门</title>
-        <pubTime>2014-12-20T12:15:33.000Z</pubTime>
-        
-        <tag>scala</tag>
-         
-        <tag>akka</tag>
-         
-        <tag>actor-remote</tag>
-         
-         
-           
-             
-              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/pyspark-internal.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/start-akka-actor.html</loc>
-    <lastmod>2017-03-25T09:21:41.000Z</lastmod>
-    <data>
-        <display>
-        <title>Akka-actor使用入门</title>
-        <pubTime>2014-12-12T13:45:11.000Z</pubTime>
-        
-        <tag>scala</tag>
-         
-        <tag>akka</tag>
-         
-        <tag>actor</tag>
-         
-         
-           
-             
-              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/mllib-tree.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-tun.html</loc>
-    <lastmod>2017-03-25T09:21:35.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark 应用程序调优</title>
-        <pubTime>2015-06-17T06:22:33.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/ml-als.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
-    <lastmod>2017-03-25T09:21:08.000Z</lastmod>
-    <data>
-        <display>
-        <title>Spark源码编译并在YARN上运行WordCount实例</title>
-        <pubTime>2014-11-06T12:33:25.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-         
-           
-             
-              <breadCrumb title="spark" url="http://sharkdtu.com/categories/spark/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/ml-linear-regression.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/scala-reflect.html</loc>
-    <lastmod>2017-03-25T09:21:03.000Z</lastmod>
-    <data>
-        <display>
-        <title>初识Scala反射</title>
-        <pubTime>2016-04-23T02:04:25.000Z</pubTime>
-        
-        <tag>scala</tag>
-         
-        <tag>反射</tag>
-         
-         
-           
-             
-              <breadCrumb title="程序语言" url="http://sharkdtu.com/categories/programming-language/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/ml-nb.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/nn-nlp.html</loc>
-    <lastmod>2017-03-25T09:20:58.000Z</lastmod>
-    <data>
-        <display>
-        <title>运用TensorFlow处理简单的NLP问题</title>
-        <pubTime>2016-05-31T14:25:17.000Z</pubTime>
-        
-        <tag>TensorFlow</tag>
-         
-        <tag>NLP</tag>
-         
-        <tag>Word2Vec</tag>
-         
-        <tag>RNN</tag>
-         
-        <tag>LSTM</tag>
-         
-         
-           
-             
-              <breadCrumb title="深度学习" url="http://sharkdtu.com/categories/deep-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/ml-lr.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/mllib-tree.html</loc>
-    <lastmod>2017-03-25T09:20:31.000Z</lastmod>
-    <data>
-        <display>
-        <title>MLlib决策树与集成树</title>
-        <pubTime>2016-01-12T13:45:11.000Z</pubTime>
-        
-        <tag>spark</tag>
-         
-        <tag>mllib</tag>
-         
-        <tag>决策树</tag>
-         
-        <tag>GBDT</tag>
-         
-        <tag>随机森林</tag>
-         
-         
-           
-             
-              <breadCrumb title="机器学习" url="http://sharkdtu.com/categories/machine-learning/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/dist-tf-evolution.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
-    <lastmod>2017-03-25T09:19:59.000Z</lastmod>
-    <data>
-        <display>
-        <title>Maven 使用本地jar包</title>
-        <pubTime>2016-06-24T13:45:11.000Z</pubTime>
-        
-        <tag>maven</tag>
-         
-        <tag>java</tag>
-         
-         
-           
-             
-              <breadCrumb title="问题总结" url="http://sharkdtu.com/categories/stackoverflow/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/centos-hadoop-setup.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/half-year-work-feeling.html</loc>
-    <lastmod>2017-03-25T09:19:18.000Z</lastmod>
-    <data>
-        <display>
-        <title>工作半年小感</title>
-        <pubTime>2015-10-23T08:22:09.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/maven-assembly-native-jar.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
-    <lastmod>2017-03-25T09:19:11.000Z</lastmod>
-    <data>
-        <display>
-        <title>CentOS下Hadoop-2.2.0集群安装配置</title>
-        <pubTime>2014-10-25T11:54:25.000Z</pubTime>
-        
-        <tag>大数据</tag>
-         
-        <tag>分布式计算</tag>
-         
-        <tag>hadoop</tag>
-         
-         
-           
-             
-              <breadCrumb title="hadoop" url="http://sharkdtu.com/categories/hadoop/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/half-year-work-feeling.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/blog-reborn.html</loc>
-    <lastmod>2017-03-25T09:19:04.000Z</lastmod>
-    <data>
-        <display>
-        <title>博客重生</title>
-        <pubTime>2016-04-23T01:24:25.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
+    <loc>https://sharkdtu.github.io/posts/blog-reborn.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
   <url>
-    <loc>http://sharkdtu.com/posts/before-last-winter-vacation.html</loc>
-    <lastmod>2017-03-25T09:18:59.000Z</lastmod>
-    <data>
-        <display>
-        <title>写在最后一个寒假前</title>
-        <pubTime>2015-01-23T03:22:09.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="随笔" url="http://sharkdtu.com/categories/essay/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-    
-    
-</urlset>
+    <loc>https://sharkdtu.github.io/posts/before-last-winter-vacation.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+</urlset> 

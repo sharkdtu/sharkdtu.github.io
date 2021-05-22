@@ -6,19 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
-
-
-
-
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -27,7 +23,11 @@
 
 
 
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -65,23 +65,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="spark,分布式计算,cache,benchmark," />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml" />
+  <meta name="keywords" content="spark,分布式计算,cache,benchmark,">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -92,11 +92,11 @@
 <meta name="keywords" content="spark,分布式计算,cache,benchmark">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark Cache性能测试">
-<meta property="og:url" content="http://sharkdtu.com/posts/spark-cache-benchmark.html">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/spark-cache-benchmark.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-03-25T10:05:24.000Z">
+<meta property="og:updated_time" content="2021-05-22T05:53:18.526Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark Cache性能测试">
 <meta name="twitter:description" content="采用Spark自带的Kmeans算法作为测试基准（Spark版本为2.1），该算法Shuffle数据量较小，对于这类迭代型任务，又需要多次加载训练数据，此测试的目的在于评判各种Cache IO的性能，并总结其Spark内部原理作分析，作为Spark用户的参考。">
@@ -155,13 +155,13 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">守护之鲨</span>
       <span class="logo-line-after"><i></i></span>
     </a>
   </div>
-  <p class="site-subtitle">Sharkd's blog site</p>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
 </div>
 
 <div class="site-nav-toggle">
@@ -182,7 +182,7 @@
         <li class="menu-item menu-item-home">
           <a href="/" rel="section">
             
-              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
             
             首页
           </a>
@@ -192,7 +192,7 @@
         <li class="menu-item menu-item-archives">
           <a href="/archives" rel="section">
             
-              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
             
             归档
           </a>
@@ -202,7 +202,7 @@
         <li class="menu-item menu-item-tags">
           <a href="/tags" rel="section">
             
-              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
             
             标签
           </a>
@@ -212,7 +212,7 @@
         <li class="menu-item menu-item-about">
           <a href="/about" rel="section">
             
-              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
             
             关于
           </a>
@@ -225,7 +225,7 @@
             <a href="#" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
             
             搜索
           </a>
@@ -297,7 +297,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -327,7 +327,7 @@
           
               &nbsp; | &nbsp;
               <span class="page-pv">阅读量
-              <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>次
               </span>
           
         </div>
@@ -491,7 +491,7 @@
 <p>一般来说，当我们内存不够时，可以选择MEMORY_AND_DISK的缓存方式，但是测试发现MEMORY_AND_DISK的缓存效果并不是特别好，从测试数据来看，还不如直接使用DISK_ONLY的缓存方式，MEMORY_AND_DISK的缓存方式带来的GC开销非常大，可能是因为每次都尽可能地Cache数据到内存，不够再刷到磁盘，造成JVM频繁GC。</p>
 <p>另外测试了使用Alluxio作缓存的Case，发现并没有<a href="https://alluxio.com/blog/alluxiospark-rdd" target="_blank" rel="noopener">官方描述</a>的那样会提升Cache的性能，还不如直接使用Spark DISK_ONLY缓存，感觉官方给的测试对比数据存在一定的水分，值得一提的是在多个Application之间Alluxio能起到加速作用。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Spark的Cache并不是总是会加速任务运行，Cache的方式不同，对任务产生的影响不同。并不是能用内存Cache就用内存，而是要考虑是否有充足的内存Cache住你的数据，否则可能适得其反。</p>
-<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/spark-cache-benchmark.html">http://sharkdtu.com/posts/spark-cache-benchmark.html</a></em></span></p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/spark-cache-benchmark.html">https://sharkdtu.github.io/posts/spark-cache-benchmark.html</a></em></span></p>
 
       
     </div>
@@ -507,19 +507,19 @@
         
 <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
   <div></div>
-  <button id="rewardButton", disable="enable", onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}", style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
-    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onMouseOut="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
   </button>
   <div id="QR" style="display: none;">
     
       <div id="wechat" style="display: inline-block;margin-right: 5px">
-        <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
         <p>微信打赏</p>
       </div>
     
     
       <div id="alipay" style="display: inline-block;margin-left: 5px">
-        <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
         <p>支付宝打赏</p>
       </div>
     
@@ -577,7 +577,7 @@
   <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
   <a class="jiathis_counter_style"></a>
 </div>
-<script type="text/javascript" >
+<script type="text/javascript">
   var jiathis_config={
     hideMore:false
   }
@@ -615,7 +615,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -626,10 +626,8 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.png"
-               alt="sharkd" />
-          <p class="site-author-name" itemprop="name">sharkd</p>
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
           <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
         </div>
         <nav class="site-state motion-element">
@@ -690,15 +688,6 @@
                 </a>
               </span>
             
-              <span class="links-of-author-item">
-                <a href="https://cn.linkedin.com/in/sharkd" target="_blank" title="linkedin">
-                  
-                    <i class="fa fa-linkedin"></i>
-                  
-                  linkedin
-                </a>
-              </span>
-            
           
         </div>
 
@@ -733,14 +722,14 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2016 - 
   <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">sharkd</span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
 </div>
 
 <div class="powered-by">

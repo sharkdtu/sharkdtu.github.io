@@ -6,19 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
-
-
-
-
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -27,7 +23,11 @@
 
 
 
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -65,23 +65,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="TensorFlow," />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml" />
+  <meta name="keywords" content="TensorFlow,">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -92,11 +92,11 @@
 <meta name="keywords" content="TensorFlow">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TensorFlow 迁移学习实践小记">
-<meta property="og:url" content="http://sharkdtu.com/posts/tf-migrate-learning.html">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/tf-migrate-learning.html">
 <meta property="og:site_name" content="守护之鲨">
 <meta property="og:description" content="在我们的很多推荐业务场景中，通常一个模型可能是一直不断增量训练的，如果哪天业务需要调整模型结构，去训练一个新模型，但是又不想完全从0开始，希望复用原来模型里面的部分参数，这样冷启动的代价就小很多了。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2021-01-17T01:41:29.895Z">
+<meta property="og:updated_time" content="2021-05-22T05:53:18.528Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TensorFlow 迁移学习实践小记">
 <meta name="twitter:description" content="在我们的很多推荐业务场景中，通常一个模型可能是一直不断增量训练的，如果哪天业务需要调整模型结构，去训练一个新模型，但是又不想完全从0开始，希望复用原来模型里面的部分参数，这样冷启动的代价就小很多了。">
@@ -155,13 +155,13 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">守护之鲨</span>
       <span class="logo-line-after"><i></i></span>
     </a>
   </div>
-  <p class="site-subtitle">Sharkd's blog site</p>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
 </div>
 
 <div class="site-nav-toggle">
@@ -182,7 +182,7 @@
         <li class="menu-item menu-item-home">
           <a href="/" rel="section">
             
-              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
             
             首页
           </a>
@@ -192,7 +192,7 @@
         <li class="menu-item menu-item-archives">
           <a href="/archives" rel="section">
             
-              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
             
             归档
           </a>
@@ -202,7 +202,7 @@
         <li class="menu-item menu-item-tags">
           <a href="/tags" rel="section">
             
-              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
             
             标签
           </a>
@@ -212,7 +212,7 @@
         <li class="menu-item menu-item-about">
           <a href="/about" rel="section">
             
-              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
             
             关于
           </a>
@@ -225,7 +225,7 @@
             <a href="#" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
             
             搜索
           </a>
@@ -297,7 +297,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -327,7 +327,7 @@
           
               &nbsp; | &nbsp;
               <span class="page-pv">阅读量
-              <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>次
               </span>
           
         </div>
@@ -355,7 +355,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">w2 = tf.get_variable(</span><br><span class="line">    <span class="string">"w2"</span>, shape=[<span class="number">4809162</span>, <span class="number">1</span>],</span><br><span class="line">    dtype=tf.float32,</span><br><span class="line">    initializer=tf.initializers.zeros())</span><br><span class="line">v2 = tf.get_variable(</span><br><span class="line">    <span class="string">"v2"</span>,</span><br><span class="line">    shape=[<span class="number">4809162</span>, <span class="number">16</span>],</span><br><span class="line">    dtype=tf.float32,</span><br><span class="line">    initializer=tf.initializers.truncated_normal(mean=<span class="number">0.0</span>, stddev=<span class="number">1</span> / math.sqrt(<span class="number">16</span>)))</span><br><span class="line"></span><br><span class="line">ckpt_state = tf.train.get_checkpoint_state(checkpoint_dir)</span><br><span class="line">recover_vars = &#123;<span class="string">'fm/w'</span>: w2, <span class="string">'fm/v'</span>: v2&#125;</span><br><span class="line">saver = tf.train.Saver(recover_vars)</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">  ...</span><br><span class="line">  sess.run(init_op)</span><br><span class="line">  saver.restore(sess, ckpt_state.model_checkpoint_path)</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
 <p>以上代码中 <code>recover_vars</code> 定义了要从 ckpt 中恢复的参数，是一个字典形式，key 为 ckpt 中的变量名，从上面我们 list 出来的变量里找即可，value 为要覆盖的变量，即从 ckpt 中找到名字为 key 的变量参数，去覆盖 value 指定的变量。</p>
 <h2 id="Estimator-API-实践"><a href="#Estimator-API-实践" class="headerlink" title="Estimator API 实践"></a>Estimator API 实践</h2><p>如果你是用高阶 Estimator API，其实完全可以借助 Estimator 自带的 <a href="https://www.tensorflow.org/api_docs/python/tf/estimator/WarmStartSettings" target="_blank" rel="noopener">warm_start</a> 功能来实现。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tf.estimator.WarmStartSettings(</span><br><span class="line">    ckpt_to_initialize_from, vars_to_warm_start=<span class="string">'.*'</span>, var_name_to_vocab_info=<span class="keyword">None</span>,</span><br><span class="line">    var_name_to_prev_var_name=<span class="keyword">None</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tf.estimator.WarmStartSettings(</span><br><span class="line">    ckpt_to_initialize_from, vars_to_warm_start=<span class="string">'.*'</span>, var_name_to_vocab_info=<span class="literal">None</span>,</span><br><span class="line">    var_name_to_prev_var_name=<span class="literal">None</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>ckpt_to_initialize_from：预热模型的ckpt路径</li>
 <li>vars_to_warm_start：要加载哪些变量出来预热，可以通过上述 <code>tf.train.list_variables</code> 方法先列出变量名再决定要哪些变量</li>
@@ -367,7 +367,7 @@
 <p>以上代码实现一个 Hook，其中初始化参数 <code>recover_vars</code> 表示要从 ckpt 中恢复的参数。一般在恢复参数前，也需要list一下旧模型中的参数，找到对应的变量名。有了这个 Hook 后，那么我们就可以在 <code>model_fn</code> 中插入这个 Hook 的实例即可。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">model_fn</span><span class="params">(features, labels, mode, params)</span>:</span></span><br><span class="line">  ...</span><br><span class="line">  spec = head.create_estimator_spec(...)</span><br><span class="line">  recover_hook = VariableRecoverHook(ckp_dir=old_ckpt_dir, recover_vars=recover_vars)</span><br><span class="line">  <span class="keyword">return</span> spec._replace(training_hooks=(spec.training_hooks + (recover_hook,)))</span><br></pre></td></tr></table></figure>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>实践中我们可以基于 TensorFlow 灵活保存以及恢复参数，当有迁移学习需求时，可以通过定制化 <code>tf.train.Saver</code> 的方式来控制预热指定的参数。目前 TensorFlow 也进入 2.x 时代了，官方主推Keras API，通过 Keras API 可以更加灵活的控制<a href="https://www.tensorflow.org/guide/checkpoint" target="_blank" rel="noopener">保存以及恢复参数</a>。但是如果你是用 Estimator，则可以直接复用 warm_start 或上述 Hook 实现。</p>
-<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/tf-migrate-learning.html">http://sharkdtu.com/posts/tf-migrate-learning.html</a></em></span></p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/tf-migrate-learning.html">https://sharkdtu.github.io/posts/tf-migrate-learning.html</a></em></span></p>
 
       
     </div>
@@ -383,19 +383,19 @@
         
 <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
   <div></div>
-  <button id="rewardButton", disable="enable", onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}", style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
-    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onMouseOut="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
   </button>
   <div id="QR" style="display: none;">
     
       <div id="wechat" style="display: inline-block;margin-right: 5px">
-        <img id="wechat_qr" src="/images/wechat.png" alt="sharkd WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
         <p>微信打赏</p>
       </div>
     
     
       <div id="alipay" style="display: inline-block;margin-left: 5px">
-        <img id="alipay_qr" src="/images/alipay.png" alt="sharkd Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
         <p>支付宝打赏</p>
       </div>
     
@@ -449,7 +449,7 @@
   <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
   <a class="jiathis_counter_style"></a>
 </div>
-<script type="text/javascript" >
+<script type="text/javascript">
   var jiathis_config={
     hideMore:false
   }
@@ -487,7 +487,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -498,10 +498,8 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.png"
-               alt="sharkd" />
-          <p class="site-author-name" itemprop="name">sharkd</p>
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
           <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
         </div>
         <nav class="site-state motion-element">
@@ -562,15 +560,6 @@
                 </a>
               </span>
             
-              <span class="links-of-author-item">
-                <a href="https://cn.linkedin.com/in/sharkd" target="_blank" title="linkedin">
-                  
-                    <i class="fa fa-linkedin"></i>
-                  
-                  linkedin
-                </a>
-              </span>
-            
           
         </div>
 
@@ -605,14 +594,14 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2016 - 
   <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">sharkd</span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
 </div>
 
 <div class="powered-by">

@@ -2,240 +2,240 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://sharkdtu.com/about/index.html</loc>
+    <loc>https://sharkdtu.github.io/about/index.html</loc>
     
-    <lastmod>2021-01-17T01:48:59.147Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/tf-migrate-learning.html</loc>
-    
-    <lastmod>2021-01-17T01:41:29.895Z</lastmod>
+    <lastmod>2021-05-22T06:36:35.350Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/dist-tf-evolution.html</loc>
+    <loc>https://sharkdtu.github.io/tags/index.html</loc>
     
-    <lastmod>2019-04-07T08:53:08.470Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-sql-join.html</loc>
-    
-    <lastmod>2018-11-17T06:49:01.029Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.612Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-mpi.html</loc>
+    <loc>https://sharkdtu.github.io/categories/index.html</loc>
     
-    <lastmod>2018-11-10T13:06:58.755Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-streaming-state.html</loc>
-    
-    <lastmod>2017-12-03T09:11:19.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.529Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/ml-als.html</loc>
+    <loc>https://sharkdtu.github.io/posts/tmp-hadoop-ugi-using.html</loc>
     
-    <lastmod>2017-07-17T15:19:56.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/ml-nb.html</loc>
-    
-    <lastmod>2017-07-17T14:35:05.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.529Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/pyspark-internal.html</loc>
+    <loc>https://sharkdtu.github.io/posts/to-live.html</loc>
     
-    <lastmod>2017-07-09T14:15:54.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/ml-linear-regression.html</loc>
-    
-    <lastmod>2017-06-14T14:44:53.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.529Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/ml-lr.html</loc>
+    <loc>https://sharkdtu.github.io/posts/tf-migrate-learning.html</loc>
     
-    <lastmod>2017-06-14T14:41:24.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-app-optimize.html</loc>
-    
-    <lastmod>2017-05-13T17:07:22.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.528Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-shuffle.html</loc>
+    <loc>https://sharkdtu.github.io/posts/start-akka-remote.html</loc>
     
-    <lastmod>2017-05-13T16:17:47.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-scheduler.html</loc>
-    
-    <lastmod>2017-04-05T15:25:35.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.528Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-rdd.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-tun.html</loc>
     
-    <lastmod>2017-04-05T15:23:53.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-network.html</loc>
-    
-    <lastmod>2017-04-05T15:23:40.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.528Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-cache-benchmark.html</loc>
+    <loc>https://sharkdtu.github.io/posts/start-akka-actor.html</loc>
     
-    <lastmod>2017-03-25T10:05:24.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/to-live.html</loc>
-    
-    <lastmod>2017-03-25T09:22:15.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.528Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/tmp-hadoop-ugi-using.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-scheduler.html</loc>
     
-    <lastmod>2017-03-25T09:22:09.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/start-akka-remote.html</loc>
-    
-    <lastmod>2017-03-25T09:21:45.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.527Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/start-akka-actor.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-streaming-state.html</loc>
     
-    <lastmod>2017-03-25T09:21:41.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/spark-tun.html</loc>
-    
-    <lastmod>2017-03-25T09:21:35.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.527Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/spark-build.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-shuffle.html</loc>
     
-    <lastmod>2017-03-25T09:21:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/scala-reflect.html</loc>
-    
-    <lastmod>2017-03-25T09:21:03.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.527Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/nn-nlp.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-sql-join.html</loc>
     
-    <lastmod>2017-03-25T09:20:58.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/mllib-tree.html</loc>
-    
-    <lastmod>2017-03-25T09:20:31.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.527Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/maven-assembly-native-jar.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-rdd.html</loc>
     
-    <lastmod>2017-03-25T09:19:59.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/half-year-work-feeling.html</loc>
-    
-    <lastmod>2017-03-25T09:19:18.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.526Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/centos-hadoop-setup.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-cache-benchmark.html</loc>
     
-    <lastmod>2017-03-25T09:19:11.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/posts/blog-reborn.html</loc>
-    
-    <lastmod>2017-03-25T09:19:04.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.526Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/posts/before-last-winter-vacation.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-mpi.html</loc>
     
-    <lastmod>2017-03-25T09:18:59.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://sharkdtu.com/404.html</loc>
-    
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.526Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/categories/index.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-network.html</loc>
     
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.526Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://sharkdtu.com/tags/index.html</loc>
+    <loc>https://sharkdtu.github.io/posts/scala-reflect.html</loc>
     
-    <lastmod>2016-11-05T14:24:16.000Z</lastmod>
+    <lastmod>2021-05-22T05:53:18.525Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/spark-app-optimize.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.525Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/spark-build.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.525Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/nn-nlp.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.524Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/pyspark-internal.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.524Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/mllib-tree.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.524Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/ml-als.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.523Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/ml-linear-regression.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.523Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/ml-nb.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.523Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/ml-lr.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.523Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/dist-tf-evolution.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.522Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/centos-hadoop-setup.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.522Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/maven-assembly-native-jar.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.522Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/half-year-work-feeling.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.522Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/blog-reborn.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.521Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/posts/before-last-winter-vacation.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.521Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://sharkdtu.github.io/404.html</loc>
+    
+    <lastmod>2021-05-22T05:53:18.520Z</lastmod>
     
   </url>
   

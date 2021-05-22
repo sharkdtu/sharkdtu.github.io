@@ -1,3 +1,3 @@
 My Blog Pages
 
-<http://sharkdtu.com>
+<https://sharkdtu.github.io>

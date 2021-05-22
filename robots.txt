@@ -13,5 +13,5 @@ Disallow: /fonts/
 Disallow: /vendors/
 Disallow: /fancybox/
 
-Sitemap: http://sharkdtu.com/sitemap.xml
-Sitemap: http://sharkdtu.com/baidusitemap.xml
+Sitemap: https://sharkdtu.github.io/sitemap.xml
+Sitemap: https://sharkdtu.github.io/baidusitemap.xml
