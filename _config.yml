@@ -4,14 +4,14 @@
 
 # Site
 title: 守护之鲨
-subtitle: Sharkd's blog site
+subtitle: Sharkdtu's blog site
 description: No pains, no gain.
-author: sharkd
+author: sharkdtu
 language: zh-Hans
 timezone:
 
 # URL
-url: http://sharkdtu.com
+url: https://sharkdtu.github.io
 root: /
 # permalink: :year/:month/:day/:title.html
 permalink: posts/:title.html

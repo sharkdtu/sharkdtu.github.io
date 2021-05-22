@@ -6,7 +6,7 @@
 favicon: /favicon.ico
 
 # Set default keywords (Use a comma to separate)
-keywords: "sharkd, 鲨鱼, 小刚"
+keywords: "sharkdtu "
 
 # Set rss to false to disable feed link.
 # Leave rss as empty to use site's feed link.
@@ -120,7 +120,7 @@ font:
 social:
   weibo: http://weibo.com/tuxiaogang
   github: https://github.com/sharkdtu
-  linkedin: https://cn.linkedin.com/in/sharkd
+  # linkedin: https://cn.linkedin.com/in/sharkd
 
 
 # Social Links Icons
@@ -134,7 +134,7 @@ social_icons:
   # KeyMapsToSocalItemKey: NameOfTheIconFromFontAwesome
   weibo: weibo
   github: github
-  linkedin: linkedin
+  # linkedin: linkedin
 
 
 # Sidebar Avatar
