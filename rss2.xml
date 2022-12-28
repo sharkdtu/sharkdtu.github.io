@@ -8,14 +8,14 @@
     <atom:link href="/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>No pains, no gain.</description>
-    <pubDate>Wed, 28 Dec 2022 12:35:10 GMT</pubDate>
+    <pubDate>Wed, 28 Dec 2022 13:03:49 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
       <title>Flink 均衡调度</title>
       <link>https://sharkdtu.github.io/posts/flink-schedule-balance.html</link>
       <guid>https://sharkdtu.github.io/posts/flink-schedule-balance.html</guid>
-      <pubDate>Tue, 27 Dec 2022 12:10:45 GMT</pubDate>
+      <pubDate>Thu, 27 Oct 2022 12:10:45 GMT</pubDate>
       <description>
       
         &lt;p&gt;Flink 当前的计算任务调度是完全随机的，直接后果是各个 taskmanager 上运行的计算任务分布不均，进而导致 taskmanagers 之间的负载不均衡，用户在配置 taskmanager 资源时不得不预留较大的资源 buffer，带来不必要的浪费。为此，我们扩展了一种均衡调度策略，尽量保证每个 flink 算子的子任务均匀分布在所有的 taskmanagers 上，使得 taskmanagers 之间的负载相对均衡。

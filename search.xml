@@ -259,9 +259,9 @@
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> mpi </tag>
             
@@ -360,9 +360,9 @@
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> streaming </tag>
             
@@ -1196,9 +1196,9 @@
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> network </tag>
             
@@ -1258,9 +1258,9 @@
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> shuffle </tag>
             
@@ -1360,9 +1360,9 @@
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> Scheduler </tag>
             
@@ -1412,9 +1412,9 @@
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> rdd </tag>
             
@@ -1763,9 +1763,9 @@ res5: Boolean = true
         
         <tags>
             
-            <tag> 反射 </tag>
-            
             <tag> scala </tag>
+            
+            <tag> 反射 </tag>
             
         </tags>
         
@@ -1973,9 +1973,9 @@ res5: Boolean = true
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
         </tags>
         
@@ -2265,9 +2265,9 @@ classes  wordcount_2.10-1.0.0.jar
             
             <tag> spark </tag>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
         </tags>
         
@@ -2411,9 +2411,9 @@ slave2
         
         <tags>
             
-            <tag> 大数据 </tag>
-            
             <tag> 分布式计算 </tag>
+            
+            <tag> 大数据 </tag>
             
             <tag> hadoop </tag>
             
