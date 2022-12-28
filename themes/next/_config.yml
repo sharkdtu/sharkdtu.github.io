@@ -310,7 +310,7 @@ busuanzi_count:
   site_pv_header: 总访问量
   site_pv_footer: 次
   # custom pv span for one page only
-  page_pv: true
+  page_pv: false
   page_pv_header: 阅读量
   page_pv_footer: 次
 
