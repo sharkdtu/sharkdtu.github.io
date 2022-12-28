@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="spark,分布式计算,大数据,streaming,updateStateByKey,mapWithState,">
+  <meta name="keywords" content="spark,大数据,分布式计算,streaming,updateStateByKey,mapWithState,">
 
 
 
@@ -89,7 +89,7 @@
 
 
 <meta name="description" content="通常来说，使用Spark-Streaming做无状态的流式计算是很方便的，每个batch时间间隔内仅需要计算当前时间间隔的数据即可，不需要关注之前的状态。但是很多时候，我们需要对一些数据做跨周期的统计，例如我们需要统计一个小时内每个用户的行为，我们定义的计算间隔(batch-duration)肯定会比一个小时小，一般是数十秒到几分钟左右，每个batch的计算都要更新最近一小时的用户行为，所以需要在">
-<meta name="keywords" content="spark,分布式计算,大数据,streaming,updateStateByKey,mapWithState">
+<meta name="keywords" content="spark,大数据,分布式计算,streaming,updateStateByKey,mapWithState">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark-Streaming状态管理应用优化之路">
 <meta property="og:url" content="https://sharkdtu.github.io/posts/spark-streaming-state.html">
@@ -331,11 +331,6 @@
           
 
           
-              &nbsp; | &nbsp;
-              <span class="page-pv">阅读量
-              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>次
-              </span>
-          
         </div>
       </header>
     
@@ -345,9 +340,9 @@
         
           <a href="/tags/spark/" rel="tag">spark</a>
         
-          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
-        
           <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
         
           <a href="/tags/streaming/" rel="tag">streaming</a>
         

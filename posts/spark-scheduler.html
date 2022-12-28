@@ -70,7 +70,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="spark,分布式计算,大数据,Scheduler,">
+  <meta name="keywords" content="spark,大数据,分布式计算,Scheduler,">
 
 
 
@@ -89,7 +89,7 @@
 
 
 <meta name="description" content="通过文章“Spark核心概念RDD”我们知道，Spark的核心是根据RDD来实现的，Spark Scheduler则为Spark核心实现的重要一环，其作用就是任务调度。Spark的任务调度就是如何组织任务去处理RDD中每个分区的数据，根据RDD的依赖关系构建DAG，基于DAG划分Stage，将每个Stage中的任务发到指定节点运行。基于Spark的任务调度原理，我们可以合理规划资源利用，做到尽可能">
-<meta name="keywords" content="spark,分布式计算,大数据,Scheduler">
+<meta name="keywords" content="spark,大数据,分布式计算,Scheduler">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark Scheduler内部原理剖析">
 <meta property="og:url" content="https://sharkdtu.github.io/posts/spark-scheduler.html">
@@ -341,11 +341,6 @@
           
 
           
-              &nbsp; | &nbsp;
-              <span class="page-pv">阅读量
-              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>次
-              </span>
-          
         </div>
       </header>
     
@@ -355,9 +350,9 @@
         
           <a href="/tags/spark/" rel="tag">spark</a>
         
-          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
-        
           <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
         
           <a href="/tags/Scheduler/" rel="tag">Scheduler</a>
         

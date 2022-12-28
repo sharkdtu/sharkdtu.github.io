@@ -17,14 +17,6 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
-    <loc>https://sharkdtu.github.io/posts/start-akka-actor.html</loc>
-    <lastmod>2021-05-22</lastmod>
-  </url>
-  <url>
-    <loc>https://sharkdtu.github.io/posts/spark-tun.html</loc>
-    <lastmod>2021-05-22</lastmod>
-  </url>
-  <url>
     <loc>https://sharkdtu.github.io/posts/start-akka-remote.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
@@ -33,7 +25,19 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
+    <loc>https://sharkdtu.github.io/posts/spark-tun.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+  <url>
+    <loc>https://sharkdtu.github.io/posts/start-akka-actor.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+  <url>
     <loc>https://sharkdtu.github.io/posts/spark-scheduler.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+  <url>
+    <loc>https://sharkdtu.github.io/posts/spark-shuffle.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
@@ -45,15 +49,11 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
-    <loc>https://sharkdtu.github.io/posts/spark-shuffle.html</loc>
+    <loc>https://sharkdtu.github.io/posts/spark-mpi.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
     <loc>https://sharkdtu.github.io/posts/spark-network.html</loc>
-    <lastmod>2021-05-22</lastmod>
-  </url>
-  <url>
-    <loc>https://sharkdtu.github.io/posts/spark-mpi.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
@@ -65,19 +65,15 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
+    <loc>https://sharkdtu.github.io/posts/spark-app-optimize.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+  <url>
     <loc>https://sharkdtu.github.io/posts/scala-reflect.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
     <loc>https://sharkdtu.github.io/posts/spark-build.html</loc>
-    <lastmod>2021-05-22</lastmod>
-  </url>
-  <url>
-    <loc>https://sharkdtu.github.io/posts/spark-app-optimize.html</loc>
-    <lastmod>2021-05-22</lastmod>
-  </url>
-  <url>
-    <loc>https://sharkdtu.github.io/posts/nn-nlp.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
@@ -89,7 +85,7 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
-    <loc>https://sharkdtu.github.io/posts/ml-nb.html</loc>
+    <loc>https://sharkdtu.github.io/posts/nn-nlp.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
@@ -97,19 +93,15 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
-    <loc>https://sharkdtu.github.io/posts/ml-lr.html</loc>
-    <lastmod>2021-05-22</lastmod>
-  </url>
-  <url>
     <loc>https://sharkdtu.github.io/posts/ml-als.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
-    <loc>https://sharkdtu.github.io/posts/half-year-work-feeling.html</loc>
+    <loc>https://sharkdtu.github.io/posts/ml-lr.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
-    <loc>https://sharkdtu.github.io/posts/centos-hadoop-setup.html</loc>
+    <loc>https://sharkdtu.github.io/posts/ml-nb.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
@@ -117,7 +109,15 @@
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
+    <loc>https://sharkdtu.github.io/posts/centos-hadoop-setup.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+  <url>
     <loc>https://sharkdtu.github.io/posts/dist-tf-evolution.html</loc>
+    <lastmod>2021-05-22</lastmod>
+  </url>
+  <url>
+    <loc>https://sharkdtu.github.io/posts/half-year-work-feeling.html</loc>
     <lastmod>2021-05-22</lastmod>
   </url>
   <url>
