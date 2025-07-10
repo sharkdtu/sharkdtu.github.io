@@ -1,0 +1,955 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="大数据,hadoop,分布式计算,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hado">
+<meta name="keywords" content="大数据,hadoop,分布式计算">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS下Hadoop-2.2.0集群安装配置">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/centos-hadoop-setup.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hado">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.187Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CentOS下Hadoop-2.2.0集群安装配置">
+<meta name="twitter:description" content="对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hado">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> CentOS下Hadoop-2.2.0集群安装配置 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                CentOS下Hadoop-2.2.0集群安装配置
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2014-10-25T19:54:25+08:00" content="2014-10-25">
+              2014-10-25
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/hadoop/" itemprop="url" rel="index">
+                    <span itemprop="name">hadoop</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/hadoop/" rel="tag">hadoop</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>对于一个刚开始学习Spark的人来说，当然首先需要把环境搭建好，再跑几个例子，目前比较流行的部署是Spark On Yarn，作为新手，我觉得有必要走一遍Hadoop的集群安装配置，而不仅仅停留在本地(local)模式下学习，因为集群模式下跨多台机器，环境相对来说更复杂，许多在本地(local)模式下遇不到的问题在集群模式下往往出现，下面将结合实际详细介绍在 CentOS-6.x 系统上 hadoop-2.2.0 的集群安装（其他Linux发行版无太大差别），最后运行WordCount程序以验证Hadoop集群安装是否成功。<a id="more"></a></p>
+<h2 id="机器准备"><a href="#机器准备" class="headerlink" title="机器准备"></a>机器准备</h2><p>假设集群中有三台机器，机器可以为三台物理机或虚拟机，保证三台机器可以互相通信，其中一台机器作为master（运行NameNode和ResourceManager），另外两台机器作为slave或worker（运行DataNode和NodeManager）。下面我准备的机器相关配置如下，注意每台机器要保证用户名一致。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">主机名</th>
+<th style="text-align:center">用户名</th>
+<th style="text-align:center">IP 地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">master</td>
+<td style="text-align:center">hadoop</td>
+<td style="text-align:center">192.168.100.10</td>
+</tr>
+<tr>
+<td style="text-align:center">slave1</td>
+<td style="text-align:center">hadoop</td>
+<td style="text-align:center">192.168.100.11</td>
+</tr>
+<tr>
+<td style="text-align:center">slave2</td>
+<td style="text-align:center">hadoop</td>
+<td style="text-align:center">192.168.100.12</td>
+</tr>
+</tbody>
+</table>
+<h2 id="工具准备"><a href="#工具准备" class="headerlink" title="工具准备"></a>工具准备</h2><p>为了避免在三台机器中重复安装配置工作，我们可以只在master机器上做安装配置，然后直接将配置好的软件打包发到每台slave机器上解压即可，首先我们应配置master机器到其他机器ssh免密码登陆，这是所有后续安装工作的前提。</p>
+<h3 id="1-配置host"><a href="#1-配置host" class="headerlink" title="1. 配置host"></a>1. 配置host</h3><p>在master机器中配置host，在/etc/hosts文件中添加以下配置：</p>
+<pre><code>192.168.100.10     master
+192.168.100.11     slave1
+192.168.100.12     slave2
+</code></pre><h3 id="2-配置master免密码登录"><a href="#2-配置master免密码登录" class="headerlink" title="2. 配置master免密码登录"></a>2. 配置master免密码登录</h3><p>首先运行如下命令生成公钥：</p>
+<pre><code>[hadoop@master ~]$ ssh-keygen -t  rsa
+</code></pre><p>将公钥拷贝到每台机器中，包括本机，以使得ssh localhost免密码登录：</p>
+<pre><code>[hadoop@master ~]$ ssh-copy-id -i ~/.ssh/id_rsa.pub  hadoop@master
+[hadoop@master ~]$ ssh-copy-id -i ~/.ssh/id_rsa.pub  hadoop@slave1
+[hadoop@master ~]$ ssh-copy-id -i ~/.ssh/id_rsa.pub  hadoop@slave2
+</code></pre><p>为了更好的管理集群，切换到root身份，重复上述ssh无密码设置过程，保证root身份也无能密码登录：</p>
+<pre><code>[root@master ~]$ su root
+[root@master ~]$ ssh-keygen -t  rsa
+[root@master ~]$ ssh-copy-id -i ~/.ssh/id_rsa.pub  root@master
+[root@master ~]$ ssh-copy-id -i ~/.ssh/id_rsa.pub  root@slave1
+[root@master ~]$ ssh-copy-id -i ~/.ssh/id_rsa.pub  root@slave2
+</code></pre><p>完成上述操作后，切换回hadoop用户，现在master机器可以ssh免密码的登录集群中每台机器，下面我们开始现在master机器中开始安装配置hadoop。</p>
+<h2 id="JDK安装"><a href="#JDK安装" class="headerlink" title="JDK安装"></a>JDK安装</h2><p>从<a href="http://www.oracle.com/technetwork/articles/javase/index-jsp-138363.html" target="_blank" rel="noopener">oracle官网</a>下载jdk，放到<code>/home/hadoop</code>目录下（后续所有安装包默认安装在<code>/home/hadoop</code>目录下），我下载的版本为jdk1.7.0_40，解压后设置jdk的环境变量，环境变量最好不要设置为全局的（在/etc/profile中），只设置当前用户的环境变量即可.</p>
+<pre><code>[hadoop@master ~]$ pwd
+/home/hadoop
+[hadoop@master ~]$ vim .bash_proflie
+ # JAVA ENVIRONMENT
+ export JAVA_HOME=$HOME/jdk1.7.0_40
+ export PATH=$JAVA_HOME/bin:$PATH
+ export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+[hadoop@master ~]$ source .bash_proflie
+</code></pre><h2 id="Hadoop安装"><a href="#Hadoop安装" class="headerlink" title="Hadoop安装"></a>Hadoop安装</h2><p>从<a href="http://hadoop.apache.org/releases.html" target="_blank" rel="noopener">Apache官网</a>下载hadoop发行版，放到<code>/home/hadoop</code>目录下，我下载的版本为hadoop-2.2.0，解压软件包后，首先设置hadoop的环境变量。</p>
+<pre><code>[hadoop@master ~]$ vim .bash_proflie
+ # HADOOP ENVIRONMENT
+ export HADOOP_HOME=$HOME/hadoop-2.2.0
+ export HADOOP_MAPRED_HOME=$HADOOP_HOME
+ export HADOOP_COMMON_HOME=$HADOOP_HOME
+ export HADOOP_HDFS_HOME=$HADOOP_HOME
+ export YARN_HOME=$HADOOP_HOME
+ export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+ export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop
+ export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop
+ export HADOOP_LOG_DIR=$HADOOP_HOME/logs
+[hadoop@master ~]$ source .bash_proflie
+</code></pre><p>下面我们开始配置hadoop，进入hadoop的配置目录，首先我们先在<code>hadoop-env.sh</code>和<code>yarn-env.sh</code>中设置好jdk的路径，然后开始修改hadoop相关配置文件。</p>
+<h3 id="配置hdfs"><a href="#配置hdfs" class="headerlink" title="配置hdfs"></a>配置hdfs</h3><p>在配置文件<code>hdfs-site.xml</code>中添加以下内容。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- hdfs地址 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://master:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- hdfs中每一个block所存的份数，我这里设置1份，默认是3份 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 开启hdfs web访问 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.webhdfs.enabled<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="配置yarn"><a href="#配置yarn" class="headerlink" title="配置yarn"></a>配置yarn</h3><p>为了能够运行MapReduce程序，需要让各个NodeManager在启动时加载shuffle server，Reduce Task通过该server从各个NodeManager上远程拷贝Map Task产生的中间结果。在配置文件<code>yarn-site.xml</code>中添加以下内容。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.hostname<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>master<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>mapreduce_shuffle<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services.mapreduce.shuffle.class<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.hadoop.mapred.ShuffleHandler<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="配置MapReduce计算框架"><a href="#配置MapReduce计算框架" class="headerlink" title="配置MapReduce计算框架"></a>配置MapReduce计算框架</h3><p>为了利用MapReduce中的WordCount验证hadoop集群是否安装成功，需要为hadoop配置MapReduce计算框架。在配置文件<code>mapred-site.xml</code>中添加以下内容。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 指定yarn为MapReduce的资源调度平台 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.framework.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>yarn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="配置slaves"><a href="#配置slaves" class="headerlink" title="配置slaves"></a>配置slaves</h3><p>在配置文件<code>slaves</code>中添加以下内容。</p>
+<pre><code>slave1
+slave2
+</code></pre><p>到这里为止，我们已经完成master机器上hadoop的配置，更多关于hadoop的配置参数说明请查看<a href="(http://hadoop.apache.org/docs/r2.2.0/">官方文档</a>)左侧的Configuration一栏，下面我们要将master机器上所有的安装配置操作同步到集群中所有节点上，为了避免挨个节点的重复劳动，我们前面也设置好了ssh无密码登录，现在我们简单写几个脚本，完成同步安装操作。</p>
+<h3 id="同步配置"><a href="#同步配置" class="headerlink" title="同步配置"></a>同步配置</h3><p>首先同步/etc/hosts文件，这个需要切换到root用户下来完成，运行如下脚本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>! /bin/bash</span><br><span class="line">for SLAVE in `cat /home/hadoop/hadoop-2.2.0/etc/hadoop/slaves`; do</span><br><span class="line">  if test `expr match $SLAVE "*slave*"` -eq 0; then</span><br><span class="line">    rsync /etc/hosts $SLAVE:/etc/hosts</span><br><span class="line">    #清空防火墙配置</span><br><span class="line">    iptables -F</span><br><span class="line">  fi</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+<p>其中rsync为文件同步命令，每次配置作修改后可以通过rsync命令进行文件的同步操作。完成上述操作后，切换回hadoop用户下，运行如下脚本，完成hadoop的同步安装：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>! /bin/bash</span><br><span class="line"></span><br><span class="line">for SLAVE in `cat $HADOOP_CONF_DIR/slaves`; do</span><br><span class="line">  if test `expr match $SLAVE "*slave*"` -eq 0; then</span><br><span class="line">    #拷贝jdk</span><br><span class="line">    scp /home/hadoop/jdk-7u40-linux-i586.gz  hadoop@$SLAVE:/home/hadoop/</span><br><span class="line">    #拷贝hadoop</span><br><span class="line">    scp /home/hadoop/hadoop-2.2.0.tar.gz     hadoop@$SLAVE:/home/hadoop/</span><br><span class="line">    #拷贝环境变量配置</span><br><span class="line">    scp /home/hadoop/.bash_profile           hadoop@$SLAVE:/home/hadoop/</span><br><span class="line"></span><br><span class="line">    echo "set up $&#123;SLAVE&#125;..."</span><br><span class="line">    ssh $SLAVE "cd /home/hadoop;</span><br><span class="line">                tar zxvf jdk-7u40-linux-i586.gz;</span><br><span class="line">                tar zxvf hadoop-2.2.0.tar.gz;</span><br><span class="line">                source /home/hadoop/.bash_profile;</span><br><span class="line">                exit"</span><br><span class="line">    rsync -r /home/hadoop/hadoop-2.2.0/etc/hadoop $SLAVE:/home/hadoop/hadoop-2.2.0/etc/hadoop</span><br><span class="line">  fi</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+<p>每次修改hadoop配置后，运行如下脚本同步到集群所有节点：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>! /bin/bash</span><br><span class="line">for SLAVE in `cat $HADOOP_CONF_DIR/slaves`; do</span><br><span class="line">  if test `expr match $SLAVE "*slave*"` -eq 0; then</span><br><span class="line">    rsync -r /home/hadoop/hadoop-2.2.0/etc/hadoop $SLAVE:/home/hadoop/hadoop-2.2.0/etc/hadoop</span><br><span class="line">  fi</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+<p>到这里，hadoop的集群安装就完成了，我们启动hadoop环境，通过WordCount来测试一下集群，一次运行如下命令以启动hdfs和yarn。</p>
+<h2 id="WordCount测试"><a href="#WordCount测试" class="headerlink" title="WordCount测试"></a>WordCount测试</h2><p>在master集群上启动hdfs和yarn后台进程：</p>
+<pre><code>[hadoop@master ~]$ $HADOOP_HOME/bin/hadoop namenode -format
+[hadoop@master ~]$ $HADOOP_HOME/sbin/start-dfs.sh
+[hadoop@master ~]$ $HADOOP_HOME/sbin/start-yarn.sh
+</code></pre><p>启动后可以通过 <a href="http://master:50070" target="_blank" rel="noopener">http://master:50070</a> 地址访问hdfs，通过 <a href="http://master:8088" target="_blank" rel="noopener">http://master:8088</a> 地址访问yarn，如果不能访问，请检查master机器上的iptables配置，将相关配置清除。另外，在启动集群过程中可能会遇到DataNode、NodeManager启动不起来的现象，这也可能是slave机器上的防火墙配置导致集群间RPC通信失败的缘故，比较暴力的做法是把集群中所有机器的防火墙服务直接给停掉，相关iptables防火墙操作请自行google，下面我们运行hadoop自带的WordCount实例来验证hadoop是否能正常工作。</p>
+<p>首先准备输入文件，上传到hdfs：</p>
+<pre><code>[hadoop@master ~]$ mkdir input
+[hadoop@master ~]$ sh -c &apos;echo &quot;hello hadoop&quot; &gt; input/f1.txt&apos;
+[hadoop@master ~]$ sh -c &apos;echo &quot;hello java&quot; &gt; input/f2.txt&apos;
+[hadoop@master ~]$ sh -c &apos;echo &quot;hello world&quot; &gt; input/f3.txt&apos;
+[hadoop@master ~]$ $HADOOP_HOME/bin/hdfs -mkdir /input
+[hadoop@master ~]$ $HADOOP_HOME/bin/hdfs -put input/* /input/
+</code></pre><p>运行WordCount Mapreduce实例：</p>
+<pre><code>[hadoop@master ~]$ $HADOOP_HOME/bin/hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-examples-2.2.0.jar wordcount /input /output
+</code></pre><p>作业提交后，可以访问web ui页面，观察MapReduce作业的运行情况。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/centos-hadoop-setup.html">https://sharkdtu.github.io/posts/centos-hadoop-setup.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/to-live.html" rel="prev" title="《活着》–让人瞬间安静的一本书">
+                《活着》–让人瞬间安静的一本书 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#机器准备"><span class="nav-number">1.</span> <span class="nav-text">机器准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具准备"><span class="nav-number">2.</span> <span class="nav-text">工具准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-配置host"><span class="nav-number">2.1.</span> <span class="nav-text">1. 配置host</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-配置master免密码登录"><span class="nav-number">2.2.</span> <span class="nav-text">2. 配置master免密码登录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JDK安装"><span class="nav-number">3.</span> <span class="nav-text">JDK安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hadoop安装"><span class="nav-number">4.</span> <span class="nav-text">Hadoop安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置hdfs"><span class="nav-number">4.1.</span> <span class="nav-text">配置hdfs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置yarn"><span class="nav-number">4.2.</span> <span class="nav-text">配置yarn</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置MapReduce计算框架"><span class="nav-number">4.3.</span> <span class="nav-text">配置MapReduce计算框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置slaves"><span class="nav-number">4.4.</span> <span class="nav-text">配置slaves</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步配置"><span class="nav-number">4.5.</span> <span class="nav-text">同步配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WordCount测试"><span class="nav-number">5.</span> <span class="nav-text">WordCount测试</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

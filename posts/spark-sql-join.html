@@ -1,0 +1,924 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="spark,分布式计算,sql,join,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="Join作为SQL中一个重要语法特性，几乎所有稍微复杂一点的数据分析场景都离不开Join，如今Spark SQL(Dataset/DataFrame)已经成为Spark应用程序开发的主流，作为开发者，我们有必要了解Join在Spark中是如何组织运行的。">
+<meta name="keywords" content="spark,分布式计算,sql,join">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark SQL 之 Join 实现">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/spark-sql-join.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="Join作为SQL中一个重要语法特性，几乎所有稍微复杂一点的数据分析场景都离不开Join，如今Spark SQL(Dataset/DataFrame)已经成为Spark应用程序开发的主流，作为开发者，我们有必要了解Join在Spark中是如何组织运行的。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-overview.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-join-overview.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-join-basic.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-sort-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-broadcast-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-hash-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-inner-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-leftouter-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-rightouter-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-fullouter-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-semi-join.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-sql-anti-join.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.189Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark SQL 之 Join 实现">
+<meta name="twitter:description" content="Join作为SQL中一个重要语法特性，几乎所有稍微复杂一点的数据分析场景都离不开Join，如今Spark SQL(Dataset/DataFrame)已经成为Spark应用程序开发的主流，作为开发者，我们有必要了解Join在Spark中是如何组织运行的。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/spark-sql-overview.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Spark SQL 之 Join 实现 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark SQL 之 Join 实现
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-05-29T21:33:29+08:00" content="2017-05-29">
+              2017-05-29
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">spark</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+          <a href="/tags/sql/" rel="tag">sql</a>
+        
+          <a href="/tags/join/" rel="tag">join</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Join作为SQL中一个重要语法特性，几乎所有稍微复杂一点的数据分析场景都离不开Join，如今Spark SQL(<code>Dataset/DataFrame</code>)已经成为Spark应用程序开发的主流，作为开发者，我们有必要了解Join在Spark中是如何组织运行的。<a id="more"></a></p>
+<h2 id="SparkSQL总体流程介绍"><a href="#SparkSQL总体流程介绍" class="headerlink" title="SparkSQL总体流程介绍"></a>SparkSQL总体流程介绍</h2><p>在阐述Join实现之前，我们首先简单介绍SparkSQL的总体流程，一般地，我们有两种方式使用SparkSQL，一种是直接写sql语句，这个需要有元数据库支持，例如Hive等，另一种是通过<code>Dataset/DataFrame</code>编写Spark应用程序。如下图所示，sql语句被语法解析(SQL AST)成查询计划，或者我们通过<code>Dataset/DataFrame</code>提供的APIs组织成查询计划，查询计划分为两大类：逻辑计划和物理计划，这个阶段通常叫做逻辑计划，经过语法分析(Analyzer)、一系列查询优化(Optimizer)后得到优化后的逻辑计划，最后被映射成物理计划，转换成RDD执行。</p>
+<p><img src="/images/spark-sql-overview.png" width="600" height="400" alt="spark-sql-overview" align="center"></p>
+<p>更多关于SparkSQL的解析与执行请参考文章<a href="http://www.cnblogs.com/hseagle/p/3752917.html" target="_blank" rel="noopener">【sql的解析与执行】</a>。对于语法解析、语法分析以及查询优化，本文不做详细阐述，本文重点介绍Join的物理执行过程。</p>
+<h2 id="Join基本要素"><a href="#Join基本要素" class="headerlink" title="Join基本要素"></a>Join基本要素</h2><p>如下图所示，Join大致包括三个要素：Join方式、Join条件以及过滤条件。其中过滤条件也可以通过AND语句放在Join条件中。</p>
+<p><img src="/images/spark-sql-join-overview.png" width="600" height="400" alt="spark-sql-join-overview" align="center"></p>
+<p>Spark支持所有类型的Join，包括：</p>
+<ul>
+<li>inner join</li>
+<li>left outer join</li>
+<li>right outer join</li>
+<li>full outer join</li>
+<li>left semi join</li>
+<li>left anti join</li>
+</ul>
+<p>下面分别阐述这几种Join的实现。</p>
+<h2 id="Join基本实现流程"><a href="#Join基本实现流程" class="headerlink" title="Join基本实现流程"></a>Join基本实现流程</h2><p>总体上来说，Join的基本实现流程如下图所示，Spark将参与Join的两张表抽象为流式遍历表(<code>streamIter</code>)和查找表(<code>buildIter</code>)，通常<code>streamIter</code>为大表，<code>buildIter</code>为小表，我们不用担心哪个表为<code>streamIter</code>，哪个表为<code>buildIter</code>，这个spark会根据join语句自动帮我们完成。</p>
+<p><img src="/images/spark-sql-join-basic.png" width="600" height="400" alt="spark-sql-join-basic" align="center"></p>
+<p>在实际计算时，spark会基于<code>streamIter</code>来遍历，每次取出<code>streamIter</code>中的一条记录<code>rowA</code>，根据Join条件计算<code>keyA</code>，然后根据该<code>keyA</code>去<code>buildIter</code>中查找所有满足Join条件(<code>keyB==keyA</code>)的记录<code>rowBs</code>，并将<code>rowBs</code>中每条记录分别与<code>rowA</code>join得到join后的记录，最后根据过滤条件得到最终join的记录。</p>
+<p>从上述计算过程中不难发现，对于每条来自<code>streamIter</code>的记录，都要去<code>buildIter</code>中查找匹配的记录，所以<code>buildIter</code>一定要是查找性能较优的数据结构。spark提供了三种join实现：sort merge join、broadcast join以及hash join。</p>
+<h3 id="sort-merge-join实现"><a href="#sort-merge-join实现" class="headerlink" title="sort merge join实现"></a>sort merge join实现</h3><p>要让两条记录能join到一起，首先需要将具有相同key的记录在同一个分区，所以通常来说，需要做一次shuffle，map阶段根据join条件确定每条记录的key，基于该key做shuffle write，将可能join到一起的记录分到同一个分区中，这样在shuffle read阶段就可以将两个表中具有相同key的记录拉到同一个分区处理。前面我们也提到，对于<code>buildIter</code>一定要是查找性能较优的数据结构，通常我们能想到hash表，但是对于一张较大的表来说，不可能将所有记录全部放到hash表中，另外也可以对<code>buildIter</code>先排序，查找时按顺序查找，查找代价也是可以接受的，我们知道，spark shuffle阶段天然就支持排序，这个是非常好实现的，下面是sort merge join示意图。</p>
+<p><img src="/images/spark-sql-sort-join.png" width="600" height="400" alt="spark-sql-sort-join" align="center"></p>
+<p>在shuffle read阶段，分别对<code>streamIter</code>和<code>buildIter</code>进行merge sort，在遍历<code>streamIter</code>时，对于每条记录，都采用顺序查找的方式从<code>buildIter</code>查找对应的记录，由于两个表都是排序的，每次处理完<code>streamIter</code>的一条记录后，对于<code>streamIter</code>的下一条记录，只需从<code>buildIter</code>中上一次查找结束的位置开始查找，所以说每次在<code>buildIter</code>中查找不必重头开始，整体上来说，查找性能还是较优的。</p>
+<h3 id="broadcast-join实现"><a href="#broadcast-join实现" class="headerlink" title="broadcast join实现"></a>broadcast join实现</h3><p>为了能具有相同key的记录分到同一个分区，我们通常是做shuffle，那么如果<code>buildIter</code>是一个非常小的表，那么其实就没有必要大动干戈做shuffle了，直接将<code>buildIter</code>广播到每个计算节点，然后将<code>buildIter</code>放到hash表中，如下图所示。</p>
+<p><img src="/images/spark-sql-broadcast-join.png" width="600" height="400" alt="spark-sql-broadcast-join" align="center"></p>
+<p>从上图可以看到，不用做shuffle，可以直接在一个map中完成，通常这种join也称之为map join。那么问题来了，什么时候会用broadcast join实现呢？这个不用我们担心，spark sql自动帮我们完成，当<code>buildIter</code>的估计大小不超过参数<code>spark.sql.autoBroadcastJoinThreshold</code>设定的值(默认10M)，那么就会自动采用broadcast join，否则采用sort merge join。</p>
+<h3 id="hash-join实现"><a href="#hash-join实现" class="headerlink" title="hash join实现"></a>hash join实现</h3><p>除了上面两种join实现方式外，spark还提供了hash join实现方式，在shuffle read阶段不对记录排序，反正来自两格表的具有相同key的记录会在同一个分区，只是在分区内不排序，将来自<code>buildIter</code>的记录放到hash表中，以便查找，如下图所示。</p>
+<p><img src="/images/spark-sql-hash-join.png" width="600" height="400" alt="spark-sql-hash-join" align="center"></p>
+<p>不难发现，要将来自<code>buildIter</code>的记录放到hash表中，那么每个分区来自<code>buildIter</code>的记录不能太大，否则就存不下，默认情况下hash join的实现是关闭状态，如果要使用hash join，必须满足以下四个条件：</p>
+<ul>
+<li><code>buildIter</code>总体估计大小超过<code>spark.sql.autoBroadcastJoinThreshold</code>设定的值，即不满足broadcast join条件</li>
+<li>开启尝试使用hash join的开关，<code>spark.sql.join.preferSortMergeJoin=false</code></li>
+<li>每个分区的平均大小不超过<code>spark.sql.autoBroadcastJoinThreshold</code>设定的值，即shuffle read阶段每个分区来自<code>buildIter</code>的记录要能放到内存中</li>
+<li><code>streamIter</code>的大小是<code>buildIter</code>三倍以上</li>
+</ul>
+<p>所以说，使用hash join的条件其实是很苛刻的，在大多数实际场景中，即使能使用hash join，但是使用sort merge join也不会比hash join差很多，所以尽量使用hash</p>
+<p>下面我们分别阐述不同Join方式的实现流程。</p>
+<h2 id="inner-join"><a href="#inner-join" class="headerlink" title="inner join"></a>inner join</h2><p>inner join是一定要找到左右表中满足join条件的记录，我们在写sql语句或者使用<code>DataFrame</code>时，可以不用关心哪个是左表，哪个是右表，在spark sql查询优化阶段，spark会自动将大表设为左表，即<code>streamIter</code>，将小表设为右表，即<code>buildIter</code>。这样对小表的查找相对更优。其基本实现流程如下图所示，在查找阶段，如果右表不存在满足join条件的记录，则跳过。</p>
+<p><img src="/images/spark-sql-inner-join.png" width="600" height="400" alt="spark-sql-inner-join" align="center"></p>
+<h2 id="left-outer-join"><a href="#left-outer-join" class="headerlink" title="left outer join"></a>left outer join</h2><p>left outer join是以左表为准，在右表中查找匹配的记录，如果查找失败，则返回一个所有字段都为null的记录。我们在写sql语句或者使用<code>DataFrmae</code>时，一般让大表在左边，小表在右边。其基本实现流程如下图所示。</p>
+<p><img src="/images/spark-sql-leftouter-join.png" width="600" height="400" alt="spark-sql-leftouter-join" align="center"></p>
+<h2 id="right-outer-join"><a href="#right-outer-join" class="headerlink" title="right outer join"></a>right outer join</h2><p>right outer join是以右表为准，在左表中查找匹配的记录，如果查找失败，则返回一个所有字段都为null的记录。所以说，右表是<code>streamIter</code>，左表是<code>buildIter</code>，我们在写sql语句或者使用<code>DataFrame</code>时，一般让大表在右边，小表在左边。其基本实现流程如下图所示。</p>
+<p><img src="/images/spark-sql-rightouter-join.png" width="600" height="400" alt="spark-sql-rightouter-join" align="center"></p>
+<h2 id="full-outer-join"><a href="#full-outer-join" class="headerlink" title="full outer join"></a>full outer join</h2><p>full outer join相对来说要复杂一点，总体上来看既要做left outer join，又要做right outer join，但是又不能简单地先left outer join，再right outer join，最后<code>union</code>得到最终结果，因为这样最终结果中就存在两份inner join的结果了。因为既然完成left outer join又要完成right outer join，所以full outer join仅采用sort merge join实现，左边和右表既要作为<code>streamIter</code>，又要作为<code>buildIter</code>，其基本实现流程如下图所示。</p>
+<p><img src="/images/spark-sql-fullouter-join.png" width="600" height="400" alt="spark-sql-fullouter-join" align="center"></p>
+<p>由于左表和右表已经排好序，首先分别顺序取出左表和右表中的一条记录，比较key，如果key相等，则join<code>rowA</code>和<code>rowB</code>，并将<code>rowA</code>和<code>rowB</code>分别更新到左表和右表的下一条记录；如果<code>keyA&lt;keyB</code>，则说明右表中没有与左表<code>rowA</code>对应的记录，那么join<code>rowA</code>与<code>nullRow</code>，紧接着，<code>rowA</code>更新到左表的下一条记录；如果<code>keyA&gt;keyB</code>，则说明左表中没有与右表<code>rowB</code>对应的记录，那么join<code>nullRow</code>与<code>rowB</code>，紧接着，<code>rowB</code>更新到右表的下一条记录。如此循环遍历直到左表和右表的记录全部处理完。</p>
+<h2 id="left-semi-join"><a href="#left-semi-join" class="headerlink" title="left semi join"></a>left semi join</h2><p>left semi join是以左表为准，在右表中查找匹配的记录，如果查找成功，则仅返回左边的记录，否则返回<code>null</code>，其基本实现流程如下图所示。</p>
+<p><img src="/images/spark-sql-semi-join.png" width="600" height="400" alt="spark-sql-semi-join" align="center"></p>
+<h2 id="left-anti-join"><a href="#left-anti-join" class="headerlink" title="left anti join"></a>left anti join</h2><p>left anti join与left semi join相反，是以左表为准，在右表中查找匹配的记录，如果查找成功，则返回<code>null</code>，否则仅返回左边的记录，其基本实现流程如下图所示。</p>
+<p><img src="/images/spark-sql-anti-join.png" width="600" height="400" alt="spark-sql-anti-join" align="center"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Join是数据库查询中一个非常重要的语法特性，在数据库领域可以说是“得join者得天下”，SparkSQL作为一种分布式数据仓库系统，给我们提供了全面的join支持，并在内部实现上无声无息地做了很多优化，了解join的实现将有助于我们更深刻的了解我们的应用程序的运行轨迹。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/spark-sql-join.html">https://sharkdtu.github.io/posts/spark-sql-join.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/spark-app-optimize.html" rel="next" title="从PageRank Example谈Spark应用程序调优">
+                <i class="fa fa-chevron-left"></i> 从PageRank Example谈Spark应用程序调优
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/ml-linear-regression.html" rel="prev" title="机器学习套路--线性回归">
+                机器学习套路--线性回归 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#SparkSQL总体流程介绍"><span class="nav-number">1.</span> <span class="nav-text">SparkSQL总体流程介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join基本要素"><span class="nav-number">2.</span> <span class="nav-text">Join基本要素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join基本实现流程"><span class="nav-number">3.</span> <span class="nav-text">Join基本实现流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sort-merge-join实现"><span class="nav-number">3.1.</span> <span class="nav-text">sort merge join实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#broadcast-join实现"><span class="nav-number">3.2.</span> <span class="nav-text">broadcast join实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hash-join实现"><span class="nav-number">3.3.</span> <span class="nav-text">hash join实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inner-join"><span class="nav-number">4.</span> <span class="nav-text">inner join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#left-outer-join"><span class="nav-number">5.</span> <span class="nav-text">left outer join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#right-outer-join"><span class="nav-number">6.</span> <span class="nav-text">right outer join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#full-outer-join"><span class="nav-number">7.</span> <span class="nav-text">full outer join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#left-semi-join"><span class="nav-number">8.</span> <span class="nav-text">left semi join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#left-anti-join"><span class="nav-number">9.</span> <span class="nav-text">left anti join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">10.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

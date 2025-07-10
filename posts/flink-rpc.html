@@ -1,0 +1,925 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="flink,rpc,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="要理解 Flink 内部各组件交互的源码实现，首先必须要理解其 RPC 的工作机制。与 Hadoop、Spark 等系统类似，作为一个独立的分布式系统框架，Flink 也抽象了自己的一套 RPC 框架，本文尝试尽可能详尽地阐述其设计及实现原理。">
+<meta name="keywords" content="flink,rpc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink RPC 详解">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/flink-rpc.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="要理解 Flink 内部各组件交互的源码实现，首先必须要理解其 RPC 的工作机制。与 Hadoop、Spark 等系统类似，作为一个独立的分布式系统框架，Flink 也抽象了自己的一套 RPC 框架，本文尝试尽可能详尽地阐述其设计及实现原理。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-abstract.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-proxy-pattern.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-endpoint.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-new-gateway.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-gateway-call.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-actor.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-akka.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/flink-rpc-akka2.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.187Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flink RPC 详解">
+<meta name="twitter:description" content="要理解 Flink 内部各组件交互的源码实现，首先必须要理解其 RPC 的工作机制。与 Hadoop、Spark 等系统类似，作为一个独立的分布式系统框架，Flink 也抽象了自己的一套 RPC 框架，本文尝试尽可能详尽地阐述其设计及实现原理。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/flink-rpc-abstract.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Flink RPC 详解 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Flink RPC 详解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2021-07-20T20:10:45+08:00" content="2021-07-20">
+              2021-07-20
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/flink/" itemprop="url" rel="index">
+                    <span itemprop="name">flink</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/flink/" rel="tag">flink</a>
+        
+          <a href="/tags/rpc/" rel="tag">rpc</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>要理解 Flink 内部各组件交互的源码实现，首先必须要理解其 RPC 的工作机制。与 Hadoop、Spark 等系统类似，作为一个独立的分布式系统框架，Flink 也抽象了自己的一套 RPC 框架，本文尝试尽可能详尽地阐述其设计及实现原理。<a id="more"></a></p>
+<h2 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h2><p>首先不用纠结其内部实现细节，先感性地认识下如何使用 Flink RPC 框架实现一个基本的 RPC 调用。</p>
+<ol>
+<li><p>定义接口协议</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HelloGateway</span> <span class="keyword">extends</span> <span class="title">RpcGateway</span> </span>&#123;</span><br><span class="line">    <span class="function">CompletableFuture&lt;String&gt; <span class="title">sayHello</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>服务端组件实现接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RpcEndpoint 可以理解为服务端组件</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloEndpoint</span> <span class="keyword">extends</span> <span class="title">RpcEndpoint</span> <span class="keyword">implements</span> <span class="title">HelloGateway</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">HelloEndpoint</span><span class="params">(RpcService rpcService)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(rpcService);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CompletableFuture&lt;String&gt; <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> CompletableFuture.completedFuture(<span class="string">"Hello World"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>实例化服务端组件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RpcService 可以理解为 RPC 框架引擎（客户端和服务端都有），可以用来启动、停止、连接一个服务端组件</span></span><br><span class="line">RpcService rpcService = getRpcService ...</span><br><span class="line">HelloEndpoint helloEndpoint = <span class="keyword">new</span> HelloEndpoint(rpcService);  <span class="comment">// 内部会启动这个组件服务</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>客户端发起远程调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RpcService rpcService = getRpcService ...</span><br><span class="line"><span class="comment">// rpcAddress 唯一标识要连接的服务端组件，例如 "rpc://host:port/path/to/helloendpoint"</span></span><br><span class="line">HelloGateway helloGateway = rpcService.connect(rpcAddress, HelloGateway<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"><span class="comment">// 如果客户端跟服务端组件在同一个进程里，可以省去connect</span></span><br><span class="line"><span class="comment">// HelloGateway helloGateway = helloEndpoint.getSelfGateway(HelloGateway.class);</span></span><br><span class="line">helloGateway.sayHello();  <span class="comment">// helloGateway 作为客户端代理调用远程方法</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>从以上四步可以看到，Flink RPC 的封装比较高层，客户端的远程调用看起来完全就是调用本地方法，毫无收发消息的痕迹，接口类的命名也比较形象，如下图所示，当要发起远程调用时，临时拿到对应的接口网关，直接调用对应的接口。</p>
+<p><img src="/images/flink-rpc-abstract.png" width="600" height="400" align="center"></p>
+<p>有了一个基本的高层次认识后，再仔细分析上述代码，提出几个问题：</p>
+<ol>
+<li>服务端组件（RpcEndpoint）实例化过程中做了什么？</li>
+<li>我们只是定了接口协议，接口网关（RpcGateway）是如何实例化出来的？</li>
+<li>通过接口网关（RpcGateway）调用方法时，其内部是怎么收发消息的？</li>
+</ol>
+<p>在具体回答以上三个问题前，先简单介绍下 Java 的动态代理技术。</p>
+<h3 id="Java-动态代理简介"><a href="#Java-动态代理简介" class="headerlink" title="Java 动态代理简介"></a>Java 动态代理简介</h3><p>有一种设计模式叫代理模式，通过代理对象访问目标对象，可以在不修改原目标对象的前提下，提供额外的功能操作，以达到扩展目标对象的功能。其UML大致如下图所示。</p>
+<p><img src="/images/flink-rpc-proxy-pattern.png" width="600" height="400" align="center"></p>
+<p>代理模式在 Java 中有静态代理和动态代理之分，我们先看下静态代理：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HelloInterface</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">sayHello</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChinaHello</span> <span class="keyword">implements</span> <span class="title">HelloInterface</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"你好"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloProxy</span> <span class="keyword">implements</span> <span class="title">HelloInterface</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> HelloInterface target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HelloProxy</span><span class="params">(HelloInterface target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// do something before</span></span><br><span class="line">        <span class="keyword">return</span> target.sayHello();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>以上静态代理模式的代码相信大家或多或少都有见过，通过<code>HelloProxy</code>去代理实际目标对象，扩展相关功能。但是静态代理需要在编译时实现，冗余代码较多。另外，Java 也提供了动态代理模式的实现，不需要事先实现接口，运行时通过反射动态实例化特定接口的实例，上述静态代理模式代码可以用如下动态代理模式来实现。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HelloInterface</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">sayHello</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">HelloInterface helloProxy = (HelloInterface) Proxy.newProxyInstance(</span><br><span class="line">        getClass().getClassLoader(),</span><br><span class="line">        <span class="keyword">new</span> Class&lt;?&gt;[] &#123;HelloInterface<span class="class">.<span class="keyword">class</span>&#125;,</span></span><br><span class="line"><span class="class">        <span class="title">new</span> <span class="title">InvocationHandler</span>() </span>&#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (method.getName().equals(<span class="string">"sayHello"</span>)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="string">"你好"</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">helloProxy.sayHello();</span><br></pre></td></tr></table></figure></p>
+<p>可以看到以上代码并没有显示地实现接口<code>HelloInterface</code>，但是通过 Java 提供的<code>Proxy.newProxyInstance</code>方法可以动态创建该接口的实例，当调用该实例的方法时，会被转发到<code>InvocationHandler#invoke</code>中。认识了动态代理后，下面回过头来逐一回答前面提到的三个问题。</p>
+<h3 id="接口实现规范"><a href="#接口实现规范" class="headerlink" title="接口实现规范"></a>接口实现规范</h3><p>为了阅读方便，下面先把前面的三个问题再拎出来：</p>
+<ol>
+<li><p>服务端组件（RpcEndpoint）实例化过程中做了什么？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HelloEndpoint helloEndpoint = <span class="keyword">new</span> HelloEndpoint(rpcService);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们只是定了接口协议，接口网关（RpcGateway）是如何实例化出来的？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HelloGateway helloGateway = rpcService.connect(rpcAddress, HelloGateway<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"><span class="comment">// or</span></span><br><span class="line">HelloGateway helloGateway = helloEndpoint.getSelfGateway(HelloGateway<span class="class">.<span class="keyword">class</span>)</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过接口网关（RpcGateway）调用方法时，其内部是怎么收发消息的？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">helloGateway.sayHello();</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="服务端组件（RpcEndpoint）初始化"><a href="#服务端组件（RpcEndpoint）初始化" class="headerlink" title="服务端组件（RpcEndpoint）初始化"></a>服务端组件（RpcEndpoint）初始化</h4><p>为了更简单地处理多线程并发问题，对同一个<code>RpcEndpoint</code>的所有调用被设计成在同一个主线里串行执行，所以每个<code>RpcEndpoint</code>在实现的时候都不用担心数据共享一致性问题（不用考虑加锁等）。从前面的例子可以知道服务端组件实现了接口协议，如果客户端跟服务端在同一个进程中，客户端直接通过<code>RpcEndpoint#getSelfGateway</code>拿到<code>RpcEndpoint</code>实例调用对应的方法，那么就无法保证对同一个<code>RpcEndpoint</code>的所有调用在同一个主线程中串行执行。</p>
+<p>为此，服务端在实例化具体<code>RpcEndpoint</code>时，其内部会启动一个<code>RpcServer</code>（不对外暴露），<code>RpcServer</code>只是一个接口，要实例化一个特定的<code>RpcServer</code>实例，就需要通过前面介绍的动态代理技术，在运行时动态生成，UML关系如下图所示。</p>
+<p><img src="/images/flink-rpc-endpoint.png" width="600" height="400" align="center"></p>
+<p>通过动态代理生成的<code>RpcServer</code>实例会绑定其对应的<code>RpcEndpoint</code>所实现的接口协议，即上述例子中<code>HelloEndpoint</code>中的<code>RpcServer</code>会有<code>sayHello</code>方法，所以当客户端跟服务端在同一个进程中，客户端通过<code>RpcEndpoint#getSelfGateway</code>拿到其中的<code>RpcServer</code>实例作为接口网关，进而调用其绑定的接口协议方法，根据Java动态代理原理，对<code>RpcServer</code>中的方法调用会被转发给<code>InvocationHandler</code>，在<code>InvocationHandler</code>中控制所有调用在同一个主线里串行执行。</p>
+<h4 id="客户端获取接口网关（RpcGateway）"><a href="#客户端获取接口网关（RpcGateway）" class="headerlink" title="客户端获取接口网关（RpcGateway）"></a>客户端获取接口网关（RpcGateway）</h4><p>客户端发起RPC调用前，需要先拿到对应的接口网关<code>RpcGateway</code>，前面介绍到，当客户端与服务端在同一个进程中，通过<code>RpcEndpoint#getSelfGateway</code>获取，实际是拿到的是<code>RpcEndpoint</code>中的<code>RpcServer</code>实例，因为它是通过动态代理绑定了特定的RpcGateway创建的，所以也可以作为<code>RpcGateway</code>。当客户端与服务端不在一个进程中，通过<code>RpcService#connect</code>获取，服务端的每个<code>RpcEndpoint</code>都有一个唯一的 RPC 地址，客户端通过这个地址去连接路由到指定的<code>RpcEndpoint</code>，拿到消息 handler，通过消息 handler 双方握手成功后，客户端再通过动态代理创建特定的<code>RpcGateway</code>实例，其总体流程如下图所示。</p>
+<p><img src="/images/flink-rpc-new-gateway.png" width="600" height="400" align="center"></p>
+<h4 id="客户端发起-RPC-调用"><a href="#客户端发起-RPC-调用" class="headerlink" title="客户端发起 RPC 调用"></a>客户端发起 RPC 调用</h4><p>无论客户端是否与服务端在同一个进程中，客户端与<code>RpcGateway</code>的UML关系抽象如下图所示。</p>
+<p><img src="/images/flink-rpc-gateway-call.png" width="600" height="400" align="center"></p>
+<p>当客户端通过<code>RpcGateway</code>调用方法时，根据动态代理原理，该调用会被转发到<code>InvocationHandler</code>中，<code>InvocationHandler</code>将方法名、参数类型、参数对象列表打包成<code>RpcInvocation</code>消息，通过其握有的消息 handler，发送消息，并接受服务端响应，完成一次RPC调用。</p>
+<h2 id="基于-Akka-的实现"><a href="#基于-Akka-的实现" class="headerlink" title="基于 Akka 的实现"></a>基于 Akka 的实现</h2><p>以上只是在一个抽象的层面介绍了 Flink RPC 的设计，具体实现还需要借助一套消息系统来完成，目前 Flink RPC 的默认是基于 Akka 框架实现（也是唯一的实现），Akka 的核心是 Actor 模型，如下图所示，Actor 与 Actor之前只能用消息进行通信，每个Actor都有对应一个信箱，消息是有顺序地被投递到信箱，Actor 串行处理信箱中的消息。建议自行先了解 Akka 及 Actor 的相关知识，这里不展开详细介绍。</p>
+<p><img src="/images/flink-rpc-actor.png" width="600" height="400" align="center"></p>
+<p>基于 Actor 模型，每个 RpcEndpoint 关联一个 Actor，正好契合了对每个 RpcEndpoint 的调用要求在同一个线程中完成的设计，同时，Akka 的每个 Actor 都有一个唯一的地址，正好作为 RpcEndpoint 的 RPC Address。</p>
+<p>具体实现上，<code>AkkaRpcService</code>实现启动、停止、连接一个服务端组件，<code>AkkaRpcService</code>内部持有一个<code>ActorSystem</code>实例，当启动一个服务端组件时，会创建一个 <code>AkkaRpcActor</code>（其中定义了消息处理逻辑，当收到<code>RpcInvocation</code>消息时，会按照方法名调用<code>RpcEndpoint</code>中的具体实现），作为前面提到的消息 handler，然后通过动态代理实例化一个 <code>RpcServer</code>，绑定一个<code>AkkaInvocationHandler</code>，其持有前面创建 <code>ActorRef</code>。</p>
+<p>当客户端与服务端在同一个进程中，那么直接获取这个<code>RpcServer</code>实例作为接口网关<code>RpcGateway</code>，这样接口网关<code>RpcGateway</code>上的方法调用会被转到<code>AkkaInvocationHandler</code>中，进而将方法名、参数类型、参数对象列表打包成<code>RpcInvocation</code>消息通过 <code>ActorRef</code> 发送，其实现如下图UML所示。</p>
+<p><img src="/images/flink-rpc-akka.png" width="600" height="400" align="center"></p>
+<p>当客户端与服务端不在同一个进程中，其通过<code>AkkaRpcService#connect</code>方法，连接服务端对应的<code>AkkaRpcActor</code>以得到其对应的<code>ActorRef</code>，类似地，通过动态代理实例化特定的 <code>RpcGateway</code>，绑定一个<code>AkkaInvocationHandler</code>，其持有前面连接获取到的 <code>ActorRef</code>，之后这个接口网关<code>RpcGateway</code>的方法调用会被转到<code>AkkaInvocationHandler</code>中，进而将方法名、参数类型、参数对象列表打包成<code>RpcInvocation</code>消息通过 <code>ActorRef</code> 发送，其实现如下图UML所示。。</p>
+<p><img src="/images/flink-rpc-akka2.png" width="600" height="400" align="center"></p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>某种程度上讲，Flink RPC 设计来源于 Actor 模型，只是在这之上做了更高层的抽象，应用层不感知底层的消息收发，做到如同本地方法调用一般。一开始看其源码实现可能会觉得过度设计，来回绕圈，但是当看懂其设计本意后，就会觉得别有一番风味，里面包含了大量的优秀设计模式，对于我们实际写代码有很大的参考价值。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/flink-rpc.html">https://sharkdtu.github.io/posts/flink-rpc.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/tf-migrate-learning.html" rel="next" title="TensorFlow 迁移学习实践小记">
+                <i class="fa fa-chevron-left"></i> TensorFlow 迁移学习实践小记
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/flink-schedule-balance.html" rel="prev" title="Flink 均衡调度">
+                Flink 均衡调度 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口设计"><span class="nav-number">1.</span> <span class="nav-text">接口设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-动态代理简介"><span class="nav-number">1.1.</span> <span class="nav-text">Java 动态代理简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口实现规范"><span class="nav-number">1.2.</span> <span class="nav-text">接口实现规范</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#服务端组件（RpcEndpoint）初始化"><span class="nav-number">1.2.1.</span> <span class="nav-text">服务端组件（RpcEndpoint）初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客户端获取接口网关（RpcGateway）"><span class="nav-number">1.2.2.</span> <span class="nav-text">客户端获取接口网关（RpcGateway）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客户端发起-RPC-调用"><span class="nav-number">1.2.3.</span> <span class="nav-text">客户端发起 RPC 调用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-Akka-的实现"><span class="nav-number">2.</span> <span class="nav-text">基于 Akka 的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,912 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="分布式计算,TensorFlow,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="TensorFlow从15年10月开源至今，可谓是发展迅猛，从v0.5到如今的v2.0.0-alpha，经历了无数个功能特性的升级，性能、可用性、易用性等都在稳步提升。相对来说，对于我们工业界，大家可能更关注分布式TensorFlow的发展，本文尝试梳理下分布式TensorFlow从问世到现在经历过的变迁。">
+<meta name="keywords" content="分布式计算,TensorFlow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式TensorFlow编程模型演进">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/dist-tf-evolution.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="TensorFlow从15年10月开源至今，可谓是发展迅猛，从v0.5到如今的v2.0.0-alpha，经历了无数个功能特性的升级，性能、可用性、易用性等都在稳步提升。相对来说，对于我们工业界，大家可能更关注分布式TensorFlow的发展，本文尝试梳理下分布式TensorFlow从问世到现在经历过的变迁。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tf-runtime.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tf-ps-worker.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tf-estimator-interface.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/dl-ring-allreduce.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.187Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式TensorFlow编程模型演进">
+<meta name="twitter:description" content="TensorFlow从15年10月开源至今，可谓是发展迅猛，从v0.5到如今的v2.0.0-alpha，经历了无数个功能特性的升级，性能、可用性、易用性等都在稳步提升。相对来说，对于我们工业界，大家可能更关注分布式TensorFlow的发展，本文尝试梳理下分布式TensorFlow从问世到现在经历过的变迁。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/tf-runtime.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 分布式TensorFlow编程模型演进 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                分布式TensorFlow编程模型演进
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-04-05T16:55:34+08:00" content="2019-04-05">
+              2019-04-05
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/deep-learning/" itemprop="url" rel="index">
+                    <span itemprop="name">深度学习</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+          <a href="/tags/TensorFlow/" rel="tag">TensorFlow</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>TensorFlow从15年10月开源至今，可谓是发展迅猛，从v0.5到如今的v2.0.0-alpha，经历了无数个功能特性的升级，性能、可用性、易用性等都在稳步提升。相对来说，对于我们工业界，大家可能更关注分布式TensorFlow的发展，本文尝试梳理下分布式TensorFlow从问世到现在经历过的变迁。<a id="more"></a></p>
+<h2 id="分布式TensorFlow运行时基本组件"><a href="#分布式TensorFlow运行时基本组件" class="headerlink" title="分布式TensorFlow运行时基本组件"></a>分布式TensorFlow运行时基本组件</h2><p>用户基于TensorFlow-API编写好代码提交运行，整体架构如下图所示。</p>
+<p><img src="/images/tf-runtime.png" width="600" height="400" alt="tf-runtime" align="center"></p>
+<ul>
+<li><p>Client<br>可以把它看成是TensorFlow前端，它支持多语言的编程环境(Python/C++/Go/Java等)，方便用户构造各种复杂的计算图。Client通过<code>Session</code>连接TensorFlow后端，并启动计算图的执行。</p>
+</li>
+<li><p>Master<br>Master根据要计算的操作(Op)，从计算图中反向遍历，找到其所依赖的最小子图，然后将该子图再次分裂为多个子图片段，以便在不同的进程和设备上运行这些子图片段，最后将这些子图片段派发给Worker执行。</p>
+</li>
+<li><p>Worker<br>Worker按照计算子图中节点之间的依赖关系，根据当前的可用的硬件环境(GPU/CPU/TPU)，调用Op的Kernel实现完成运算。</p>
+</li>
+</ul>
+<p>在分布式TensorFlow中，参与分布式系统的所有节点或者设备统称为一个Cluster，一个Cluster中包含很多Server，每个Server去执行一项Task，Server和Task是一一对应的。所以，Cluster可以看成是Server的集合，也可以看成是Task的集合，TensorFlow为各个Task又增加了一个抽象层，将一系列相似的Task集合称为一个Job。形式化地，一个TensorFlow Cluster可以通过以下json来描述：<br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"$&#123;job_name1&#125;"</span>: [</span><br><span class="line">      <span class="string">"$&#123;host1&#125;:$&#123;port1&#125;"</span>,</span><br><span class="line">      <span class="string">"$&#123;host2&#125;:$&#123;port2&#125;"</span>,</span><br><span class="line">      <span class="string">"$&#123;host3&#125;:$&#123;port3&#125;"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"$&#123;job_name2&#125;"</span>: [</span><br><span class="line">      <span class="string">"$&#123;host4&#125;:$&#123;port4&#125;"</span>,</span><br><span class="line">      <span class="string">"$&#123;host5&#125;:$&#123;port5&#125;"</span></span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>job用job_name(字符串)标识，而task用index(整数索引)标识，那么cluster中的每个task可以用job的name加上task的index来唯一标识，例如‘/job:worker/task:1’。一组Task集合(即Job)有若干个Server(host和port标识)，每个Server上会绑定两个Service，就是前面提到的Master Service和Worker Service，Client通过Session连接集群中的任意一个Server的Master Service提交计算图，Master Service负责划分子图并派发Task给Worker Service，Worker Service则负责运算派发过来的Task完成子图的运算。下面详细阐述分布式TensorFlow不同架构的编程模型演进。</p>
+<h2 id="基于PS的分布式TensorFlow编程模型"><a href="#基于PS的分布式TensorFlow编程模型" class="headerlink" title="基于PS的分布式TensorFlow编程模型"></a>基于PS的分布式TensorFlow编程模型</h2><p>分布式TensorFlow设计之初是沿用DistBelief(Google第一代深度学习系统)中采用的经典ps-worker架构，如下图所示。</p>
+<p><img src="/images/tf-ps-worker.png" width="600" height="400" alt="tf-ps-worker" align="center"></p>
+<p>对于PS架构，Parameter Server的Task集合为ps(即job类型为ps)，而执行梯度计算的Task集合为worker(即job类型为worker)，所以一个TensorFlow Cluster可以通过如下json描述：<br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"worker"</span>: [</span><br><span class="line">      <span class="string">"$&#123;host1&#125;:$&#123;port1&#125;"</span>,</span><br><span class="line">      <span class="string">"$&#123;host2&#125;:$&#123;port2&#125;"</span>,</span><br><span class="line">      <span class="string">"$&#123;host3&#125;:$&#123;port3&#125;"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"ps"</span>: [</span><br><span class="line">      <span class="string">"$&#123;host4&#125;:$&#123;port4&#125;"</span>,</span><br><span class="line">      <span class="string">"$&#123;host5&#125;:$&#123;port5&#125;"</span></span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="Low-level-分布式编程模型"><a href="#Low-level-分布式编程模型" class="headerlink" title="Low-level 分布式编程模型"></a>Low-level 分布式编程模型</h3><p>最原始的分布式TensorFlow编程是基于Low-level API来实现，下面我们通过举例来理解最原始的分布式TensorFlow编程步骤。我们在一台机器上启动三个Server(2个worker，1个ps)来模拟分布式多机环境，开启三个Python解释器(分别对应2个worker和1个ps)，执行如下python语句，定义一个Cluster：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line">cluster = tf.train.ClusterSpec(&#123;</span><br><span class="line">  <span class="string">"worker"</span>: [</span><br><span class="line">      <span class="string">"localhost:2222"</span>,</span><br><span class="line">      <span class="string">"localhost:2223"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="string">"ps"</span>: [</span><br><span class="line">      <span class="string">"localhost:2224"</span></span><br><span class="line">  ]&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>在第一个worker解释器内执行如下语句启动Server：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server = tf.train.Server(cluster, job_name=<span class="string">"worker"</span>, task_index=<span class="number">0</span>)</span><br></pre></td></tr></table></figure></p>
+<p>在第二个worker解释器内执行如下语句启动Server：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server = tf.train.Server(cluster, job_name=<span class="string">"worker"</span>, task_index=<span class="number">1</span>)</span><br></pre></td></tr></table></figure></p>
+<p>在ps解释器内执行如下语句启动Server:<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server = tf.train.Server(cluster, job_name=<span class="string">"ps"</span>, task_index=<span class="number">0</span>)</span><br></pre></td></tr></table></figure></p>
+<p>至此，我们已经启动了一个TensorFlow Cluster，它由两个worker节点和一个ps节点组成，每个节点上都有Master Service和Worker Service，其中worker节点上的Worker Service将负责梯度运算，ps节点上的Worker Service将负责参数更新，三个Master Service将仅有一个会在需要时被用到，负责子图划分与Task派发。</p>
+<p>有了Cluster，我们就可以编写Client，构建计算图，并提交到这个Cluster上执行。使用分布式TensorFlow时，最常采用的分布式训练策略是数据并行，数据并行就是在很多设备上放置相同的模型，在TensorFlow中称之为Replicated training，主要表现为两种模式：图内复制(in-graph replication)和图间复制(between-graph replication)。不同的运行模式，Client的表现形式不一样。</p>
+<h4 id="图内复制"><a href="#图内复制" class="headerlink" title="图内复制"></a>图内复制</h4><p>对于图内复制，只构建一个Client，这个Client构建一个Graph，Graph中包含一套模型参数，放置在ps上，同时Graph中包含模型计算部分的多个副本，每个副本都放置在一个worker上，这样多个worker可以同时训练复制的模型。</p>
+<p>再开一个Python解释器，作为Client，执行如下语句构建计算图，并：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.device(<span class="string">"/job:ps/task:0"</span>):</span><br><span class="line">  w = tf.get_variable([[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>], [<span class="number">1.</span>, <span class="number">3.</span>, <span class="number">5.</span>]])</span><br><span class="line"></span><br><span class="line">input_data = ...</span><br><span class="line">inputs = tf.split(input_data, num_workers)</span><br><span class="line">outputs = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(num_workers):</span><br><span class="line">  <span class="keyword">with</span> tf.device(<span class="string">"/job:ps/task:%s"</span> % str(i)):</span><br><span class="line">    outputs.append(tf.matmul(inputs[i], w))</span><br><span class="line"></span><br><span class="line">output = tf.concat(outputs, axis=<span class="number">0</span>)</span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">  sess.run(tf.global_variables_initializer())</span><br><span class="line">  <span class="keyword">print</span> sess.run(output)</span><br></pre></td></tr></table></figure></p>
+<p>从以上代码可以看到，当采用图内复制时，需要在Client上创建一个包含所有worker副本的流程图，随着worker数量的增长，计算图将会变得非常大，不利于计算图的维护。此外，数据分发在Client单点，要把训练数据分发到不同的机器上，会严重影响并发训练速度。所以在大规模分布式多机训练情况下，一般不会采用图内复制的模式，该模式常用于单机多卡情况下，简单直接。</p>
+<h4 id="图间复制"><a href="#图间复制" class="headerlink" title="图间复制"></a>图间复制</h4><p>为可以解决图内复制在扩展上的局限性，我们可以采用图间复制模式。对于图间复制，每个worker节点上都创建一个Client，各个Client构建相同的Graph，但是参数还是放置在ps上，每个worker节点单独运算，一个worker节点挂掉了，系统还可以继续跑。</p>
+<p>所以我们在第一个worker和第二个worker的Python解释器里继续执行如下语句实现Client完成整个分布式TensorFlow的运行：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> tf.device(<span class="string">"/job:ps/task:0"</span>):</span><br><span class="line">  w = tf.get_variable(name=<span class="string">'w'</span>, shape=[<span class="number">784</span>, <span class="number">10</span>])</span><br><span class="line">  b = tf.get_variable(name=<span class="string">'b'</span>, shape=[<span class="number">10</span>])</span><br><span class="line"></span><br><span class="line">x = tf.placeholder(tf.float32, shape=[<span class="literal">None</span>, <span class="number">784</span>])</span><br><span class="line">y = tf.placeholder(tf.int32, shape=[<span class="literal">None</span>])</span><br><span class="line">logits = tf.matmul(x, w) + b</span><br><span class="line">loss = ...</span><br><span class="line">train_op = ...</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">  <span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">10000</span>):</span><br><span class="line">    sess.run(train_op, feed_dict=...)</span><br></pre></td></tr></table></figure></p>
+<p>在上述描述的过程中，我们是全程手动做分布式驱动的，先建立Cluster，然后构建计算图提交执行，Server上的Master Service和Worker Service根本没有用到。实际应用时当然不会这么愚蠢，一般是将以上代码片段放到一个文件中，通过参数控制执行不同的代码片段，例如：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line">ps_hosts = FLAGS.ps_hosts.split(<span class="string">","</span>)</span><br><span class="line">worker_hosts = FLAGS.worker_hosts.split(<span class="string">","</span>)</span><br><span class="line">cluster = tf.train.ClusterSpec(&#123;<span class="string">"ps"</span>: ps_hosts, <span class="string">"worker"</span>: worker_hosts&#125;)</span><br><span class="line">server = tf.train.Server(</span><br><span class="line">    cluster, job_name=FLAGS.job_name, task_index=FLAGS.task_index)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> FLAGS.job_name == <span class="string">'ps'</span>:</span><br><span class="line">  server.join()</span><br><span class="line"><span class="keyword">elif</span> FLAGS.job_name == <span class="string">"worker"</span>:</span><br><span class="line">  <span class="keyword">with</span> tf.device(tf.train.replica_device_setter(</span><br><span class="line">      worker_device=<span class="string">"/job:worker/task:%d"</span> % FLAGS.task_index,</span><br><span class="line">      cluster=cluster)):</span><br><span class="line">    <span class="comment"># Build model...</span></span><br><span class="line">    loss = ...</span><br><span class="line">    train_op = ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">with</span> tf.train.MonitoredTrainingSession(</span><br><span class="line">      master=<span class="string">"/job:worker/task:0"</span>,</span><br><span class="line">      is_chief=(FLAGS.task_index == <span class="number">0</span>),</span><br><span class="line">      checkpoint_dir=<span class="string">"/tmp/train_logs"</span>) <span class="keyword">as</span> mon_sess:</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">not</span> mon_sess.should_stop():</span><br><span class="line">      mon_sess.run(train_op)</span><br></pre></td></tr></table></figure></p>
+<p>每个节点上都执行如上代码，只是不同节点输入的参数不一样，对于ps节点，启动Server后就堵塞等待参数服务，对于worker节点，启动Server后(后台服务)，开始扮演Client，构建计算图，最后通过<code>Session</code>提交计算。注意在调用<code>Session.run</code>之前，仅仅是Client的构图，并未开始计算，各节点上的Server还未发挥作用，只有在调用<code>Session.run</code>后，worker和ps节点才会被派发Task。在调用<code>Session.run</code>时，需要给<code>Session</code>传递<code>target</code>参数，指定使用哪个worker节点上的Master Service，Client将构建的计算图发给<code>target</code>指定的Master Service，一个TensorFlow集群中只有一个Master Service在工作，它负责子图划分、Task的分发以及模型保存与恢复等，在子图划分时，它会自动将模型参数分发到ps节点，将梯度计算分发到worker节点。另外，在Client构图时通过<code>tf.train.replica_device_setter</code>告诉worker节点默认在本机分配Op，这样每个Worker Service收到计算任务后构建出一个单独的计算子图副本，这样每个worker节点就可以单独运行，挂了不影响其他worker节点继续运行。</p>
+<p>虽然图间复制具有较好的扩展性，但是从以上代码可以看到，写一个分布式TensorFlow应用，需要用户自行控制不同组件的运行，这就需要用户对TensorFlow的分布式架构有较深的理解。另外，分布式TensorFlow应用与单机版TensorFlow应用的代码是两套，一般使用过程中，用户都是先在单机上调试好基本逻辑，然后再部署到集群，在部署分布式TensorFlow应用前，就需要将前面的单机版代码改写成分布式多机版，用户体验非常差。所以说，使用Low-level 分布式编程模型，不能做到一套代码既可以在单机上运行也可以在分布式多机上运行，其用户门槛较高，一度被相关工程及研究人员诟病。为此，TensorFlow推出了High-level分布式编程模型，极大地改善用户易用性。</p>
+<h3 id="High-level-分布式编程模型"><a href="#High-level-分布式编程模型" class="headerlink" title="High-level 分布式编程模型"></a>High-level 分布式编程模型</h3><p>TensorFlow提供<code>Estimator</code>和<code>Dataset</code>高阶API，简化模型构建以及数据输入，用户通过<code>Estimator</code>和<code>Dataset</code>高阶API编写TensorFlow应用，不用了解TensorFlow内部实现细节，只需关注模型本身即可。</p>
+<p><code>Estimator</code>代表一个完整的模型，它提供方法用于模型的训练、评估、预测及导出。下图概括了<code>Estimator</code>的所有功能。</p>
+<p><img src="/images/tf-estimator-interface.png" width="600" height="400" alt="tf-estimator-interface" align="center"></p>
+<p><code>Estimator</code>具备如下优势：</p>
+<ul>
+<li>基于Estimator编写的代码，可运行在单机和分布式环境中，不用区别对待</li>
+<li>简化了模型开发者之间共享部署，它提供了标准的模型导出功能，可以将训练好的模型直接用于TensorFlow-Serving等在线服务</li>
+<li>提供全套的分布式训练生命周期管理，自动初始化变量、处理异常、创建检查点文件并从故障中恢复、以及保存TensorBoard 的摘要等</li>
+<li>提供了一系列开箱即用的常见<code>Estimator</code>，例如<code>DNNClassifier</code>，<code>LinearClassifier</code>等</li>
+</ul>
+<p>使用<code>Estimator</code>编写应用时，需将数据输入从模型中分离出来。数据输入可以通过 <code>Dataset</code> API 构建数据 pipeline，类似Spark RDD或DataFrame，可以轻松处理大规模数据、不同的数据格式以及复杂的转换等。具体关于<code>Estimator</code>的使用可以参考<a href="https://www.tensorflow.org/guide/estimators" target="_blank" rel="noopener">TensorFlow官方文档</a>，讲的特别详细。</p>
+<p>使用<code>Estimator</code>编写完应用后，可以直接单机上运行，如果需要将其部署到分布式环境运行，则需要在每个节点执行代码前设置集群的<code>TF_CONFIG</code>环境变量(实际应用时通常借助资源调度平台自动完成，如K8S，不需要修改TensorFlow应用程序代码)：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">TF_CONFIG=<span class="string">'&#123;</span></span><br><span class="line"><span class="string">    "cluster": &#123;</span></span><br><span class="line"><span class="string">        "chief": ["host0:2222"],</span></span><br><span class="line"><span class="string">        "worker": ["host1:2222", "host2:2222", "host3:2222"],</span></span><br><span class="line"><span class="string">        "ps": ["host4:2222", "host5:2222"]</span></span><br><span class="line"><span class="string">    &#125;,</span></span><br><span class="line"><span class="string">    "task": &#123;"type": "chief", "index": 0&#125;</span></span><br><span class="line"><span class="string">&#125;'</span></span><br></pre></td></tr></table></figure></p>
+<p><code>TF_CONFIG</code>环境变量是一个json字符串，指定集群规格cluster以及节点自身的角色task，cluster包括chief、worker、ps节点，chief节点其实是一个特殊的worker节点，而且只能有一个节点，表示分布式TensorFlow Master Service所在的节点。</p>
+<p>通过以上描述可以看到，使用高阶API编写分布式TensorFlow应用已经很方便了，然而因为PS架构的缘故，我们实际部署时，需要规划使用多少个ps，多少个worker，那么调试过程中，需要反复调整ps和worker的数量。当模型规模较大时，在分布式训练过程中，ps可能成为网络瓶颈，因为所有worker都需要从ps处更新/获取参数，如果ps节点网络被打满，那么worker节点可能就会堵塞等待，以至于其计算能力就发挥不出来。所以后面TensorFlow引入All-Reduce架构解决这类问题。</p>
+<h2 id="基于All-Reduce的分布式TensorFlow架构"><a href="#基于All-Reduce的分布式TensorFlow架构" class="headerlink" title="基于All-Reduce的分布式TensorFlow架构"></a>基于All-Reduce的分布式TensorFlow架构</h2><p>在单机多卡情况下，如下图左表所示(对应TensorFlow图内复制模式)，GPU1~4卡负责网络参数的训练，每个卡上都布置了相同的深度学习网络，每个卡都分配到不同的数据的minibatch。每张卡训练结束后将网络参数同步到GPU0，也就是Reducer这张卡上，然后再求参数变换的平均下发到每张计算卡。</p>
+<p><img src="/images/dl-ring-allreduce.png" width="600" height="400" alt="dl-ring-allreduce" align="center"></p>
+<p>很显然，如果GPU较多，GPU0这张卡将成为整个训练的瓶颈，为了解决这样的问题，就引入了一种通信算法Ring Allreduce，通过将GPU卡的通信模式拼接成一个环形，解决带宽瓶颈问题，如上图右边所示。Ring Allreduce最早由百度提出，通过Ring Allreduce算法可以将整个训练过程中的带宽占用分摊到每块GPU卡上，详情可参考uber的一篇<a href="https://arxiv.org/pdf/1802.05799.pdf" target="_blank" rel="noopener">论文</a>。</p>
+<p>TensorFlow从v1.8版本开始支持All-Reduce架构，它采用NVIDIA NCCL作为All-Reduce实现，为支持多种分布式架构，TensorFlow引入Distributed Strategy API，用户通过该API控制使用何种分布式架构，例如如果用户需要在单机多卡环境中使用All-Reduce架构，只需定义对应架构下的<code>Strategy</code>，指定<code>Estimator</code>的<code>config</code>参数即可：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mirrored_strategy = tf.distribute.MirroredStrategy()</span><br><span class="line">config = tf.estimator.RunConfig(</span><br><span class="line">    train_distribute=mirrored_strategy, eval_distribute=mirrored_strategy)</span><br><span class="line">regressor = tf.estimator.LinearRegressor(</span><br><span class="line">    feature_columns=[tf.feature_column.numeric_column(<span class="string">'feats'</span>)],</span><br><span class="line">    optimizer=<span class="string">'SGD'</span>,</span><br><span class="line">    config=config)</span><br></pre></td></tr></table></figure></p>
+<p>对于分布式多机环境，最早是Uber专门提出了一种基于Ring-Allreduce的分布式TensorFlow架构<a href="https://github.com/horovod/horovod" target="_blank" rel="noopener">Horovod</a>，并已开源。目前TensorFlow已经官方支持，通过<code>MultiWorkerMirroredStrategy</code>来指定，目前该API尚处于实验阶段。如果在代码中通过<code>MultiWorkerMirroredStrategy</code>指定使用All-Reduce架构，则分布式提交时，<code>TF_CONFIG</code>环境变量中的cluster就不需要ps类型的节点了，例如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">TF_CONFIG=<span class="string">'&#123;</span></span><br><span class="line"><span class="string">    "cluster": &#123;</span></span><br><span class="line"><span class="string">        "chief": ["host0:2222"],</span></span><br><span class="line"><span class="string">        "worker": ["host1:2222", "host2:2222", "host3:2222"]</span></span><br><span class="line"><span class="string">    &#125;,</span></span><br><span class="line"><span class="string">    "task": &#123;"type": "chief", "index": 0&#125;</span></span><br><span class="line"><span class="string">&#125;'</span></span><br></pre></td></tr></table></figure></p>
+<p>通过不同的<code>Strategy</code>，可以轻松控制使用不同的分布式TensorFlow架构，可见TensorFlow的API设计更加灵活友好，拥有极强的可扩展性，相信将来会出现更多的<code>Strategy</code>来应对复杂的分布式场景。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文梳理了分布式TensorFlow编程模型的发展，主要从用户使用分布式TensorFlow角度出发，阐述了不同的分布式TensorFlow架构。可以看到，随着TensorFlow的迭代演进，其易用性越来越友好。目前TensorFlow已经发布了2.0.0-alpha版本了，标志着TensorFlow正式进入2.0时代了，在2.0版本中，其主打卖点是Eager Execution与Keras高阶API，整体易用性将进一步提升，通过Eager Execution功能，我们可以像使用原生Python一样操作Tensor，而不需要像以前一样需要通过<code>Session.run</code>的方式求解Tensor，另外，通过TensorFlow Keras高阶API，可以更加灵活方便构建模型，同时可以将模型导出为Keras标准格式HDF5，以灵活兼容在线服务等。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/dist-tf-evolution.html">https://sharkdtu.github.io/posts/dist-tf-evolution.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/spark-mpi.html" rel="next" title="借助Spark调度MPI作业">
+                <i class="fa fa-chevron-left"></i> 借助Spark调度MPI作业
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/tf-migrate-learning.html" rel="prev" title="TensorFlow 迁移学习实践小记">
+                TensorFlow 迁移学习实践小记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式TensorFlow运行时基本组件"><span class="nav-number">1.</span> <span class="nav-text">分布式TensorFlow运行时基本组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于PS的分布式TensorFlow编程模型"><span class="nav-number">2.</span> <span class="nav-text">基于PS的分布式TensorFlow编程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Low-level-分布式编程模型"><span class="nav-number">2.1.</span> <span class="nav-text">Low-level 分布式编程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#图内复制"><span class="nav-number">2.1.1.</span> <span class="nav-text">图内复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#图间复制"><span class="nav-number">2.1.2.</span> <span class="nav-text">图间复制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#High-level-分布式编程模型"><span class="nav-number">2.2.</span> <span class="nav-text">High-level 分布式编程模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于All-Reduce的分布式TensorFlow架构"><span class="nav-number">3.</span> <span class="nav-text">基于All-Reduce的分布式TensorFlow架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

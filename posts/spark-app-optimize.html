@@ -1,0 +1,1012 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="spark,分布式计算,benchmark,优化,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="最近在做BigData-Benchmark中PageRank测试，在测试时，发现有很多有趣的调优点，想到这些调优点可能是普遍有效的，现把它整理出来一一分析，以供大家参考。BigData-Benchmark中的Spark PageRank采用的是Spark开源代码examples包里的PageRank的代码，原理及代码实现都比较简单，下面我简单地介绍下。">
+<meta name="keywords" content="spark,分布式计算,benchmark,优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从PageRank Example谈Spark应用程序调优">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/spark-app-optimize.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="最近在做BigData-Benchmark中PageRank测试，在测试时，发现有很多有趣的调优点，想到这些调优点可能是普遍有效的，现把它整理出来一一分析，以供大家参考。BigData-Benchmark中的Spark PageRank采用的是Spark开源代码examples包里的PageRank的代码，原理及代码实现都比较简单，下面我简单地介绍下。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-graph-example.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-iter-3-dag.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-checkpoint-jobs.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-iter-3-dag-cache.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-checkpoint-dag.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-after-checkpoint-dag.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/links-string-cache.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/links-string-cache-compress.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/links-long-cache.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/links-long-cache-compress.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-shuffle-origin.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-random-int-skew.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/pagerank-shuffle-skewed-process.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/driver-control.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/driver-heap.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-control.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-heap.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-gc.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-heap-info.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-heap-info2.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-gc2.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/executor-gc3.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.188Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从PageRank Example谈Spark应用程序调优">
+<meta name="twitter:description" content="最近在做BigData-Benchmark中PageRank测试，在测试时，发现有很多有趣的调优点，想到这些调优点可能是普遍有效的，现把它整理出来一一分析，以供大家参考。BigData-Benchmark中的Spark PageRank采用的是Spark开源代码examples包里的PageRank的代码，原理及代码实现都比较简单，下面我简单地介绍下。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/pagerank-graph-example.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 从PageRank Example谈Spark应用程序调优 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                从PageRank Example谈Spark应用程序调优
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-05-11T22:11:29+08:00" content="2017-05-11">
+              2017-05-11
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">spark</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+          <a href="/tags/benchmark/" rel="tag">benchmark</a>
+        
+          <a href="/tags/优化/" rel="tag">优化</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在做<a href="http://prof.ict.ac.cn/BigDataBench" target="_blank" rel="noopener">BigData-Benchmark</a>中PageRank测试，在测试时，发现有很多有趣的调优点，想到这些调优点可能是普遍有效的，现把它整理出来一一分析，以供大家参考。<a href="http://prof.ict.ac.cn/BigDataBench" target="_blank" rel="noopener">BigData-Benchmark</a>中的Spark PageRank采用的是Spark开源代码examples包里的PageRank的代码，原理及代码实现都比较简单，下面我简单地介绍下。<a id="more"></a></p>
+<h2 id="PageRank基本原理介绍"><a href="#PageRank基本原理介绍" class="headerlink" title="PageRank基本原理介绍"></a>PageRank基本原理介绍</h2><p>PageRank的作用是评价网页的重要性，除了应用于搜索结果的排序之外，在其他领域也有广泛的应用，例如图算法中的节点重要度等。假设一个由4个页面组成的网络如下图所示，B链接到A、C，C连接到A，D链接到所有页面。</p>
+<p><img src="/images/pagerank-graph-example.png" alt="pagerank-graph-example | center"></p>
+<p>那么A的PR(PageRank)值分别来自B、C、D的贡献之和，由于B除了链接到A还链接到C，D除了链接到A还链接B、C，所以它们对A的贡献需要平摊，计算公式为:</p>
+<p>$$ PR(A) = \frac {PR(B)} {2} + \frac {PR(C)} {1} + \frac {PR(D)} {3} \tag{1-1}$$</p>
+<p>简单来说，就是根据链出总数平分一个页面的PR值:</p>
+<p>$$ PR(A) = \frac {PR(B)} {L(B)} + \frac {PR(C)} {L(C)} + \frac {PR(D)} {L(D)} \tag{1-2}$$</p>
+<p>对于上图中的A页面来说，它没有外链，这样计算迭代下去，PR值会全部收敛到A上去，所以实际上需要对这类没有外链的页面加上系数:</p>
+<p>$$ PR(A) = d(\frac {PR(B)} {L(B)} + \frac {PR(C)} {L(C)} + \frac {PR(D)} {L(D)} + …) + \frac {1 - d} {N} \tag{1-3}$$</p>
+<h2 id="Spark-PageRank-Example"><a href="#Spark-PageRank-Example" class="headerlink" title="Spark PageRank Example"></a>Spark PageRank Example</h2><p>Spark Examples中给出了一个简易的实现，后续讨论的相关优化都是基于该简易实现，所以并不一定可以用来解决实际PageRank问题，这里仅用于引出关于Spark调优的思考。下面是原始版本的实现代码，我们称之为V1。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Computes the PageRank of URLs from an input file.</span></span><br><span class="line"><span class="comment"> * Input file should be in format of:</span></span><br><span class="line"><span class="comment"> * URL         neighbor URL</span></span><br><span class="line"><span class="comment"> * URL         neighbor URL</span></span><br><span class="line"><span class="comment"> * URL         neighbor URL</span></span><br><span class="line"><span class="comment"> * ...</span></span><br><span class="line"><span class="comment"> * where URL and their neighbor URL are separated by space(s).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">val</span> lines = sc.textFile(inputPath)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> links = lines.map &#123; s =&gt;</span><br><span class="line">  <span class="keyword">val</span> parts = s.split(<span class="string">"\\s+"</span>)</span><br><span class="line">  (parts(<span class="number">0</span>), parts(<span class="number">1</span>))</span><br><span class="line">&#125;.distinct().groupByKey().cache()</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> ranks = links.mapValues(v =&gt; <span class="number">1.0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (i &lt;- <span class="number">1</span> to iters) &#123;</span><br><span class="line">  <span class="keyword">val</span> contribs = links.join(ranks).values.flatMap &#123;</span><br><span class="line">    <span class="keyword">case</span> (urls, rank) =&gt;</span><br><span class="line">      <span class="keyword">val</span> size = urls.size</span><br><span class="line">      urls.map(url =&gt; (url, rank / size))</span><br><span class="line">  &#125;</span><br><span class="line">  ranks = contribs.reduceByKey(_ + _).mapValues(<span class="number">0.15</span> + <span class="number">0.85</span> * _)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Force action, like ranks.saveAsTextFile(outputPath)</span></span><br><span class="line">ranks.foreach(_ =&gt; <span class="type">Unit</span>)</span><br></pre></td></tr></table></figure>
+<p>上面的代码应该不难理解，它首先通过<code>groupByKey</code>得到每个url链接的urls列表，初始化每个url的初始rank为1.0，然后通过<code>join</code>将每个url的rank均摊到其链接的urls上，最后通过<code>reduceByKey</code>规约来自每个url贡献的rank，经过若干次迭代后得到最终的<code>ranks</code>，为了方便测试，上面代码29行我改成了一个空操作的action，用于触发计算。</p>
+<h2 id="优化一-Cache-amp-Checkpoint"><a href="#优化一-Cache-amp-Checkpoint" class="headerlink" title="优化一(Cache&amp;Checkpoint)"></a><span id="opt1">优化一(Cache&amp;Checkpoint)</span></h2><p>从原始版本的代码来看，有些童鞋可能会觉得有必要对<code>ranks</code>做cache，避免每次迭代重计算，我们不妨先运行下原始代码，看看是否真的有必要，下图是指定迭代次数为3时的Job DAG图，其中蓝色的点表示被cache过。</p>
+<p><img src="/images/pagerank-iter-3-dag.png" alt="pagerank-iter-3-dag | center"></p>
+<p>从上图可以看到，<code>ranks</code>没有被cache，3次迭代计算是在一个job里一气呵成的，所以没必要对<code>ranks</code>做cache，因为从整个代码来看，在迭代循环里没有出现action方法，所以迭代循环中不会触发job，仅仅是组织RDD之间的依赖关系。</p>
+<p>但是，一般来说迭代次数都比较大，如果迭代1000甚至10000次，上述RDD依赖关系将变得非常长。一方面会增加driver的维护压力，很可能导致driver OOM；另一方面可能导致失败重算，单个task失败后，会根据RDD的依赖链从头开始计算。所以从容错以及可用性来说，上述代码实现是不可取的。所幸，Spark提供了checkpoint机制，来实现断链及中间结果持久化。</p>
+<p>使用checkpoint，我们来改造上述迭代循环，在每迭代若干次后做一次checkpoint，保存中间结果状态，并切断RDD依赖关系链，迭代循环代码改造如下：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="keyword">var</span> lastCheckpointRanks: <span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">Double</span>)] = <span class="literal">null</span></span><br><span class="line"><span class="keyword">for</span> (i &lt;- <span class="number">1</span> to iters) &#123;</span><br><span class="line">  <span class="keyword">val</span> contribs = links.join(ranks).values.flatMap &#123;</span><br><span class="line">    <span class="keyword">case</span> (urls, rank) =&gt;</span><br><span class="line">      <span class="keyword">val</span> size = urls.size</span><br><span class="line">      urls.map(url =&gt; (url, rank / size))</span><br><span class="line">  &#125;</span><br><span class="line">  ranks = contribs.reduceByKey(_ + _).mapValues(<span class="number">0.15</span> + <span class="number">0.85</span> * _)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (i % <span class="number">10</span> == <span class="number">0</span> &amp;&amp; i != iters) &#123;</span><br><span class="line">    ranks.cache().setName(<span class="string">s"iter<span class="subst">$i</span>: ranks"</span>)</span><br><span class="line">    ranks.checkpoint()</span><br><span class="line">    <span class="comment">// Force action, just for trigger calculation</span></span><br><span class="line">    ranks.foreach(_ =&gt; <span class="type">Unit</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (lastCheckpointRanks != <span class="literal">null</span>) &#123;</span><br><span class="line">      lastCheckpointRanks.getCheckpointFile.foreach &#123; ckp =&gt;</span><br><span class="line">        <span class="keyword">val</span> p = <span class="keyword">new</span> <span class="type">Path</span>(ckp)</span><br><span class="line">        <span class="keyword">val</span> fs = p.getFileSystem(sc.hadoopConfiguration)</span><br><span class="line">        fs.delete(p, <span class="literal">true</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      lastCheckpointRanks.unpersist(blocking = <span class="literal">false</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    lastCheckpointRanks = ranks</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Final force action, like ranks.saveAsTextFile(outputPath)</span></span><br><span class="line">ranks.foreach(_ =&gt; <span class="type">Unit</span>)</span><br></pre></td></tr></table></figure></p>
+<p>上述代码中每隔10次迭代，做一次checkpoint，并强制触发计算。一定要注意，在做checkpoint前，一定要对要checkpoint的RDD做cache，否则会重计算。这里简单描述下checkpoint的计算流程: 调用<code>rdd.checkpoint()</code>仅仅是标记该RDD需要做checkpoint，并不会触发计算，只有在遇到action方法后，才会触发计算，在job执行完毕后，会启动checkpoint计算，如果RDD依赖链中有RDD被标记为checkpoint，则会对这个RDD再次触发一个job执行checkpoint计算。所以在checkpoint前，对RDD做cache，可以避免checkpoint计算过程中重新根据RDD依赖链计算。在上述代码中变量<code>lastCheckpointRanks</code>记录上一次checkpoint的结果，在一次迭代完毕后，删除上一次checkpoint的结果，并更新变量<code>lastCheckpointRanks</code>。</p>
+<p>为了方便测试，我每隔3次迭代做一次checkpoint，总共迭代5次，运行上述代码，整个计算过程中会有一次checkpoint，根据前面checkpoint的计算描述可知，在代码15行处会有两个job，一个是常规计算，一个是checkpoint计算，checkpoint计算是直接从缓存中拿数据写到hdfs，所以计算开销是很小的。加上最终的一个job，整个计算过程中总共有3个job，下面是测试过程中job的截图，注意图中对应的行号跟上面贴的代码没有对应关系哦。</p>
+<p><img src="/images/pagerank-checkpoint-jobs.png" alt="jobs | center"></p>
+<p>第一个job执行3次迭代计算，并将结果缓存起来，下面是第一个job的DAG:</p>
+<p><img src="/images/pagerank-iter-3-dag-cache.png" alt="iter-3-dag-cache | center"></p>
+<p>第二个job做checkpoint，由于需要checkpoint的RDD已经缓存了，所以不会重新计算，它会跳过依赖链中前面的RDD，直接从缓存中读取数据写到hdfs，所以前面的依赖链显示是灰色的:</p>
+<p><img src="/images/pagerank-checkpoint-dag.png" alt="checkpoint-dag | center"></p>
+<p>第三个job执行剩下的2次迭代计算，由于前3次迭代的结果已经做过checkpoint，所以这里的依赖链中不包含前3次迭代计算的依赖链，也就是说checkpoint起到了断链作用，这样driver维护的依赖链就不会越变越长了:</p>
+<p><img src="/images/pagerank-after-checkpoint-dag.png" alt="after-checkpoint-dag | center"></p>
+<blockquote>
+<p>Tips: 对于迭代型任务，每迭代若干次后，做一次checkpoint</p>
+</blockquote>
+<p>到这里，我们有一个稍微比较稳定的版本了，我们称之为V2。但是，一般实际场景中，<code>links</code>可能会特别大，建议使用<code>MEMORY_ONLY_SER</code>，并加上压缩参数<code>spark.rdd.compress=true</code>，这样可以大大降低内存的使用，同时性能不至于损失太多。在上面加了checkpoint的代码基础上，把所有使用cache的地方全部改成如下形式:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Submit conf: spark.rdd.compress=true</span></span><br><span class="line">links.persist(<span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY_SER</span>).setName(<span class="string">"links"</span>)</span><br><span class="line">...</span><br><span class="line">ranks.persist(<span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY_SER</span>).setName(<span class="string">s"iter<span class="subst">$i</span>: ranks"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>相同资源和参数下分别使用默认的<code>MEMORY_ONLY</code>和带压缩的<code>MEMORY_ONLY_SER</code>测试3次迭代的性能，下图是使用默认的<code>MEMORY_ONLY</code>方式缓存时，<code>links</code>在内存中的大小，可以看到<code>links</code>缓存后占用了6.6G内存:</p>
+<p><img src="/images/links-string-cache.png" alt="links-string-cache | center"></p>
+<p>改用带压缩的<code>MEMORY_ONLY_SER</code>的缓存方式后，<code>links</code>缓存后只占用了861.8M内存，仅为之前6.6G的12%:</p>
+<p><img src="/images/links-string-cache-compress.png" alt="links-string-cache-compress | center"></p>
+<p>通过在日志中打印运行时间，得到使用<code>MEMORY_ONLY</code>时运行时间为333s，使用<code>MEMORY_ONLY_SER</code>时运行时间为391s，性能牺牲了17%左右，所以使用<code>MEMORY_ONLY_SER</code>是以牺牲CPU代价来换取内存的一种较为稳妥的方案。在实际使用过程中需要权衡性能以及内存资源情况。</p>
+<blockquote>
+<p>Tips: 内存资源较为稀缺时，缓存方式使用带压缩的<code>MEMORY_ONLY_SER</code>代替默认的<code>MEMORY_ONLY</code></p>
+</blockquote>
+<h2 id="优化二-数据结构"><a href="#优化二-数据结构" class="headerlink" title="优化二(数据结构)"></a>优化二(数据结构)</h2><p>在上述PageRank代码实现中，<code>links</code>中的记录为url -&gt; urls，url类型为<code>String</code>，通常情况下，<code>String</code>占用的内存比<code>Int</code>、 <code>Long</code>等原生类型要多，在PageRank算法中，url完全可以被编码成一个<code>Long</code>型，因为在整个计算过程中根本没有用到url中的内容，这样就可以一定程度上减少<code>links</code>缓存时的内存占用。由于在我的测试数据中，url本身是由数字来表示的，所以在<a href="#opt1">优化一</a>V2代码的基础上再将<code>links</code>的定义改为如下代码，我们将该版本称之为V3:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="keyword">val</span> lines = sc.textFile(inputPath)</span><br><span class="line"><span class="keyword">val</span> links = lines.map &#123; s =&gt;</span><br><span class="line">  <span class="keyword">val</span> parts = s.split(<span class="string">"\\s+"</span>)</span><br><span class="line">  (parts(<span class="number">0</span>).trim.toLong, parts(<span class="number">1</span>).trim.toLong)</span><br><span class="line">&#125;.distinct().groupByKey()</span><br><span class="line">links.persist(storageLevel).setName(<span class="string">"links"</span>)</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>经过测试发现，url改成<code>Long</code>型后，使用<code>MEMORY_ONLY</code>缓存时，如下图所示，<code>links</code>仅占用2.5G，相比为<code>String</code>类型时的6.6G，缩小了一半多。此外，url改成<code>Long</code>型后，运行3次迭代的时间为278s，相比为<code>String</code>类型时的333s，性能提升了17%左右。</p>
+<p><img src="/images/links-long-cache.png" alt="links-long-cache | center"></p>
+<p>使用带压缩的<code>MEMORY_ONLY_SER</code>缓存时，如下图所示，<code>links</code>仅占用549.5M，相比为<code>String</code>类型时的861.8M，也缩小了近一半。此外，url改成<code>Long</code>型后，运行3次迭代的时间为306s，相比为<code>String</code>类型时的391s，性能提升了21%左右。</p>
+<p><img src="/images/links-long-cache-compress.png" alt="links-long-cache-compress | center"></p>
+<blockquote>
+<p>Tips: 实际开发中，尽可能使用原生类型，尤其是Numeric的原生类型(<code>Int</code>, <code>Long</code>等)</p>
+</blockquote>
+<h2 id="优化三-数据倾斜"><a href="#优化三-数据倾斜" class="headerlink" title="优化三(数据倾斜)"></a>优化三(数据倾斜)</h2><p>经过前面两个优化后，基本可以应用到线上跑了，但是，可能还不够，如果我们的数据集中有少数url链接的urls特别多，那么在使用<code>groupByKey</code>初始化<code>links</code>时，少数记录的value(urls)可能会有溢出风险，由于<code>groupByKey</code>底层是用一个<code>Array</code>保存value，如果一个节点链接了数十万个节点，那么要开一个超大的数组，即使不溢出，很可能因为没有足够大的连续内存，导致频繁GC，进而引发OOM等致命性错误，通常我们把这类问题称之为数据倾斜问题。此外，在后续迭代循环中<code>links</code>和<code>ranks</code>的<code>join</code>也可能因为数据倾斜导致部分task非常慢甚至引发OOM，下图是<code>groupByKey</code>和<code>join</code>的示意图，左边是<code>groupByKey</code>后得到每个url链接的urls，底层用数组保存，在<code>join</code>时，shuffle阶段会将来自两个RDD相同key的记录通过网络拉到一个partition中，右边显示对url1的shuffle read，如果url1对应的urls特别多，join过程将会非常慢。<br><img src="/images/pagerank-shuffle-origin.png" alt="shuffle-origin | center"></p>
+<h3 id="对key进行分桶"><a href="#对key进行分桶" class="headerlink" title="对key进行分桶"></a>对key进行分桶</h3><p>首先我们应该考虑避免使用<code>groupByKey</code>，这是导致后续数据倾斜的源头。既然可能存在单个key对应的value(urls)特别多，那么可以将key做一个随机化处理，例如将具有相同key的记录随机分配到10个桶中，这样就相当于把数据倾斜的记录给打散了，其大概原理如下图所示。</p>
+<p><img src="/images/pagerank-random-int-skew.png" alt="random-int-skew | center"></p>
+<p>基于上面的理论基础，我们先得到不用<code>groupByKey</code>的<code>links</code>:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> lines = sc.textFile(inputPath)</span><br><span class="line"><span class="keyword">val</span> links = lines.map &#123; s =&gt;</span><br><span class="line">  <span class="keyword">val</span> parts = s.split(<span class="string">"\\s+"</span>)</span><br><span class="line">  (parts(<span class="number">0</span>).trim.toLong, parts(<span class="number">1</span>).trim.toLong)</span><br><span class="line">&#125;.distinct()</span><br><span class="line">links.persist(storageLevel).setName(<span class="string">"links"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>再分析前面代码里的迭代循环，发现我们之前使用<code>groupByKey</code>很大一部分原因是想要得到每个key对应的urls size，我们可以单独通过<code>reduceByKey</code>来得到，<code>reduceByKey</code>会做本地combine，这个操作shuffle开销很小的:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Count of each url's outs</span></span><br><span class="line"><span class="keyword">val</span> outCnts = links.mapValues(_ =&gt; <span class="number">1</span>).reduceByKey(_ + _)</span><br><span class="line">outCnts.persist(storageLevel).setName(<span class="string">"out-counts"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>现在我们就可以使用<code>cogroup</code>将<code>links</code>、<code>outCnts</code>以及<code>ranks</code>三者join起来了，很快我们会想到使用如下代码:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> contribs = links.cogroup(outCnts, ranks).values.flatMap &#123; pair =&gt;</span><br><span class="line">    <span class="keyword">for</span> (u &lt;- pair._1.iterator; v &lt;- pair._2.iterator; w &lt;- pair._3.iterator)</span><br><span class="line">      <span class="keyword">yield</span> (u, w/v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>但是！但是！但是！这样做还是会跟之前一样出现数据倾斜，因为<code>cogroup</code>执行过程中，在shuffle阶段还是会把<code>links</code>中相同key的记录分到同一个partition，也就说上面代码<code>pair._1.iterator</code>也可能非常大，这个<code>iterator</code>底层也是<code>Array</code>，面临的问题基本没解决。</p>
+<p>所以我们就要考虑使用前面介绍的分桶方法了，对<code>links</code>中的每条记录都随机打散到10个桶中，那么相同key的记录就会被随机分到不同桶中了:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">keyWithRandomInt</span></span>[<span class="type">K</span>, <span class="type">V</span>](rdd: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]): <span class="type">RDD</span>[((<span class="type">K</span>, <span class="type">Int</span>), <span class="type">V</span>)] = &#123;</span><br><span class="line">  rdd.map(x =&gt; ((x._1, <span class="type">Random</span>.nextInt(<span class="number">10</span>)), x._2))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然而，cogroup是按照key进行join的，就是说它把来自多个RDD具有相同key的记录汇聚到一起计算，既然<code>links</code>的key已经被我们改变了，那么<code>outCnts</code>和<code>ranks</code>也要变成跟<code>links</code>相同的形式，才能join到一起去计算:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">expandKeyWithRandomInt</span></span>[<span class="type">K</span>, <span class="type">V</span>](rdd: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)])</span><br><span class="line">  : <span class="type">RDD</span>[((<span class="type">K</span>, <span class="type">Int</span>), <span class="type">V</span>)] = &#123;</span><br><span class="line">  rdd.flatMap &#123; x =&gt;</span><br><span class="line">    <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until <span class="number">10</span>)</span><br><span class="line">      <span class="keyword">yield</span> ((x._1, i), x._2)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>有了这个基础后，我们就可以将前面的<code>cogroup</code>逻辑修改一下，让他们能够顺利join到一块儿去:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> contribs = keyWithRandomInt(links).cogroup(</span><br><span class="line">  expandKeyWithRandomInt(outCnts),</span><br><span class="line">  expandKeyWithRandomInt(ranks)</span><br><span class="line">).values.flatMap &#123; pair =&gt;</span><br><span class="line">  <span class="keyword">for</span> (u &lt;- pair._1.iterator; v &lt;- pair._2.iterator; w &lt;- pair._3.iterator)</span><br><span class="line">    <span class="keyword">yield</span> (u, w/v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们将该版本称之为V4，将上述逻辑整理成如下图，可以看到，其实我们对<code>outCnts</code>和<code>ranks</code>做了膨胀处理，才能保证<code>cogroup</code>shuffle阶段对于<code>links</code>中的每条记录，都能找到与之对应的<code>outCnts</code>和<code>ranks</code>记录。</p>
+<p><img src="/images/pagerank-shuffle-skewed-process.png" alt="shuffle-skewed-process | center"></p>
+<p>其实这种做法会极大地损失性能，虽然这样做可能把之前OOM的问题搞定，能够不出错的跑完，但是由于数据膨胀，实际跑起来是非常慢的，不建议采用这种方法处理数据倾斜问题。这里仅仅引出一些问题让我们更多地去思考。</p>
+<h3 id="拆分发生倾斜的key"><a href="#拆分发生倾斜的key" class="headerlink" title="拆分发生倾斜的key"></a>拆分发生倾斜的key</h3><p>有了前面的分析基础，我们知道对key分桶的方法，是不加区分地对所有key都一股脑地处理了，把不倾斜的key也当做倾斜来处理了，其实大部分实际情况下，只有少数key有倾斜，如果大部分key都倾斜那就不是数据倾斜了，那叫数据量特别大。所以我们可以考虑对倾斜的key和不倾斜的key分别用不同的处理逻辑，对不倾斜的key，还是用原来<code>groupByKey</code>和<code>join</code>方式来处理，对倾斜的key可以考虑使用<code>broadcast</code>来实现map join，因为倾斜的key一般来说是可数的，其对应的<code>outCnts</code>和<code>ranks</code>信息在我们PageRank场景里也不会很大，所以可以使用广播。</p>
+<p>首先我们把链接的urls个数超过1000000的key定义为倾斜key，使用下面代码将<code>links</code>切分为两部分:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> lines = sc.textFile(path)</span><br><span class="line"><span class="keyword">val</span> links = lines.map &#123; s =&gt;</span><br><span class="line">  <span class="keyword">val</span> parts = s.split(<span class="string">"\\s+"</span>)</span><br><span class="line">  (parts(<span class="number">0</span>).trim.toLong, parts(<span class="number">1</span>).trim.toLong)</span><br><span class="line">&#125;.distinct()</span><br><span class="line">links.persist(storageLevel).setName(<span class="string">"links"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Count of each url's outs</span></span><br><span class="line"><span class="keyword">val</span> outCnts = links.mapValues(_ =&gt; <span class="number">1</span>L).reduceByKey(_ + _)</span><br><span class="line">  .persist(storageLevel).setName(<span class="string">"out-counts"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Init ranks</span></span><br><span class="line"><span class="keyword">var</span> ranks = outCnts.mapValues(_ =&gt; <span class="number">1.0</span>)</span><br><span class="line">  .persist(storageLevel).setName(<span class="string">"init-ranks"</span>)</span><br><span class="line"><span class="comment">// Force action, just for trigger calculation</span></span><br><span class="line">ranks.foreach(_ =&gt; <span class="type">Unit</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> skewedOutCnts = outCnts.filter(_._2 &gt;= <span class="number">1000000</span>).collectAsMap()</span><br><span class="line"><span class="keyword">val</span> bcSkewedOutCnts = sc.broadcast(skewedOutCnts)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> skewed = links.filter &#123; link =&gt;</span><br><span class="line">  <span class="keyword">val</span> cnts = bcSkewedOutCnts.value</span><br><span class="line">  cnts.contains(link._1)</span><br><span class="line">&#125;.persist(storageLevel).setName(<span class="string">"skewed-links"</span>)</span><br><span class="line"><span class="comment">// Force action, just for trigger calculation</span></span><br><span class="line">skewed.foreach(_ =&gt; <span class="type">Unit</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> noSkewed = links.filter &#123; link =&gt;</span><br><span class="line">  <span class="keyword">val</span> cnts = bcSkewedOutCnts.value</span><br><span class="line">  !cnts.contains(link._1)</span><br><span class="line">&#125;.groupByKey().persist(storageLevel).setName(<span class="string">"no-skewed-links"</span>)</span><br><span class="line"><span class="comment">// Force action, just for trigger calculation</span></span><br><span class="line">noSkewed.foreach(_ =&gt; <span class="type">Unit</span>)</span><br><span class="line"></span><br><span class="line">links.unpersist(blocking = <span class="literal">false</span>)</span><br></pre></td></tr></table></figure></p>
+<p>首先统计出链接数超过1000000的key，广播到每个计算节点，然后过滤<code>links</code>，如果key在广播变量中则为倾斜的数据，否则为非倾斜的数据，过滤完毕后原始<code>links</code>被销毁。下面就可以在迭代循环中分别处理倾斜的数据<code>skewed</code>和非倾斜的数据<code>noSkewed</code>了。</p>
+<p>对<code>noSkewed</code>使用原来的方法:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> noSkewedPart = noSkewed.join(ranks).values.flatMap &#123;</span><br><span class="line">  <span class="keyword">case</span> (urls, rank) =&gt;</span><br><span class="line">    <span class="keyword">val</span> size = urls.size</span><br><span class="line">    urls.map(url =&gt; (url, rank / size))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>对<code>skewed</code>使用<code>broadcast</code>方式实现map join，类似地，要把倾斜的key对应的rank收集起来广播，之前的<code>cogroup</code>中的<code>outCnts</code>和<code>ranks</code>在这里就都被广播了，所以可以直接在<code>map</code>操作里完成对<code>skewed</code>中的数据处理:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> skewedRanks = ranks.filter &#123; rank =&gt;</span><br><span class="line">  <span class="keyword">val</span> cnts = bcSkewedOutCnts.value</span><br><span class="line">  cnts.contains(rank._1)</span><br><span class="line">&#125;.collectAsMap()</span><br><span class="line"><span class="keyword">val</span> bcSkewedRanks = sc.broadcast(skewedRanks)</span><br><span class="line"><span class="keyword">val</span> skewedPart = skewed.map &#123; link =&gt;</span><br><span class="line">  <span class="keyword">val</span> cnts = bcSkewedOutCnts.value</span><br><span class="line">  <span class="keyword">val</span> ranks = bcSkewedRanks.value</span><br><span class="line">  (link._2, ranks(link._1)/cnts(link._1))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后将两部分的处理结果<code>union</code>一下:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> contribs = noSkewedPart.union(skewedPart)</span><br></pre></td></tr></table></figure></p>
+<p>后面的逻辑就跟前面一样了，我们将该版本称之为V5。分别测V3和V5版本代码，迭代3次，在没有数据倾斜的情况下，相同数据、资源和参数下V3运行时间306s，V5运行时间311s，但是在有数据倾斜的情况下，相同数据、资源和参数下V3运行时间722s并伴有严重的GC，V5运行时间472s。可以发现V5版本在不牺牲性能的情况可以解决数据倾斜问题，同时还能以V3相同的性能处理不倾斜的数据集，所以说V5版本更具通用性。</p>
+<blockquote>
+<p>Tips: 对有倾斜的数据集，将倾斜的记录和非倾斜的记录切分，对倾斜的记录使用map join来解决由于数据倾斜导致少数task非常慢的问题</p>
+</blockquote>
+<h2 id="优化四-资源利用最大化"><a href="#优化四-资源利用最大化" class="headerlink" title="优化四(资源利用最大化)"></a>优化四(资源利用最大化)</h2><p>通过前面几个优化操作后，V5版本基本可以用于线上例行化跑作业了，但是部署到线上集群，面临如何给资源的困扰。为了测试方便，测试数据集中没有数据倾斜，下面就拿V5来测试并监控资源利用情况。</p>
+<p>原始测试数据(使用带压缩的<code>MEMORY_ONLY_SER</code>缓存方式)情况如下表:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">磁盘中大小</th>
+<th style="text-align:center"><code>links</code>缓存大小</th>
+<th style="text-align:center">分区数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">1.5g</td>
+<td style="text-align:center">549.5M</td>
+<td style="text-align:center">20</td>
+</tr>
+</tbody>
+</table>
+<p>运行3次迭代，一开始大概估计使用如下资源，使用5个executor，每个executor配2个core，一次并行运行10个partition，20个partition 2轮task就可以跑完:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">driver_mem</th>
+<th style="text-align:center">num_executor</th>
+<th style="text-align:center">executor_mem</th>
+<th style="text-align:center">executor_cores</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">4g</td>
+<td style="text-align:center">5</td>
+<td style="text-align:center">2g</td>
+<td style="text-align:center">2</td>
+</tr>
+</tbody>
+</table>
+<p>在提交参数中加上如下额外JVM参数，表示分别对driver和executor在运行期间开启<a href="https://docs.oracle.com/javacomponents/index.html" target="_blank" rel="noopener">Java Flight Recorder</a>:<br><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">spark.driver.extraJavaOptions -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=filename=<span class="symbol">&lt;LOG_DIR&gt;</span>/driver.jfr,dumponexit=true</span><br><span class="line">spark.executor.extraJavaOptions -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=filename=<span class="symbol">&lt;LOG_DIR&gt;</span>/excutor.jfr,dumponexit=true</span><br></pre></td></tr></table></figure></p>
+<p>运行完毕后，统计运行时间为439s，将<code>driver.jfr</code>和<code>excutor.jfr</code>拿到开发机上来，打开jmc分析工具(位于java安装目录<code>bin/</code>下面)，首先我们看driver的监控信息，主页如下图所示，可以看到driver的cpu占用是很小的:</p>
+<p><img src="/images/driver-control.png" alt="driver-control | center"></p>
+<p>切到内存tab，把物理内存的两个勾选去掉，可以看到driver的内存使用曲线，我们给了4g，但是实际上最大也就用了差不多1g，看下图中的GC统计信息，没有什么瓶颈。</p>
+<p><img src="/images/driver-heap.png" alt="driver-heap | center"></p>
+<p>所以给driver分配4g是浪费的，我们把它调到2g，虽然实际上只用了大概1g，这里多给driver留点余地，其他配置不变，重新提交程序，统计运行时间为443s，跟4g时运行时间439s差不多。</p>
+<p>再来看executor的监控信息，主页如下图所示，可以看到executor的cpu利用明显比driver多，因为要做序列化、压缩以及排序等。</p>
+<p><img src="/images/executor-control.png" alt="executor-control | center"></p>
+<p>再切到内存tab，可以看到executor的内存使用波动较大，最大内存使用差不多1.75g，我们给了2g，还是相当合适的。但是看下面的GC统计信息，发现最长暂停4s多，而且垃圾回收次数也较多。</p>
+<p><img src="/images/executor-heap.png" alt="executor-heap | center"></p>
+<p>为此，我们切到”GC时间”tab，可以看到，GC还是比较频繁的，还有一次持续4s多的GC，看右边GC类型，对最长暂停时间从大到小排序，居然有几个SerialOld类型的GC，其他一部分是ParNew类型GC，一部分是CMS类型的GC，没有出现FULL GC，下面先分析内存使用，回过头来再分析这里出现的诡异SerialOld。</p>
+<p><img src="/images/executor-gc.png" alt="executor-gc | center"></p>
+<p>我们再看下堆内存大对象占用情况，大对象主要是在<code>ExternalAppendOnlyMap</code>和<code>ExternalSorter</code>中，<code>ExternalAppendOnlyMap</code>用于存放shuffle read的数据，<code>ExternalSorter</code>用于存放shuffle write前的数据，用于对记录排序，这两个数据结构底层使用<code>Array</code>存储数据，所以这里表现为大对象。</p>
+<p><img src="/images/executor-heap-info.png" alt="executor-heap-info | center"></p>
+<p>切换到TLAB，再细化到小对象，可以看到大部分是<code>Long</code>型(url)，展开堆栈跟踪，大部分是用在shuffle阶段，因为在<code>join</code>时，一方面会读取<code>groupByKey</code>后的<code>links</code>，用于做shuffle write，一方面在shuffle read阶段，将相同key的<code>links</code>和<code>ranks</code>拉到一起做<code>join</code>计算。</p>
+<p><img src="/images/executor-heap-info2.png" alt="executor-heap-info2 | center"></p>
+<p>所以总体来说，内存情况是符合业务逻辑的，没有出现莫名其妙的内存占用。让人有点摸不清头脑的是，GC信息中有SerialOld这玩意儿，我明明用了CMS垃圾回收方式，经过一番Google查阅资料，”Concurrent Mode Failure”可能导致Serial Old的出现，查阅”Concurrent Mode Failure”发生的原因: 当CMS GC正进行时，此时有新的对象要进入老年代，但是老年代空间不足。仔细分析，个人觉得可能是因为CMS GC后存在较多的内存碎片，而我们的程序在shuffle阶段底层使用<code>Array</code>，需要连续内存，导致CMS GC过程中出现了”Concurrent Mode Failure”，才退化到Serial Old，Serial Old是采用标记整理回收算法，回收过程中会整理内存碎片。这样看来，应该是CMS GC过程中，老年代空间不足导致的，从两个方面考虑优化下，一是增加老年代内存占比，二是减小参数<code>-XX:CMSInitiatingOccupancyFraction</code>，降低触发CMS GC的阈值，让CMS GC及早回收老年代。</p>
+<p>首先我们增加老年代内存占比，也就是降低新生代内存占比，默认<code>-XX:NewRatio=2</code>，我们把它改成<code>-XX:NewRatio=3</code>，将老年代内存占比由2/3提升到3/4，重新提交程序，得到<code>executor.jfr</code>，打开GC监控信息，发现有很大的改善，不在出现Serial Old类型的GC了，最长暂停时间从原来的4s降低到600ms左右，整体运行时间从448s降低到436s。</p>
+<p><img src="/images/executor-gc2.png" alt="executor-gc2 | center"></p>
+<p>把上述<code>-XX:NewRatio=3</code>去掉，设置参数<code>-XX:CMSInitiatingOccupancyFraction=60</code>，重新提交程序，得到executor GC的监控信息，发现GC最大暂停时间也降下来了，但是由于老年代GC的频率加大了，整体运行时间为498s，比原来的436s还要长。</p>
+<p><img src="/images/executor-gc3.png" alt="executor-gc3 | center"></p>
+<p>综合考虑以上信息，增加executor的jvm启动参数<code>-XX:NewRatio=3</code>，能把GC状态调整到一个较优的状态。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spark给我们提供了一种简单灵活的大数据编程框架，但是对于很多实际问题的处理，还应该多思考下如何让我们写出来的应用程序更高效更节约，以上几个调优点是可以推广到其他应用的，在我们编写spark应用程序时，通过这种思考也可以加速我们对spark的理解。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/spark-app-optimize.html">https://sharkdtu.github.io/posts/spark-app-optimize.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/spark-cache-benchmark.html" rel="next" title="Spark Cache性能测试">
+                <i class="fa fa-chevron-left"></i> Spark Cache性能测试
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/spark-sql-join.html" rel="prev" title="Spark SQL 之 Join 实现">
+                Spark SQL 之 Join 实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#PageRank基本原理介绍"><span class="nav-number">1.</span> <span class="nav-text">PageRank基本原理介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark-PageRank-Example"><span class="nav-number">2.</span> <span class="nav-text">Spark PageRank Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化一-Cache-amp-Checkpoint"><span class="nav-number">3.</span> <span class="nav-text">优化一(Cache&amp;Checkpoint)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化二-数据结构"><span class="nav-number">4.</span> <span class="nav-text">优化二(数据结构)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化三-数据倾斜"><span class="nav-number">5.</span> <span class="nav-text">优化三(数据倾斜)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#对key进行分桶"><span class="nav-number">5.1.</span> <span class="nav-text">对key进行分桶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拆分发生倾斜的key"><span class="nav-number">5.2.</span> <span class="nav-text">拆分发生倾斜的key</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化四-资源利用最大化"><span class="nav-number">6.</span> <span class="nav-text">优化四(资源利用最大化)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

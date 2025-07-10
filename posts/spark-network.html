@@ -1,0 +1,902 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="spark,大数据,分布式计算,network,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对">
+<meta name="keywords" content="spark,大数据,分布式计算,network">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark 底层网络模块">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/spark-network.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-network-netty-overview.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-network-basic.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-network-protocol.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-network-messagewithheader.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/spark-network-handler.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.188Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark 底层网络模块">
+<meta name="twitter:description" content="对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/spark-network-netty-overview.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Spark 底层网络模块 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark 底层网络模块
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-12T22:11:29+08:00" content="2016-12-12">
+              2016-12-12
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">spark</a>
+        
+          <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+          <a href="/tags/network/" rel="tag">network</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对于一个优雅的工程师来说，不会在系统中同时使用具有重复功能的框架，否则会使得系统越来越重，所以自spark-1.6开始，通过netty封装了一套简洁的类似于akka actor模式的RPC接口，逐步抛弃akka这个大框架。从spark-2.0起，所有的网络功能都是通过netty来实现。<a id="more"></a></p>
+<h2 id="系统抽象"><a href="#系统抽象" class="headerlink" title="系统抽象"></a>系统抽象</h2><p>在介绍spark网络模块前，我们先温习下netty的基本工作流程。无论是服务器还是客户端都会关联一个channel(socket)，channel上会绑定一个pipeline，pipeline绑定若干个handler，用来专门用来处理和业务有关的东西，handler有DownHandler和UpHandler两种，DownHandler用来处理发包，UpHandler用来处理收包，大致过程如下图所示。</p>
+<p><img src="/images/spark-network-netty-overview.png" width="500" height="500" alt="spark-network-netty-overview" align="center"></p>
+<p>Spark的底层网络实现也是遵循上图所示流程，其总体实现流程如下图所示。客户端发送请求消息，经过Encoder(一种DownHandler)编码，加上包头信息，再通过网络发给服务端，服务端收到消息后，首先经过TransportFrameDecoder(一种UpHandler)处理粘包拆包，得到消息类型和消息体，然后经过Decoder解析消息类型，得到一个个具体的请求消息，最后由TransportChannelHandler处理具体的请求消息，并根据具体的消息类型判断是否返回一个响应。类似地，响应消息传给客户端也是先经过Encoder编码，客户端先通过TransportFrameDecoder、Decoder解包消息，再通过TransportChannelHandler处理具体的响应消息。</p>
+<p><img src="/images/spark-network-basic.png" width="500" height="500" alt="spark-network-basic" align="center"></p>
+<p>整个网络模型非常清晰简单，最核心的当属消息抽象以及如何定义消息传输和处理，即上图中的Message的定义以及编解码传输等，下面详细介绍spark网络模块的消息抽象以及相关handler的定义。</p>
+<h3 id="消息抽象"><a href="#消息抽象" class="headerlink" title="消息抽象"></a>消息抽象</h3><p>总结起来，Spark中定义三种类型的消息：RPC消息、ChunkFetch消息以及Stream消息。Message是这些消息的抽象接口，它定义了三个关键接口，分别得到消息类型、消息体以及判断消息体是否编码在header中，消息体统一由ManagedBuffer表示，ManagedBuffer抽象了JAVA NIO ByteBuffer、Netty ByteBuf以及File Segment，所以无论是ByteBuffer、ByteBuf还是File Segment，都可以表示为ManagedBuffer。如下图列出所有spark中涉及到的具体消息，下面分别详细阐述各种消息。</p>
+<p><img src="/images/spark-network-protocol.png" width="500" height="400" alt="spark-network-protocol" align="center"></p>
+<p>RPC消息用于抽象所有spark中涉及到RPC操作时需要传输的消息，通常这类消息很小，一般都是些控制类消息，在spark-1.6以前，RPC都是通过akka来实现的，自spark-1.6开始逐渐把akka剔除，通过netty实现，所以在spark-network公共模块中定义该类消息，其包括RpcRequest、OneWayMessage、RpcResponse以及RpcFailure四种消息。RpcRequest封装RPC请求消息，这类RPC请求是需要得到一个RPC响应的，RpcRequest除了消息体外，还包括一个requestId字段，用于唯一标识一个RPC请求，与RpcRequest对应地，有两种RPC响应消息，RpcResponse是RPC调用正常返回的响应消息，RpcFailure是RPC调用异常返回的响应消息，同样地，它们除了消息体外也包括requestId字段，该字段用于对应RpcRequest。OneWayMessage作为另一种RPC请求消息，但是这类RPC请求是不需要响应的，所以它只包含消息体，不需要诸如requestId等字段来唯一标识，该消息被发送后可不用管它。</p>
+<p>ChunkFetch消息用于抽象所有spark中涉及到数据拉取操作时需要传输的消息，它用于shuffle数据以及RDD Block数据传输。在shuffle阶段，reduce task会去拉取map task结果中的对应partition数据，这需要发起一个ChunkFetch；另外，当RDD被缓存后，如果节点上没有所需的RDD Block，则会发起一个ChunkFetch拉取其他节点上的RDD Block。ChunkFetch消息包括ChunkFetchRequest、ChunkFetchSuccess以及ChunkFetchFailure三种消息。ChunkFetchRequest封装ChunkFetch请求消息，其只包括StreamChunkId字段，没有消息体，StreamChunkId包括streamId和chunkIndex两个字段，streamId标识这次chunk fetch，chunkIndex标识fetch的数据块，通常一次fetch可能会fetch多个chunk。ChunkFetchSuccess是成功Fetch后的响应消息，ChunkFetchFailure是Fetch失败的响应消息，它们包含了Fetch的消息体外，还包括StreamChunkId，以对应ChunkFetchRequest。</p>
+<p>Stream消息很简单，主要用于driver到executor传输jar、file文件等。Stream消息包括StreamRequest、StreamResponse以及StreamFailure三种消息，其中StreamRequest表示Stream请求消息，只包含一个streamId，标识这个请求。StreamResponse表示Stream成功响应消息，包含streamId以及响应的字节数，并后面跟数据内容，实际使用时，客户端会根据响应中的字节数进一步获取实际内容。StreamFailure表示Stream失败的响应消息，包含streamId以及异常信息。executor需要获取相关jar包或file文件时，会发起一个StreamRequest消息给driver，driver会返回一个StreamResponse，executor根据响应中的字节数来进一步去截获后续数据内容。</p>
+<h3 id="Handler定义"><a href="#Handler定义" class="headerlink" title="Handler定义"></a>Handler定义</h3><p>一个message从被发送到被接收需要经过”MessageEncoder-&gt;网络-&gt;TransportFrameDecoder-&gt;MessageDecoder”，下面按照这一过程详细阐述各handler的作用。</p>
+<p>一个message进入网络前，需要经过MessageEncoder编码，加上包头信息，以便后续收包时正确粘包拆包。头信息主要是包括三部分：</p>
+<ul>
+<li>整个包的长度</li>
+<li>消息类型</li>
+<li>除消息体外的消息元数据，例如RpcRequest消息的元数据信息包括requestId和消息长度bodysize</li>
+</ul>
+<p><img src="/images/spark-network-messagewithheader.png" width="400" height="200" alt="message-with-header" align="center"></p>
+<p>经过上述编码后，一个个Message被编码成一个个MessageWithHeader发送到网络中，接收端收到数据后，首先通过TransportFrameDecoder和MessageDecoder来解码出一个个具体的Message，这里就涉及到粘包拆包问题，这也是为什么在编码阶段在头部加上frame length的原因。TransportFrameDecoder在解码过程中，首先读取8字节的frame length(Long型)，用frame length减去8就是除frame length外其他部分的长度，即为message type、message meta、message body三部分的长度，循环读取直到这个长度，把读到的Bytebuf交给MessagerDecoder，MessagerDecoder首先解析出message type，根据message type去反序列化(实例化)出具体的Message，例如message type如果是RpcRequest，那么则继续解析requestId和body size，根据body size解析后续字节得到body，并构造出RpcRequest对象。反序列化得到的message对象会交给TransportChannelHandler，TransportChannelHandler里封装了TransportRequestHandler和TransportResponseHandler，分别处理RequestMessage和ResponseMessage，在服务端，TransportChannelHandler一般处理RequestMessage，在客户端，TransportChannelHandler一般处理ResponseMessage。</p>
+<p><img src="/images/spark-network-handler.png" width="600" height="300" alt="spark-network-handler" align="center"></p>
+<h2 id="系统消息流程"><a href="#系统消息流程" class="headerlink" title="系统消息流程"></a>系统消息流程</h2><p>根据上述系统抽象可以看出，spark-network将RPC、ChunkFetch以及Stream统一抽象出来，其中任意一种功能都依赖于spark-network的实现，下面分别详细阐述这三种功能的一般使用流程。</p>
+<h3 id="RPC消息处理"><a href="#RPC消息处理" class="headerlink" title="RPC消息处理"></a>RPC消息处理</h3><p>客户端发送一个RPC请求消息(RpcRequest或OneWayMessage)，经过编码到网络，解码到服务端的TransportChannelHandler，RPC请求会被交给TransportRequestHandler处理，而TransportRequestHandler中包括了一个RpcHandler专门用来处理RPC请求消息，RpcHandler中有两个关键receive接口，带callback和不带callback参数分别处理RpcRequest和OneWayMessage。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">RpcHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  public <span class="keyword">abstract</span> void receive(</span><br><span class="line">      <span class="type">TransportClient</span> client,</span><br><span class="line">      <span class="type">ByteBuffer</span> message,</span><br><span class="line">      <span class="type">RpcResponseCallback</span> callback);</span><br><span class="line"></span><br><span class="line">  public void receive(<span class="type">TransportClient</span> client, <span class="type">ByteBuffer</span> message) &#123;</span><br><span class="line">    receive(client, message, <span class="type">ONE_WAY_CALLBACK</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当收到RpcRequest时，处理后会在callback中发送响应消息，成功则发送RpcResponse，失败则发送RpcFailure。当收到OneWayMessage时，处理后则直接不用管，客户端也不用关心是否被处理了。</p>
+<p>类似地，服务端发送RPC响应消息(RpcResponse或RpcFailure)，也经过编码到网络，解码到客户端的TransportChannelHandler，RPC响应会被交给TransportResponseHandler处理，在客户端发送RpcRequest的时候，会注册一个RpcResponseCallback，通过requestId来标识，这样在收到响应消息的时候，根据响应消息中的requestId就可以取出对应的RpcResponseCallback对响应消息进行处理。</p>
+<h3 id="ChunkFetch消息处理"><a href="#ChunkFetch消息处理" class="headerlink" title="ChunkFetch消息处理"></a>ChunkFetch消息处理</h3><p>对于ChunkFetch请求，客户端一般需要首先发送一个RPC请求，告诉服务端需要拉取哪些数据，服务端收到这个RPC请求后，会为客户端准备好需要的数据。上一节也提到，RPC请求会通过RpcHandler来处理，当RpcHandler接收到ChunkFetch的RPC请求消息时，则会为客户端准备好它需要的数据，这些即将要被fetch的数据是通过一个StreamManager来管理的，所以RpcHandler中有一个接口专门获取StreamManager，StreamManager为后续到来的ChunkFetchRequest服务。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">RpcHandler</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  public <span class="keyword">abstract</span> <span class="type">StreamManager</span> getStreamManager();</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>RPC请求成功后，服务端表示数据准备好，客户端发送ChunkFetchRequest消息，服务端收到该消息后，最后会交给TransportRequestHandler处理，TransportRequestHandler则根据请求消息中的StreamChunkId，从前面准备好的StreamManager中拿到对应的数据，封装成ChunkFetchSuccess返回给客户端，如果出错或找不到对应的数据，则返回ChunkFetchFailure。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">StreamManager</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  public <span class="keyword">abstract</span> <span class="type">ManagedBuffer</span> getChunk(long streamId, int chunkIndex);</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>响应消息到达客户端后，最后会被交给TransportResponseHandler处理，在客户端发送ChunkFetchRequest的时候，会注册一个ChunkReceivedCallback，通过StreamChunkId来标识，这样在收到响应消息的时候，根据响应消息中的StreamChunkId就可以取出对应的ChunkReceivedCallback对响应消息进行处理。</p>
+<h3 id="Stream消息处理"><a href="#Stream消息处理" class="headerlink" title="Stream消息处理"></a>Stream消息处理</h3><p>Stream类似于ChunkFetch，主要用于文件服务。客户端一般也需要首先发送一个RPC请求，告诉服务端需要打开一个stream，服务端收到这个RPC请求后，会为客户端打开所需的文件流。</p>
+<p>RPC请求成功后，服务端表示数据准备好，客户端发送StreamRequest消息，服务端收到该消息后，最后会交给TransportRequestHandler处理，TransportRequestHandler则根据请求消息中的streamId，从准备好的StreamManager中打开对应的文件流，同时返回StreamResponse给客户端，如果出错或找不到对应的流，则返回ChunkFetchFailure。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">StreamManager</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  public <span class="type">ManagedBuffer</span> openStream(<span class="type">String</span> streamId)；</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>响应消息到达客户端后，最后会被交给TransportResponseHandler处理，在客户端发送StreamRequest的时候，会注册一个StreamCallback，同时维护一个StreamCallback的队列，这样在收到响应消息的时候，就会从队列中取出StreamCallback去处理截获的数据。注意这里说的是截获的数据，这块有点不一样的是，收到响应消息后，会根据响应消息中数据大小，在TransportFrameDecoder对象中设置截获器Interceptor对象，TransportFrameDecoder在接收数据的时候会被这个截获器Interceptor截取它想要的数据。虽然代码看懂了，但是这里却不知道为啥通过截获的方式去拉取文件流数据。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文主要阐述spark-network公共模块，详细分析spark底层网络编解码以及消息处理的抽象，在后续文章中会更加详细地介绍具体spark中的RPC、ShuffleService、BlockTransformService以及FileServer的实现，这些功能服务都是基于spark-network公共模块来实现的。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/spark-network.html">https://sharkdtu.github.io/posts/spark-network.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/spark-shuffle.html" rel="next" title="Spark Shuffle原理及相关调优">
+                <i class="fa fa-chevron-left"></i> Spark Shuffle原理及相关调优
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/spark-cache-benchmark.html" rel="prev" title="Spark Cache性能测试">
+                Spark Cache性能测试 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统抽象"><span class="nav-number">1.</span> <span class="nav-text">系统抽象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息抽象"><span class="nav-number">1.1.</span> <span class="nav-text">消息抽象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handler定义"><span class="nav-number">1.2.</span> <span class="nav-text">Handler定义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统消息流程"><span class="nav-number">2.</span> <span class="nav-text">系统消息流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RPC消息处理"><span class="nav-number">2.1.</span> <span class="nav-text">RPC消息处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ChunkFetch消息处理"><span class="nav-number">2.2.</span> <span class="nav-text">ChunkFetch消息处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stream消息处理"><span class="nav-number">2.3.</span> <span class="nav-text">Stream消息处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

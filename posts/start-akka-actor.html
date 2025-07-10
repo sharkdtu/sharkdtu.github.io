@@ -1,0 +1,907 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="scala,akka,actor,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐Akka的官方文档，里面讲的很清晰，另外，国外一个人的笔记写的相当不错，原理加上其配图讲的非常形象。">
+<meta name="keywords" content="scala,akka,actor">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Akka-actor使用入门">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/start-akka-actor.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐Akka的官方文档，里面讲的很清晰，另外，国外一个人的笔记写的相当不错，原理加上其配图讲的非常形象。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/akka-actor.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.189Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Akka-actor使用入门">
+<meta name="twitter:description" content="学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐Akka的官方文档，里面讲的很清晰，另外，国外一个人的笔记写的相当不错，原理加上其配图讲的非常形象。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/akka-actor.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Akka-actor使用入门 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Akka-actor使用入门
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2014-12-12T21:45:11+08:00" content="2014-12-12">
+              2014-12-12
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/programming-language/" itemprop="url" rel="index">
+                    <span itemprop="name">程序语言</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/scala/" rel="tag">scala</a>
+        
+          <a href="/tags/akka/" rel="tag">akka</a>
+        
+          <a href="/tags/actor/" rel="tag">actor</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>学习scala编程，不可避免的会接触到actor模式，它使得并发编程不再像噩梦般萦绕着开发者，Akka是actor的一个开源实现。由于本人水平有限，自认为还不能把actor设计思想讲明白，所以本文仅仅是一个使用akka-actor的入门参考以及个人的入门心得，其具体原理及设计思想请参考相关资料，推荐<a href="http://doc.akka.io/docs/akka/2.3.7/general/actor-systems.html" target="_blank" rel="noopener">Akka的官方文档</a>，里面讲的很清晰，另外，<a href="http://rerun.me/2014/09/11/introducing-actors-akka-notes-part-1/" target="_blank" rel="noopener">国外一个人的笔记</a>写的相当不错，原理加上其配图讲的非常形象。<a id="more"></a></p>
+<p>下面我通过一个简单例子来阐述akka-actor的使用，假如我们需要编写一个程序，利用<a href="https://zh.wikipedia.org/wiki/%E8%92%99%E5%9C%B0%E5%8D%A1%E7%BE%85%E6%96%B9%E6%B3%95" target="_blank" rel="noopener">蒙特卡洛算法</a>求圆周率π，我们知道蒙特卡洛算法是采用统计模拟方法，在一个边长为2的正方形内，一个点落在其内切圆内的概率为π/4（圆的面积/正方形的面积），编写程序时，假设有多个actor同时随机在正方形内掷点，统计所有actor掷的点，把那些落在内切圆内的点的个数加起来再除以所有actor掷的总次数，即为一个点落在内切圆内概率的近似值，进而可以得到π的近似值。</p>
+<p>首先我们通过sbt创建项目，根据sbt项目的目录结构生成项目的雏形（可以将以下命令写到一个脚本里，以后重复使用）：</p>
+<pre><code>[hadoop@master ~]$ mkdir -p akka-actor-pi/lib
+[hadoop@master ~]$ mkdir -p akka-actor-pi/project
+[hadoop@master ~]$ mkdir -p akka-actor-pi/src/main/scala
+[hadoop@master ~]$ mkdir -p akka-actor-pi/src/main/resources
+[hadoop@master ~]$ mkdir -p akka-actor-pi/src/test/scala
+</code></pre><p>在项目根目录akka-actor-pi下新建sbt项目描述文件<code>build.sbt</code>，注意每行之间有一个空行:</p>
+<pre><code>name := &quot;akka-actor-pi&quot;
+[空行]
+version := &quot;1.0.0&quot;
+[空行]
+scalaVersion := &quot;2.10.4&quot;
+[空行]
+libraryDependencies += &quot;com.typesafe.akka&quot; %% &quot;akka-actor&quot; % &quot;2.3.7&quot;
+</code></pre><p>在project目录里添加<code>build.properties</code>文件，在其中声明sbt的版本信息：</p>
+<pre><code>sbt.version=0.13.6
+</code></pre><p>如下图所示为程序求π的actor系统结构图，程序入口通过向master发起计算请求，master将任务分发到许多worker上运行（类似于启动多个线程并行计算），中间通过一个路由actor来间接的分发任务，把路由actor看成网络中的路由器，当其收到任务请求后，它会按某种调度方式来分发到它关联的那些actor上，在我们的程序实现中，采用轮询的方式挨个分发任务。</p>
+<p><img src="/images/akka-actor.png" alt="akka-actor"></p>
+<p>下面开始定义这个系统中流动的消息，我们需要四种消息：</p>
+<ul>
+<li>Calculate： 发送给master来启动计算；</li>
+<li>Work： 从master发送给各worker，包含工作分配的内容；</li>
+<li>Result： 从worker发送给master，包含worker的计算结果；</li>
+<li>PiApproximation： 从master返回给调用端，包含π的最终计算结果和整个计算耗费的时间；</li>
+</ul>
+<p>发送给actor的消息应该永远是不可变的，在scala里有<code>case classes</code>来构造完美的消息，下面是用<code>case class</code>创建四种消息，其中创建一个通用的基础<code>trait</code>(定义为<code>sealed</code>以防止在其他地方创建消息)。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"><span class="title">//</span> <span class="title">计算启动消息</span></span></span><br><span class="line"><span class="class"><span class="title">case</span> <span class="title">object</span> <span class="title">Calculate</span> <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"><span class="title">//</span> <span class="title">分配的任务，需要做几次投掷测试</span></span></span><br><span class="line"><span class="class"><span class="title">case</span> <span class="title">class</span> <span class="title">Work</span>(<span class="params">times: <span class="type">Int</span></span>) <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"><span class="title">//</span> <span class="title">Worker一次任务计算结果，包含落在内切圆里的点的个数</span></span></span><br><span class="line"><span class="class"><span class="title">case</span> <span class="title">class</span> <span class="title">Result</span>(<span class="params">value: <span class="type">Int</span></span>) <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"><span class="title">//</span> <span class="title">总的计算结果，包含π的近似值与计算所花的时间</span></span></span><br><span class="line"><span class="class"><span class="title">case</span> <span class="title">class</span> <span class="title">PiApproximation</span>(<span class="params">pi: <span class="type">Double</span>, duration: <span class="type">Duration</span></span>)</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br></pre></td></tr></table></figure>
+<p>下面定义 worker actor，收到分发的任务后，通过随机掷点的方法统计落在内切圆中点个数。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Worker</span> <span class="keyword">extends</span> <span class="title">Actor</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 蒙特卡洛测试</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">testMonteCarlo</span></span>(times: <span class="type">Int</span>): <span class="type">Int</span> = &#123;</span><br><span class="line">    <span class="keyword">var</span> acc = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until times) &#123;</span><br><span class="line">      <span class="keyword">val</span> x = random * <span class="number">2</span> - <span class="number">1</span> <span class="comment">//生成[-1,1]区间的横坐标</span></span><br><span class="line">      <span class="keyword">val</span> y = random * <span class="number">2</span> - <span class="number">1</span> <span class="comment">//生成[-1,1]区间的纵坐标</span></span><br><span class="line">      <span class="keyword">if</span> (x * x + y * y &lt; <span class="number">1</span>) acc += <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    acc</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Work</span>(times) =&gt;</span><br><span class="line">      sender ! <span class="type">Result</span>(testMonteCarlo(times))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面定义 master actor，主要是给一些worker分发计算任务，收集Worker的计算结果，然后计算出π的近似值，master包含三个参数，<code>nrOfWorkers</code>表示一共有几个Worker同时运行，<code>nrOfMessages</code>表示要发多少任务下去（一个worker有可能会运行多个任务），<code>times</code>表示Worker运行一次任务需要掷几次点。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Master</span>(<span class="params">nrOfWorkers: <span class="type">Int</span>, nrOfMessages: <span class="type">Int</span>, times: <span class="type">Int</span></span>)</span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">Actor</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> calculateSender: <span class="type">ActorRef</span> = _  <span class="comment">//保存计算发起者的ActorRef</span></span><br><span class="line">  <span class="keyword">var</span> acc: <span class="type">Int</span> = <span class="number">0</span></span><br><span class="line">  <span class="keyword">var</span> nrOfResults: <span class="type">Int</span> = <span class="number">0</span></span><br><span class="line">  <span class="keyword">val</span> start: <span class="type">Long</span> = <span class="type">System</span>.currentTimeMillis</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建一个路由actor来分发任务</span></span><br><span class="line">  <span class="keyword">val</span> workerRouter = context.actorOf(</span><br><span class="line">    <span class="type">Props</span>[<span class="type">Worker</span>].withRouter(<span class="type">RoundRobinRouter</span>(nrOfWorkers)),</span><br><span class="line">    name = <span class="string">"workerRouter"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Calculate</span> =&gt;</span><br><span class="line">      <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until nrOfMessages) workerRouter ! <span class="type">Work</span>(times)</span><br><span class="line">      calculateSender = sender</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> <span class="type">Result</span>(value) =&gt;</span><br><span class="line">      acc += value</span><br><span class="line">      nrOfResults += <span class="number">1</span></span><br><span class="line">      <span class="keyword">if</span> (nrOfResults == nrOfMessages) &#123;</span><br><span class="line">        <span class="comment">// 所有Worker工作完毕，计算π的近似值，并给发起者回复</span></span><br><span class="line">        <span class="keyword">val</span> pi = (<span class="number">4.0</span> * acc) / (nrOfMessages * times)</span><br><span class="line">        calculateSender ! <span class="type">PiApproximation</span>(pi,</span><br><span class="line">          (<span class="type">System</span>.currentTimeMillis - start).millis)</span><br><span class="line">      &#125;   </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义完所有actor的功能后，我们可以开始编写入口程序，来使用这些actor完成π的近似计算了，程序首先创建 master actor的引用，发送计算请求消息，等待计算结果，注意这里是通过ask的方式（？标识符）发送消息，前面我们是通过tell（！标识符）方式发送消息，这两种方式的区别在于，tell方式发送消息时发出后不管的，一般在actor之间用这种方式发消息，reply消息可以通过tell方式发回来，而ask方式发送消息是期望得到一个结果的，其返回类型是<code>Future</code>类型，最后做一个转换，得到所期望的消息，如下代码是通过<code>Await</code>阻塞等待结果。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">Pi</span> </span>&#123;</span><br><span class="line">  <span class="keyword">implicit</span> <span class="keyword">val</span> timeout = <span class="type">Timeout</span>(<span class="number">100</span> seconds)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]) &#123;</span><br><span class="line">    <span class="keyword">if</span> (args.length &lt; <span class="number">3</span>) &#123;</span><br><span class="line">      <span class="type">System</span>.err.println(<span class="string">"Usage: Pi &lt;nrOfWorkers&gt; &lt;nrOfMessages&gt; &lt;times&gt;"</span>)</span><br><span class="line">      <span class="type">System</span>.exit(<span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">val</span> system = <span class="type">ActorSystem</span>(<span class="string">"PiSystem"</span>)</span><br><span class="line">    <span class="keyword">val</span> master = system.actorOf(<span class="type">Props</span>(<span class="keyword">new</span> <span class="type">Master</span>(</span><br><span class="line">      args(<span class="number">0</span>).toInt, args(<span class="number">1</span>).toInt, args(<span class="number">2</span>).toInt)),</span><br><span class="line">      name = <span class="string">"master"</span>)</span><br><span class="line">    <span class="keyword">val</span> future = master ? <span class="type">Calculate</span></span><br><span class="line">    <span class="keyword">val</span> approximationPi = <span class="type">Await</span>.result(future, timeout.duration)</span><br><span class="line">                               .asInstanceOf[<span class="type">PiApproximation</span>]</span><br><span class="line">    println(<span class="string">"Pi: \t"</span> + approximationPi.pi)</span><br><span class="line">    println(<span class="string">"Spend: \t"</span> + approximationPi.duration)</span><br><span class="line">    system.shutdown()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们再把上述代码重新整理一遍，在项目代码目录<code>src/main/scala</code>中新建文件<code>Pi.scala</code>。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.math.random</span><br><span class="line"><span class="keyword">import</span> scala.concurrent.<span class="type">Await</span></span><br><span class="line"><span class="keyword">import</span> scala.concurrent.duration._</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> akka.actor._</span><br><span class="line"><span class="keyword">import</span> akka.routing.<span class="type">RoundRobinRouter</span></span><br><span class="line"><span class="keyword">import</span> akka.pattern.ask</span><br><span class="line"><span class="keyword">import</span> akka.util.<span class="type">Timeout</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">Pi</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">  <span class="title">case</span> <span class="title">object</span> <span class="title">Calculate</span> <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">  <span class="title">case</span> <span class="title">class</span> <span class="title">Work</span>(<span class="params">times: <span class="type">Int</span></span>) <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">  <span class="title">case</span> <span class="title">class</span> <span class="title">Result</span>(<span class="params">value: <span class="type">Int</span></span>) <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">  <span class="title">case</span> <span class="title">class</span> <span class="title">PiApproximation</span>(<span class="params">pi: <span class="type">Double</span>, duration: <span class="type">Duration</span></span>)</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">PiMessage</span></span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">  <span class="title">class</span> <span class="title">Worker</span> <span class="keyword">extends</span> <span class="title">Actor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">testMonteCarlo</span></span>(times: <span class="type">Int</span>): <span class="type">Int</span> = &#123;</span><br><span class="line">      <span class="keyword">var</span> acc = <span class="number">0</span></span><br><span class="line">      <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until times) &#123;</span><br><span class="line">        <span class="keyword">val</span> x = random * <span class="number">2</span> - <span class="number">1</span></span><br><span class="line">        <span class="keyword">val</span> y = random * <span class="number">2</span> - <span class="number">1</span></span><br><span class="line">        <span class="keyword">if</span> (x * x + y * y &lt; <span class="number">1</span>) acc += <span class="number">1</span></span><br><span class="line">      &#125;</span><br><span class="line">      acc</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">Work</span>(times) =&gt;</span><br><span class="line">        sender ! <span class="type">Result</span>(testMonteCarlo(times))</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">Master</span>(<span class="params">nrOfWorkers: <span class="type">Int</span>, nrOfMessages: <span class="type">Int</span>, times: <span class="type">Int</span></span>)</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">Actor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> calculateSender: <span class="type">ActorRef</span> = _</span><br><span class="line">    <span class="keyword">var</span> acc: <span class="type">Int</span> = <span class="number">0</span></span><br><span class="line">    <span class="keyword">var</span> nrOfResults: <span class="type">Int</span> = <span class="number">0</span></span><br><span class="line">    <span class="keyword">val</span> start: <span class="type">Long</span> = <span class="type">System</span>.currentTimeMillis</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> workerRouter = context.actorOf(</span><br><span class="line">      <span class="type">Props</span>[<span class="type">Worker</span>].withRouter(<span class="type">RoundRobinRouter</span>(nrOfWorkers)),</span><br><span class="line">      name = <span class="string">"workerRouter"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">Calculate</span> =&gt;</span><br><span class="line">        <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until nrOfMessages) workerRouter ! <span class="type">Work</span>(times)</span><br><span class="line">        calculateSender = sender</span><br><span class="line"></span><br><span class="line">      <span class="keyword">case</span> <span class="type">Result</span>(value) =&gt;</span><br><span class="line">        acc += value</span><br><span class="line">        nrOfResults += <span class="number">1</span></span><br><span class="line">        <span class="keyword">if</span> (nrOfResults == nrOfMessages) &#123;</span><br><span class="line">          <span class="keyword">val</span> pi = (<span class="number">4.0</span> * acc) / (nrOfMessages * times)</span><br><span class="line">          calculateSender ! <span class="type">PiApproximation</span>(pi,</span><br><span class="line">            (<span class="type">System</span>.currentTimeMillis - start).millis)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">implicit</span> <span class="keyword">val</span> timeout = <span class="type">Timeout</span>(<span class="number">100</span> seconds)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]) &#123;</span><br><span class="line">    <span class="keyword">if</span> (args.length &lt; <span class="number">3</span>) &#123;</span><br><span class="line">      <span class="type">System</span>.err.println(<span class="string">"Usage: Pi &lt;nrOfWorkers&gt; &lt;nrOfMessages&gt; &lt;times&gt;"</span>)</span><br><span class="line">      <span class="type">System</span>.exit(<span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">val</span> system = <span class="type">ActorSystem</span>(<span class="string">"PiSystem"</span>)</span><br><span class="line">    <span class="keyword">val</span> master = system.actorOf(<span class="type">Props</span>(<span class="keyword">new</span> <span class="type">Master</span>(</span><br><span class="line">      args(<span class="number">0</span>).toInt, args(<span class="number">1</span>).toInt, args(<span class="number">2</span>).toInt)),</span><br><span class="line">      name = <span class="string">"master"</span>)</span><br><span class="line">    <span class="keyword">val</span> future = master ? <span class="type">Calculate</span></span><br><span class="line">    <span class="keyword">val</span> approximationPi = <span class="type">Await</span>.result(future, timeout.duration)</span><br><span class="line">      .asInstanceOf[<span class="type">PiApproximation</span>]</span><br><span class="line">    println(<span class="string">"Pi: \t"</span> + approximationPi.pi)</span><br><span class="line">    println(<span class="string">"Spend: \t"</span> + approximationPi.duration)</span><br><span class="line">    system.shutdown()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用sbt编译运行项目，并可以看到打印的计算结果。</p>
+<pre><code>[hadoop@master akka-actor-pi]$ sbt compile
+[hadoop@master akka-actor-pi]$ sbt
+[info] Loading project definition from /home/hadoop/project/akka-actor-pi/project
+[info] Set current project to akka-actor-pi (in build file:/home/hadoop/project/akka-actor-pi/)
+&gt; run 4 10000 10000
+[info] Running Pi 4 10000 10000
+Pi:     3.1415648
+Spend:  9678 milliseconds
+[success] Total time: 10 s, completed Dec 12, 2014 10:22:06 PM
+</code></pre><p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/start-akka-actor.html">https://sharkdtu.github.io/posts/start-akka-actor.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/spark-build.html" rel="next" title="Spark源码编译并在YARN上运行WordCount实例">
+                <i class="fa fa-chevron-left"></i> Spark源码编译并在YARN上运行WordCount实例
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/start-akka-remote.html" rel="prev" title="Akka-remote使用入门">
+                Akka-remote使用入门 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

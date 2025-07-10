@@ -1,0 +1,934 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="spark,大数据,分布式计算,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="对于很多刚接触Spark的人来说，可能主要关心数据处理的逻辑，而对于如何高效运行Spark应用程序了解较少。由于Spark是一种分布式内存计算框架，其性能往往受限于CPU、内存、网络等多方面的因素，对于用户来说，如何在有限的资源下高效地运行Spark应用程序显得尤为重要。下面只针对Spark-On-Yarn的一些常用调优策略做详细分析。">
+<meta name="keywords" content="spark,大数据,分布式计算">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark 应用程序调优">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/spark-tun.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="对于很多刚接触Spark的人来说，可能主要关心数据处理的逻辑，而对于如何高效运行Spark应用程序了解较少。由于Spark是一种分布式内存计算框架，其性能往往受限于CPU、内存、网络等多方面的因素，对于用户来说，如何在有限的资源下高效地运行Spark应用程序显得尤为重要。下面只针对Spark-On-Yarn的一些常用调优策略做详细分析。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.189Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark 应用程序调优">
+<meta name="twitter:description" content="对于很多刚接触Spark的人来说，可能主要关心数据处理的逻辑，而对于如何高效运行Spark应用程序了解较少。由于Spark是一种分布式内存计算框架，其性能往往受限于CPU、内存、网络等多方面的因素，对于用户来说，如何在有限的资源下高效地运行Spark应用程序显得尤为重要。下面只针对Spark-On-Yarn的一些常用调优策略做详细分析。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Spark 应用程序调优 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark 应用程序调优
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-06-17T14:22:33+08:00" content="2015-06-17">
+              2015-06-17
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">spark</a>
+        
+          <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/distributed-computation/" rel="tag">分布式计算</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>对于很多刚接触Spark的人来说，可能主要关心数据处理的逻辑，而对于如何高效运行Spark应用程序了解较少。由于Spark是一种分布式内存计算框架，其性能往往受限于CPU、内存、网络等多方面的因素，对于用户来说，如何在有限的资源下高效地运行Spark应用程序显得尤为重要。下面只针对Spark-On-Yarn的一些常用调优策略做详细分析。<a id="more"></a></p>
+<h2 id="配置参数优化"><a href="#配置参数优化" class="headerlink" title="配置参数优化"></a>配置参数优化</h2><h3 id="资源申请参数"><a href="#资源申请参数" class="headerlink" title="资源申请参数"></a>资源申请参数</h3><p>Spark-On-Yarn资源调度由Yarn来管理，用户只需指定Spark应用程序要申请的资源即可。我们首先来理解几个资源配置项，一旦资源配置确定，则只能在这些有限的资源下运行Spark应用程序。</p>
+<ul>
+<li>num-executors：同时运行的executor数。</li>
+<li>executor-cores：一个executor上的core数，表示一次能同时运行的task数。一个Spark应用最多可以同时运行的task数为num-executors*executor-cores。</li>
+<li>driver-memory：driver的内存大小。</li>
+<li>executor-memory：executor内存大小，视任务处理的数据量大小而定。</li>
+</ul>
+<p>一开始我们只能通过大致的估算来确定上述资源的配置，例如一个Spark应用程序处理的数据大小为1T，如果读出来默认是500个partitions（可以通过测试运行，从web中查看的到），那么平均每个partition的大小为1T/500≈2G，默认情况下，考虑中间处理过程中的数据膨胀以及一些额外内存消耗，executor中可用于存放rdd的阈值设定为<code>spar.storage.memoryFraction=0.6</code>，所以存储partition需要的内存为<code>executor-memory*0.6</code>，稳妥一点设置executor-memory大于2G/0.6，如果一个executor不止是处理一个partition，假如num-executors设置为100，那么平均每个executor处理的partition为500/100=5，这时如果需要缓存rdd，那么executor-memory就要设置为大于5*2G/0.6；如果读出来的分区数很少（如100），一个partition很大（1T/100≈10G），使得executor-memory有可能OOM，那么就需要考虑加大分区数（调用repartition(numPartitions)等），增加task数量来减少一个task的数据量。一般来说一个executor处理的partition数最好不要超过5个，否则增加num-executors数，接上面的例子，500个分区，配置num-executors为100，每个executor需要处理5个partition。driver-memory的大小取决于最后的action操作，如果是调用collect，那么driver-memory的大小就取决于结果集rdd的大小，如果是调用count，那么driver-memory的大小只需要满足运行需求就够了，对于需要长时间迭代的Spark应用，driver端需要维护rdd的依赖关系，所以需要设置较大的内存。</p>
+<p>上述仅仅是大致估算的资源配置，实际还要根据运行情况不断的调优，以达到资源最大化利用。例如，我们在运行日志中找到如下信息，它表明rdd_0的partition1内存大小为717.5KB，当我们得到这个信息后，就可以再次调整上述参数。</p>
+<pre><code>INFO BlockManagerMasterActor: Added rdd_0_1 in memory on mbk.local:50311 (size: 717.5 KB, free: 332.3 MB)
+</code></pre><h3 id="运行时参数"><a href="#运行时参数" class="headerlink" title="运行时参数"></a>运行时参数</h3><p>(1) spark.serializer</p>
+<p>序列化对于Spark应用的性能来说，影响是非常大的，它涉及到网络传输以及存储，Spark默认是使用<code>org.apache.spark.serializer.JavaSerializer</code>，内部使用的是Java的<code>ObjectOutputStream</code>框架，这种序列化方式压缩比小，而且速度慢，强烈建议采用kyro序列化方式，它速度快，而且压缩比高，性能是Java序列化的10倍，修改配置<code>spark.serializer=org.apache.spark.serializer.KryoSerializer</code>即可，一般来说使用kyro序列化方式，需要在程序里面对用户自定义的可序列化的类进行注册，例如下面代码所示：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">valconf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</span><br><span class="line">conf.registerKryoClasses(<span class="type">Array</span>(classOf[<span class="type">MyClass1</span>], classOf[<span class="type">MyClass2</span>]))</span><br><span class="line">valsc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</span><br></pre></td></tr></table></figure>
+<p>但是如果你不注册，kyro也是可以工作的，只是序列化效率差一点。</p>
+<p>(2) spark.rdd.compress</p>
+<p>这个参数决定了RDD Cache的过程中，RDD数据是否需要进一步压缩再Cache到内存或磁盘中，从内存看来，当内存比较稀缺时，如果不做压缩就Cache，就很可能会引发GC拖慢程序，从磁盘看来，压缩后数据量变小以减少磁盘IO。所以如果出现内存吃紧或者磁盘IO问题，就需要考虑启用RDD压缩。默认是关闭的。</p>
+<p>(3) spark.storage.memoryFraction</p>
+<p>前面提到的executor-memory决定了每个executor可用内存的大小，而spark.storage.memoryFraction则决定了在这部分内存中有多少可以用于管理RDD Cache数据，剩下的内存用来保证任务运行时各种其它内存空间的需要。<code>spark.executor.memoryFraction</code>默认值为0.6，官方文档建议这个比值不要超过JVM Old Gen区域的比值，因为RDD Cache数据通常都是长期驻留内存的，理论上也就是说最终会被转移到Old Gen区域，如果这部分数据允许的尺寸太大，势必把Old Gen区域占满，造成频繁的FULL GC。如果发现Spark应用在运行过程中发生频繁的FULL GC，就需要考虑减小该配置，所以建议这个配置不要加大，如果内存吃紧，可以考虑采用内存和磁盘的混合缓存模式，进一步减少RDD Cache还可以考虑序列化以及压缩等。</p>
+<p>(4) spark.shuffle.memoryFraction</p>
+<p>在启用Spill的情况（<code>spark.shuffle.spill</code>默认开启）下，<code>spark.shuffle.memoryFraction</code>表示Shuffle过程中使用的内存达到总内存多少比例的时候开始Spill。<code>spark.shuffle.memoryFraction</code>默认值为0.2，调整该值可以调整Shuffle过程中Spill的频率。总的来说，如果Spill太过频繁，可以适当增加<code>spark.shuffle.memoryFraction</code>的大小，增加用于Shuffle的内存，减少Spill的次数。然而这样一来为了避免内存溢出，对应的可能需要减少RDD cache占用的内存，即减小<code>spark.storage.memoryFraction</code>的值，这样RDD cache的容量减少，有可能带来性能影响，因此需要综合考虑，如果在你的Spark应用程序中RDD Cache较少，Shuffle数据量较大，就需要把<code>spark.shuffle.memoryFraction</code>调大一些，把<code>spark.storage.memoryFraction</code>调小一些。</p>
+<p>(5) spark.shuffle.file.buffer.kb</p>
+<p>每次shuffle过程驻留在内存的buffer大小，在shuffle中间数据的产生过程中可减少硬盘的IO操作。<code>spark.shuffle.file.buffer.kb</code>默认为32，若Spark应用程序运行过程中Shuffle称为瓶颈，根据需要适当的加大该配置。</p>
+<h2 id="接口使用优化"><a href="#接口使用优化" class="headerlink" title="接口使用优化"></a>接口使用优化</h2><p>对于Spark新手来说，可能不太了解RDD接口内部实现细节，主要关心业务数据处理，然而这往往导致编写出来的Spark应用程序运行效率不高，资源利用浪费等。下面简单介绍一些常见的Spark应用开发注意细节。</p>
+<h3 id="缓存接口"><a href="#缓存接口" class="headerlink" title="缓存接口"></a>缓存接口</h3><p>Spark比MapReduce快的很大一部分原因是它可以把中间结果RDDCache起来，不用每次需要时重新计算。但是如果Cache使用不当，会造成内存吃紧，要么带来不必要的磁盘IO，要么引起频繁的FULL GC，拖慢程序运行。</p>
+<p>对于一个需要多次使用的临时RDD（类似于临时变量），尽可能要把它Cache起来，这样这个临时RDD只会计算一次，以后每次都会从Cache里直接取。如下面的例子，需要统计第一个字段大于100的数目和第二个字段大于100的数目，如果data不做Cache，因为只有遇到RDD的Action接口时才出发计算，所以在计算firstCnt时会读一遍数据，计算secondCnt时还会再读一遍数据，这样就造成一些不必要的计算，对data做了Cache后，在计算firstCnt时读一次，计算secondCnt就会直接从Cache中取而不用再次读一次。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> data = sc.textFile(path)</span><br><span class="line">data.cache()</span><br><span class="line"><span class="keyword">val</span> firstCnt = data.filter(x(<span class="number">0</span>).toInt =&gt; <span class="number">100</span>).count()</span><br><span class="line"><span class="keyword">val</span> secondCnt = data.filter(x(<span class="number">1</span>).toInt =&gt; <span class="number">100</span>).count()</span><br></pre></td></tr></table></figure>
+<p>很多时候会看到这样的代码，在对两个RDD进行Join时，把两个RDD都Cache起来再做Join，这里一定要明白一点，没有调用Action接口，计算是不会触发的，下面的代码如果后续不再用到rdd1和rdd2，是没有必要对rdd1和rdd2做Cache的，这里要做Cache的是data。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> data = <span class="keyword">val</span> data = sc.textFile(path)</span><br><span class="line"><span class="keyword">val</span> rdd1 = data.map(…).cache()</span><br><span class="line"><span class="keyword">val</span> rdd2 = data.map(…).cache()</span><br><span class="line"><span class="keyword">val</span> rdd3 = rdd1.join(rdd2).count()</span><br></pre></td></tr></table></figure>
+<p>对于内部需要多次迭代的Spark应用来说，应该尽量将每次迭代用到的临时RDD缓存起来，在这个临时RDD被更新时，需要将旧的缓存手动清除掉。如下例子显示，每次迭代都需要在curRDD基础上进行更新得到updatedRDD，在一轮迭代结束后要更新curRDD为updatedRDD，在更新前手动将之前的curRDDCache清理掉，防止内存被耗光，引发频繁FULL GC。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> data = sc.textFile(path)</span><br><span class="line"><span class="comment">// some transformations in init(data)</span></span><br><span class="line">varcurRDD = init(data).cache()</span><br><span class="line"><span class="keyword">val</span> result = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">Double</span>]()</span><br><span class="line"><span class="comment">// some transformations and an action in getResult(curRDD)</span></span><br><span class="line">result += getResult(curRDD)</span><br><span class="line"><span class="comment">// Start Iteration</span></span><br><span class="line"><span class="keyword">var</span> changed = <span class="literal">true</span></span><br><span class="line"><span class="keyword">while</span>(changed) &#123;</span><br><span class="line">  <span class="comment">// some transformations in iteration(curRDD)</span></span><br><span class="line">  valupdatedRDD = iteration(curRDD).cache()</span><br><span class="line">  <span class="comment">// getResultand check if the value is changed</span></span><br><span class="line">  <span class="keyword">val</span> x = getResult(updatedRDD)</span><br><span class="line">  <span class="comment">// convergence</span></span><br><span class="line">  <span class="keyword">if</span>(x == result.last) changed = <span class="literal">false</span></span><br><span class="line">  <span class="comment">// Unpersist old RDD and assign new RDD</span></span><br><span class="line">  curRDD.unpersist(<span class="literal">false</span>)</span><br><span class="line">  curRDD = updatedRDD</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在对RDD做缓存时，还应考虑内存大小情况选择合适的缓存方式，Spark提供以下几种缓存：</p>
+<ul>
+<li>MEMORY_ONLY：直接将RDD对象保存到内存中，Spark默认选项</li>
+<li>MEMORY_AND_DISK：当内存不够的时候，保存到磁盘中（内存较为稀缺的时候用，比MEMORY_ONLY占用更少的内存，但是会带来磁盘IO）</li>
+<li>MEMORY_ONLY_SER：将RDD序列化后保存到内存中（内存较为稀缺的时候用，比MEMORY_ONLY占用更少的内存）</li>
+<li>MEMORY_AND_DISK_SER：将RDD序列化后保存到内存中，内存不够时保存到磁盘中（内存较为稀缺的时候用，比MEMORY_ONLY_SER更安全）</li>
+<li>DISK_ONLY：保存到磁盘中（不建议用）</li>
+<li>MEMORY_ONLY_2：与MEMORY_ONLY类似，只是保存两份</li>
+<li>MEMORY_AND_DISK_2：与MEMORY_AND_DISK类似，只是保存两份</li>
+<li>OFF_HEAP ：将序列化后的RDD保存到Tachyon（一种分布式内存文件系统）中，相比于MEMORY_ONLY_SER可以避免GC的额外开销。这种缓存方式还在试验阶段</li>
+</ul>
+<p>根据具体情况判断使用何种缓存方式，调用的时候直接通过如<code>rdd.persist(StorageLevel.MEMORY_AND_DISK_SER)</code>方式实现，调用<code>rdd.cache()</code>默认是<code>rdd.persist(StorageLevel.MEMORY_ONLY)</code>。</p>
+<h3 id="引发Shuffle的相关接口"><a href="#引发Shuffle的相关接口" class="headerlink" title="引发Shuffle的相关接口"></a>引发Shuffle的相关接口</h3><p>一个Spark应用程序运行快慢，往往受限于中间的Shuffle过程，Shuffle涉及到网络以及磁盘IO，是整个Spark应用程序运行过程中较为耗时的阶段。在编写Spark应用程序时，应当尽量减少Shuffle次数。下面列举常见的可能引发Shuffle的接口。</p>
+<ul>
+<li>distinct</li>
+<li>Intersection/subtracted</li>
+<li>reduceByKey/aggregateByKey</li>
+<li>repartition</li>
+<li>cogroup</li>
+<li>join</li>
+<li>sortBy/sortByKey</li>
+<li>groupBy/groupByKey</li>
+<li>partitionBy</li>
+</ul>
+<p>如果executor内存不足以处理一个partition，那么这时考虑调用repartition来加大分区数，使得每个partition的数据量减少以至于executor可以处理，一般来说上述接口也可以接受numPartitions参数来指定分区数。上述接口连续调用不一定会带来多次Shuffle，只要partition类型和partition数不变，是不会增加Shuffle次数的，如下代码则只有一次Shuffle：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdd.map(x =&gt; (x, x+<span class="number">1</span>)).repartition(<span class="number">1000</span>).reduceByKey(_ + _).count()</span><br></pre></td></tr></table></figure>
+<p>然而如下代码却会有两次Shuffle：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdd.map(x =&gt; (x, x+<span class="number">1</span>)).repartition(<span class="number">1000</span>).reduceByKey(_ + _, <span class="number">3000</span>).count()</span><br></pre></td></tr></table></figure>
+<p>很多人在一开始调用了触发Shuffle的相关接口，后面可能数据膨胀了，发现需要更多的partition，所以在后面调用触发Shuffle的相关接口时加大partition数，这样就会导致多次Shuffle，所以一开始就确定好最后的partition数，以免做不必要的Shuffle。</p>
+<h3 id="接口对比"><a href="#接口对比" class="headerlink" title="接口对比"></a>接口对比</h3><p>(1) sortBy/sortByKey与takeOrdered</p>
+<p>有时候我们可能希望对数据集排序取前n条记录，很多人会像如下代码一样实现：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rdd.sortBy(x =&gt; x.key).take(n)</span><br><span class="line"><span class="comment">//or rdd.sortByKey().take(n)</span></span><br></pre></td></tr></table></figure>
+<p>然而，有一个更有效的办法，就是按照以下方式实现：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdd.takeOrdered(n)</span><br></pre></td></tr></table></figure>
+<p>以上两者的区别在于，第一种方式需要把所有partition的排序结果进行归并再取前n条记录，第二种方式是从每个排好序的partition中取出前n条记录最后再归并为n条记录，大大降低了网络IO，提升整体性能。</p>
+<p>(2) groupBy/groupByKey与aggregateByKey</p>
+<p>在做分组计算时，首先会想到使用<code>groupBy/groupByKey</code>接口，值得一提的是，<code>groupBy/groupByKey</code>接口特别占用内存，它是把具有相同key值的所有value放到一个buffer数组里，如果某个key对应的value非常多，极其容易引发OutOfMemoryError，通过<code>groupBy/groupByKey</code>实现的分组计算功能是可以通过<code>aggregateByKey</code>或者<code>reduceByKey</code>来实现的，<code>aggregateByKey/reduceByKey</code>内部是通过combineByKey实现的，当内存超过一定阈值会spill到磁盘，相对来说较为安全。当通过<code>groupBy/groupByKey</code>接口最后返回的<code>RDD[(K, V)]</code>中<code>V</code>不是序列时，可以用<code>reduceByKey</code>实现，当<code>V</code>是序列时可以用<code>aggregateByKey</code>实现，例如需要统计key对应的value最大值：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//rdd: RDD[(int, int)]</span></span><br><span class="line">rdd.groupByKey().map((k, vb) =&gt; (k, vb.max))</span><br></pre></td></tr></table></figure>
+<p>我们完全可以用reduceByKey来实现上述功能：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdd.reduceByKey ((v1, v2) =&gt; <span class="type">Math</span>.max(v1, v2))</span><br></pre></td></tr></table></figure>
+<p>再比如，就想返回key对应的所有value：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//rdd: RDD[(int, int)]</span></span><br><span class="line">rdd.groupByKey()</span><br></pre></td></tr></table></figure>
+<p>我们完全可以用aggregateByKey来实现上述功能：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rdd. aggregateByKey(<span class="type">Seq</span> ())(</span><br><span class="line">(u, v) =&gt; v::u,</span><br><span class="line">(u1, u2) =&gt; u1 ++ u2</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>以上是简单提出几个需要注意的接口调用，如果不了解RDD接口的使用，可以参见<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package" target="_blank" rel="noopener">社区文档</a>。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/spark-tun.html">https://sharkdtu.github.io/posts/spark-tun.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/before-last-winter-vacation.html" rel="next" title="写在最后一个寒假前">
+                <i class="fa fa-chevron-left"></i> 写在最后一个寒假前
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/half-year-work-feeling.html" rel="prev" title="工作半年小感">
+                工作半年小感 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置参数优化"><span class="nav-number">1.</span> <span class="nav-text">配置参数优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#资源申请参数"><span class="nav-number">1.1.</span> <span class="nav-text">资源申请参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时参数"><span class="nav-number">1.2.</span> <span class="nav-text">运行时参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口使用优化"><span class="nav-number">2.</span> <span class="nav-text">接口使用优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存接口"><span class="nav-number">2.1.</span> <span class="nav-text">缓存接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引发Shuffle的相关接口"><span class="nav-number">2.2.</span> <span class="nav-text">引发Shuffle的相关接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口对比"><span class="nav-number">2.3.</span> <span class="nav-text">接口对比</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

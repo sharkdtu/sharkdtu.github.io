@@ -1,0 +1,914 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="spark,mllib,决策树,GBDT,随机森林,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="模型简介决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。">
+<meta name="keywords" content="spark,mllib,决策树,GBDT,随机森林">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MLlib决策树与集成树">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/mllib-tree.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="模型简介决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/decision-tree.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tree-process.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tree-bins.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tree-job.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tree-job-process.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/tree-bin-array.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/random-forest-job.png">
+<meta property="og:updated_time" content="2025-07-10T04:33:06.188Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MLlib决策树与集成树">
+<meta name="twitter:description" content="模型简介决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/decision-tree.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> MLlib决策树与集成树 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                MLlib决策树与集成树
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-12T21:45:11+08:00" content="2016-01-12">
+              2016-01-12
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index">
+                    <span itemprop="name">机器学习</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/spark/" rel="tag">spark</a>
+        
+          <a href="/tags/mllib/" rel="tag">mllib</a>
+        
+          <a href="/tags/decision-tree/" rel="tag">决策树</a>
+        
+          <a href="/tags/GBDT/" rel="tag">GBDT</a>
+        
+          <a href="/tags/random-forest/" rel="tag">随机森林</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="模型简介"><a href="#模型简介" class="headerlink" title="模型简介"></a>模型简介</h2><p>决策树是一种常见的分类与回归机器学习算法，由于其模型表达性好，便于理解，并能取得较好的效果，而受到广泛的应用。下图是一个简单的决策树，决策树每个非叶子节点包含一个条件，对于具有连续值的特征，该条件为一个上界，如果实例对应的特征值小于该上界则被划分到左子节点，否则被划分到右子节点，对于具有离散值的特征，该条件为一个子集，如果实例对应的特征值属于该子集则被划分到左子节点，否则被划分到右子节点。如此下去，一个实例从根节点开始，不断地被划分，直到叶子节点。对于分类问题，叶子节点输出其类别，对于回归问题，叶子节点输出其分值或概率。<a id="more"></a></p>
+<p><img src="/images/decision-tree.png" width="500" height="230" alt="decision-tree" align="center"></p>
+<p>给定训练数据，如何学习决策树模型呢？首先将决策树抽象为一般的机器学习问题，用数学的说法就是，一个决策树对应着输入空间的一个划分以及在划分单元上的输出值。假设已经将输入空间划分为 $m$ 个单元(即叶子节点) $R_1, R_2,… R_m$，在每个单元 $R_i$ 上有一个固定的输出 $c_i$，那么决策树模型可表示为：</p>
+<p>$$ f(x) = \sum_{i}^m c_i I(x \in R_i) $$</p>
+<p>一般的机器学习算法是找一个目标函数，然后不断地去优化目标，直至训练误差在允许的范围内，得到模型参数。决策树的学习则采用启发式的方法，从根节点开始，根据该节点上的训练样本找到最优切分点，将训练样本划分为两个子集，一般来说，对于分类问题，每个子集采用多数表决的方式决定类别，对于回归问题，每个子集输出其中所有样本的平均值；每一次划分的依据是，划分后相对于划分前，不确实性有所减少，上述最优切分点就是不确定性减少的最多的切分方案，这里的不确定性可以是熵、基尼系数、平方误差、方差等；为了防止过拟合，需要设定划分的终止条件，通常有如下限制：1）树的最大深度，2）一次划分至少减少的不确定，3）一次划分后，子集中至少包含的样本实例数。</p>
+<h2 id="决策树的训练"><a href="#决策树的训练" class="headerlink" title="决策树的训练"></a>决策树的训练</h2><p>MLlib中决策树的学习同样是利用前面所述的启发式方法，借助<code>RDD</code>进行分布式计算，其本质上是数据并行。下面是mllib中决策树学习的总体流程图，其最关键的一步就是如何找最优切分点，首先简单介绍下前后两步：初始化元数据以及如何判断切分终止条件，由于这两步实质上是由用户的参数配置和训练样本决定，暂且统称为算法参数，然后再着重详细讨论mllib如何分布式计算最优切分点。</p>
+<p><img src="/images/tree-process.png" width="200" height="500" alt="tree-process" align="center"></p>
+<h3 id="算法参数"><a href="#算法参数" class="headerlink" title="算法参数"></a>算法参数</h3><p>算法参数是由训练数据以及用户的参数配置共同决定，mllib提供给用户的自定义参数是通过类<code>Strategy</code>来封装，下面列出一些重要的参数并详细说明其意义：</p>
+<ul>
+<li>algo：指定决策树的类型，有分类树(classification)和回归树(Regression)</li>
+<li>numClasses：如果是分类树，指定有多少种类别</li>
+<li>subsamplingRate：训练样本采样率，如果在(0,1)之间则表明采样部分训练数据进行训练</li>
+<li>impurity：指定不确定性指标，其中基尼系数(Gini)、熵(Entropy)用于分类树，方差(Variance)用于回归树</li>
+<li>minInfoGain：每次切分至少减少的不确定性，否则停止切分，用于终止迭代计算</li>
+<li>minInstancesPerNode：切分后，每个子节点至少包含的样本实例数，否则停止切分，用于终止迭代计算</li>
+<li>maxDepth：树的最大深度，用于终止迭代计算</li>
+<li>categoricalFeaturesInfo：指定离散特征，是一个map，featureId-&gt;K，其中K表示特征值可能的情况(0, 1, …, K-1)</li>
+<li>maxBins：最大分箱数，当某个特征的特征值为连续时，该参数意思是将连续的特征值离散化为多少份</li>
+</ul>
+<h3 id="特征划分"><a href="#特征划分" class="headerlink" title="特征划分"></a>特征划分</h3><p>训练样本的每个特征可能具有各自的特点，mllib中将特征作如下划分：</p>
+<ol>
+<li>特征值只在有限的离散值范围内，把这类特征称为 categorical feature，这类特征需要通过配置参数指定，即前面所述的<code>categoricalFeaturesInfo</code>;</li>
+<li>特征值为连续值，把这类特征称为 continuous feature，这类特征需要对其特征值进行离散化，便于后续的寻找最优切分点。</li>
+</ol>
+<p>在初始化元数据阶段，会根据输入的训练数据，得到样本的维度 <code>numFeatures</code>，在每个维度（特征）上计算所有可能的切分方案，在寻找最优切分点阶段会遍历所有可能的切分方案，找出最优的切分点。不同的特征、不同的决策树（分类还是回归），切分方案都不一样，下面作详细介绍。</p>
+<h4 id="categorical-feature-切分"><a href="#categorical-feature-切分" class="headerlink" title="categorical feature 切分"></a>categorical feature 切分</h4><p>如果特征是 categorical feature(由参数<code>categoricalFeaturesInfo</code>指定)，那么有两种切分方法，对于取值较少的特征，采用不排序切分方法，例如，一个人的收入情况可能有三种情况“高、中、低”，其所有可能的切分方案为“高 | 中低”、“中 | 高低”、“高中 | 低”三种，更一般地，如果一个特征可能的取值为 $k$，那么所有可能的切分方案为 $2^{k-1}-1$ ，被切分后的部分看成一个个箱子（bin），如果被切分为“高 | 中低”，那么其分箱情况为：“高”在一个分箱，“中低”在另一个分箱，不难发现，所有可能的分箱数（bins）为 $2\times(2^{k-1}-1)=2^k-2$，我们把这种特征称为unordered feature，这种切分方法只被用于多分类问题。对于取值较多的特征，如果采用不排序的切分方法，那么所有可能的分箱数 $2^k-2$ 就会超过最大值maxBins了，这时就采用称之为排序切分的方法，将每个可能的取值看成一个分箱，例如一个人的年龄阶层可能有5种情况“老中青少幼”，那个所有可能的分箱数为5种，分别是：“老”、“中”、“青”、“少”、“幼”，所有可能的切分方案为4种（分箱数-1），具体按照什么顺序切分，mllib中按分箱内所有实例的不确定性顺序进行切分，例如上述5个分箱内的样本不确定性（基尼系数或是方差）从小到大为“老”、“中”、“青”、“少”、“幼”，那么可能的切分方案为：“老 | 中青少幼”、“老中 | 青少幼”、“老中青 | 少幼”、“老中青少 | 幼”，这种排序切分方案适用于二分类和回归问题。</p>
+<h4 id="continuous-feature-切分"><a href="#continuous-feature-切分" class="headerlink" title="continuous feature 切分"></a>continuous feature 切分</h4><p>如果特征是 continuous feature(参数<code>categoricalFeaturesInfo</code>指定以外的特征)，那么首先就需要离散化，将连续的特征值划分到不同的分箱（bin）里去，分箱代表一个区间，一个实例的对应特征值在区间里的表示属于那个分箱，mllib采用的分位点排序策略，首先对所有训练数据进行采样，得到部分样本实例，假如其对应的某个特征值分别为0.1, 0.11, 0.2, 0.11, 0.6, 0.3, 0.22，对特征值进行排序得到0.1, 0.11, 0.11, 0.2, 0.22, 0.3, 0.6，如果参数maxBins设置为3，那么理论上平均每个分箱的实例数为样本实例数/numBin，即7/3=2.33，从左到右进行扫描，得到分箱为 $(-\infty, 0.2)，[0.2, 0.3)，[0.3, \infty)$ ，对应的所有切分方案（上界）为2种，分别为0.2, 0.3。</p>
+<h3 id="最优切分点与树的形成"><a href="#最优切分点与树的形成" class="headerlink" title="最优切分点与树的形成"></a>最优切分点与树的形成</h3><p>经过上述分箱划分后，每个特征都对应一组分箱bins，如下图所示，根据分箱情况，将实例的所有特征映射到其对应的分箱中，每个分箱就包含一组实例，得到一些统计信息，用于计算不确定性。</p>
+<p><img src="/images/tree-bins.png" width="400" height="230" alt="tree-bins" align="center"></p>
+<p>对于分类树，假设不确定性指标为基尼系数gini，则每个bin的统计信息包含：1)每个类别对应的实例数 $C_i$ ；2)该bin的实例总和 $C$ 。那么可以根据以下公式求得基尼系数为：</p>
+<p>$$ gini = \sum_{i}^K \frac {C_i} {C} (1 - \frac {C_i} {C}) $$</p>
+<p>对于回归树，其不确定性指标为方差variance，则每个bin的统计信息包含：1)该bin的所有实例总和C；2)该bin所有实例的lebel总和 $\sum y_i$ ；3)该bin所有实例的lebel平方和 $\sum {y_i}^2$ 。那么可以根据以下公式（其中u为均值）求得方差为：</p>
+<p>$$ variance = \frac {1} {C} \sum {(y_i - u)}^2 = \frac {1} {C} (\sum {y_i}^2 - \frac {1} {C} {(\sum {y_i})}^2) $$</p>
+<p>Mllib在生成决策树的过程中，是按照树的层次一步步迭代，每一次对处于同一层的节点进行划分，相应地会触发一个job，如果树的深度为N，那么至少需要跑N个job才能训练得到一棵树，如下图所示。</p>
+<p><img src="/images/tree-job.png" width="400" height="230" alt="tree-job" align="center"></p>
+<p>假设已经迭代到上图中的job2，首先会为每个要切分的节点初始化一个<code>DTStatsAggregator</code>对象，<code>DTStatsAggregator</code>封装了所有特征分箱的统计信息，这些统计信息用于计算分箱的不确定性，下图显示一次迭代计算最优切分点的过程。</p>
+<p><img src="/images/tree-job-process.png" width="600" height="330" alt="tree-job-process" align="center"></p>
+<p>如上图，首先在每个partition上做一次map，遍历该partition上的所有实例，根据前面的分箱情况，将实例映射到分箱中，并更新分箱的统计信息， map操作后得到记录是<code>(nodeId, DTStatsAggregator)</code>，其中<code>nodeId</code>表示节点id，即需要对哪个节点进行切分，<code>DTStatsAggregator</code>对象保存了所有特征所有分箱的统计信息，然后再根据<code>nodeId</code>做一次reduce，将不同分区的分箱统计信息归并起来，最终得到不同节点(nodeId)上所有样本的分箱统计信息<code>(nodeId, DTStatsAggregator)</code>，最后再做一次map，对于每个节点，遍历所有可能的切分方案，找到不确定性减少最多的切分方案，即最优切分点。<code>DTStatsAggregator</code>对象中维护了一个大数组，该数组保存了所有特征的分箱统计信息，如下图所示，某个特征有3个bin，每个bin的统计信息由前面所述3个计算方差的统计值组成。</p>
+<p><img src="/images/tree-bin-array.png" width="400" height="230" alt="tree-bin-array" align="center"></p>
+<p>如何根据bin的统计信息遍历所有可能的切分方案呢？再看看前面讨论的特征划分，在初始化介绍后，我们是知道每个特征的所有可能的划分方案的，不同特征的划分也做了详细的区分。假如上图中feature是 continuous feature，那么3个bin对应2种切分方案，遍历这两种切分方案，得到切分后不确定减小的较多的切分方案，类似地，遍历所有特征的所有切分可能，最后得到一个最优切分点。</p>
+<h2 id="集成树"><a href="#集成树" class="headerlink" title="集成树"></a>集成树</h2><p>集成树 Ensemble Tree 是综合多个决策树以得到更加泛化的模型，这样可以消除噪声，避免过拟合。常见的集成树有随机森林(Random Forests)和梯度提升树(Gradient-Boosted Tree)，下面分别详细介绍。</p>
+<h3 id="随机森林"><a href="#随机森林" class="headerlink" title="随机森林"></a>随机森林</h3><p>随机森林(Random Forests)其实就是多个决策树，每个决策树有一个权重，对未知数据进行预测时，会用多个决策树分别预测一个值，然后考虑树的权重，将这多个预测值综合起来，对于分类问题，采用多数表决，对于回归问题，直接求平均。<br>随机森林模型训练实质上是同时训练多个决策树，每个决策树的训练样本是从原始训练集中抽样而来。在具体训练模型时，mllib做了一个优化，是同时对多个决策树进行训练，如下图所示，每个job会对一组节点进行切分，分组是按照树的层次逐步进行，每组需要切分的节点个数视内存大小而定，有一个参数<code>maxMemoryInMB</code>控制一次切分计算使用的最大内存大小，通过简单的估计节点切分计算所需内存（主要是计算分箱统计信息占用内存的大小）来决定一组节点的个数。</p>
+<p><img src="/images/random-forest-job.png" width="400" height="230" alt="random-forest-job" align="center"></p>
+<h3 id="梯度提升树"><a href="#梯度提升树" class="headerlink" title="梯度提升树"></a>梯度提升树</h3><p>梯度提升树(Gradient-Boosted Tree)简称GBT，是一种更加复杂的模型，它实质上是采用Boost方法，利用基本决策树模型得到的一种集成树模型。GBT的训练是每次训练一颗树，然后利用这颗树对每个实例进行预测，通过一个损失函数，计算损失函数的负梯度值作为残差，利用这个残差更新样本实例的label，然后再次训练一颗树去拟合残差，如此进行迭代，直到满足模型参数需求。GBT只适用于二分类和回归，不支持多分类，在预测的时候，不像随机森林那样求平均值，GBT是将所有树的预测值相加求和。</p>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/mllib-tree.html">https://sharkdtu.github.io/posts/mllib-tree.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/half-year-work-feeling.html" rel="next" title="工作半年小感">
+                <i class="fa fa-chevron-left"></i> 工作半年小感
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/blog-reborn.html" rel="prev" title="博客重生">
+                博客重生 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#模型简介"><span class="nav-number">1.</span> <span class="nav-text">模型简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#决策树的训练"><span class="nav-number">2.</span> <span class="nav-text">决策树的训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法参数"><span class="nav-number">2.1.</span> <span class="nav-text">算法参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特征划分"><span class="nav-number">2.2.</span> <span class="nav-text">特征划分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#categorical-feature-切分"><span class="nav-number">2.2.1.</span> <span class="nav-text">categorical feature 切分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#continuous-feature-切分"><span class="nav-number">2.2.2.</span> <span class="nav-text">continuous feature 切分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最优切分点与树的形成"><span class="nav-number">2.3.</span> <span class="nav-text">最优切分点与树的形成</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集成树"><span class="nav-number">3.</span> <span class="nav-text">集成树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#随机森林"><span class="nav-number">3.1.</span> <span class="nav-text">随机森林</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#梯度提升树"><span class="nav-number">3.2.</span> <span class="nav-text">梯度提升树</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>
