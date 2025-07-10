@@ -1,14 +1,10 @@
 ### Install nodejs
 
-Follow [nodejs](https://nodejs.org/en/) docs.
-
-### Install hexo
-
 ```bash
-$ npm install -g hexo-cli
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+nvm install 12.14.0
+nvm use 12.14.0
 ```
-
-See more information at [hexo docs](https://hexo.io/docs/).
 
 ### Clone this branch
 
@@ -26,13 +22,13 @@ $ npm install
 ### Generate pages
 
 ```bash
-$ hexo generate
+$ ./node_modules/hexo/bin/hexo generate
 ```
 
 ### Browse the pages
 
 ```bash
-$ hexo server
+$ ./node_modules/hexo/bin/hexo server
 ```
 
 See http://localhost:4000/ .

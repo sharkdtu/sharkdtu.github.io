@@ -1,1 +1,6 @@
 .DS_Store
+package-lock.json
+db.json
+.deploy_git/
+public/
+node_modules/
