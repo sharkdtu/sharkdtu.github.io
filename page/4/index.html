@@ -282,6 +282,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/spark-network.html" itemprop="url">
+                  Spark 底层网络模块
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-12T22:11:29+08:00" content="2016-12-12">
+              2016-12-12
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>对于分布式系统来说，网络是最基本的一环，其设计的好坏直接影响到整个分布式系统的稳定性及可用性。为此，Spark专门独立出基础网络模块spark-network，为上层RPC、Shuffle数据传输、RDD Block同步以及资源文件传输等提供可靠的网络服务。在spark-1.6以前，RPC是单独通过akka实现，数据以及文件传输是通过netty实现，然而akka实质上底层也是采用netty实现，对于一个优雅的工程师来说，不会在系统中同时使用具有重复功能的框架，否则会使得系统越来越重，所以自spark-1.6开始，通过netty封装了一套简洁的类似于akka actor模式的RPC接口，逐步抛弃akka这个大框架。从spark-2.0起，所有的网络功能都是通过netty来实现。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/spark-network.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </p></div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/spark-shuffle.html" itemprop="url">
                   Spark Shuffle原理及相关调优
                 </a>
@@ -721,125 +836,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/nn-nlp.html" itemprop="url">
-                  运用TensorFlow处理简单的NLP问题
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-05-31T22:25:17+08:00" content="2016-05-31">
-              2016-05-31
-            </time>
-          </span>
-
-          
-            <span class="post-category">
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/deep-learning/" itemprop="url" rel="index">
-                    <span itemprop="name">深度学习</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>当前“人工智能”是继“大数据”后又一个即将被毁的词，每家公司都宣称要发力人工智能，就跟4-5年前大数据一样，业界叫的都非常响亮，不禁想到之前一个老外说过的话：</p>
-<blockquote>
-<p><em>Big Data is like teenage sex: Everyone talks about it, nobody really knows how to do it, everyone thinks everyone else is doing it, so everyone claims.</em></p>
-</blockquote>
-<p>现在看来，上面的”Big Data”可以换成”AI”了，在大家还没搞明白大数据的时候，人工智能就开始引领下一个潮流了。本着跟风的态度，我也尝试去窥探个究竟。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/nn-nlp.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </p></div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
   </section>
 
   
@@ -883,7 +879,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -891,7 +887,7 @@
           
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -900,7 +896,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-count">50</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

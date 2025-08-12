@@ -282,6 +282,121 @@
             
               
                 
+                <a class="post-title-link" href="/posts/lance-format.html" itemprop="url">
+                  Lance-面向AI场景的数据存储格式
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2025-08-10T20:10:45+08:00" content="2025-08-10">
+              2025-08-10
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/数据湖/" itemprop="url" rel="index">
+                    <span itemprop="name">数据湖</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>Lance 是一种专为向量和多模态数据设计的数据存储格式，其内置高效索引，支持快速随机访问、向量检索、全文检索等。它包含两种格式：列式 File Format（对标 Parquet） 和 Table Format（对标 Iceberg），其中 Table Format 是在 File Format 基础上组织的数据集。
+          <div class="post-more-link text-center">
+            <a class="btn" href="/posts/lance-format.html#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </p></div>
+    
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+    -->
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/posts/flink-schedule-balance.html" itemprop="url">
                   Flink 均衡调度
                 </a>
@@ -721,121 +836,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/posts/spark-mpi.html" itemprop="url">
-                  借助Spark调度MPI作业
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-11-04T15:21:44+08:00" content="2018-11-04">
-              2018-11-04
-            </time>
-          </span>
-
-          
-            <span class="post-category">
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在Spark-2.4.0中社区提出一种新的Spark调度执行方式，名为<a href="https://jira.apache.org/jira/browse/SPARK-24374" target="_blank" rel="noopener">Barrier Execution Mode</a>，旨在通过Spark去调度分布式ML/DL(机器学习/深度学习)训练作业，这种训练作业一般是通过其他框架实现，例如MPI、TensorFlow等。由于Spark本身的计算框架是遵循MapReduce架构的，所以在调度执行时，每个Task都是独立执行的。然而，MPI这类分布式计算作业运行时需要所有Task一起执行，Task与Task之间需要相互通信。为了将诸如MPI分布式机器学习作业很好地与Spark结合，Spark社区提出一种新的Barrier Scheduler，可保证所有的Task全部调起(当然要保证资源足够)。
-          <div class="post-more-link text-center">
-            <a class="btn" href="/posts/spark-mpi.html#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </p></div>
-    
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <!--
-    <footer class="post-footer">
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-    -->
-  </article>
-
-
-    
   </section>
 
   
@@ -879,7 +879,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -887,7 +887,7 @@
           
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -896,7 +896,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-count">50</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

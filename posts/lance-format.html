@@ -1,0 +1,951 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="大数据,AI,">
+
+
+
+
+
+  <link rel="alternate" href="/rss2.xml" title="守护之鲨" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="Lance 是一种专为向量和多模态数据设计的数据存储格式，其内置高效索引，支持快速随机访问、向量检索、全文检索等。它包含两种格式：列式 File Format（对标 Parquet） 和 Table Format（对标 Iceberg），其中 Table Format 是在 File Format 基础上组织的数据集。">
+<meta name="keywords" content="大数据,AI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lance-面向AI场景的数据存储格式">
+<meta property="og:url" content="https://sharkdtu.github.io/posts/lance-format.html">
+<meta property="og:site_name" content="守护之鲨">
+<meta property="og:description" content="Lance 是一种专为向量和多模态数据设计的数据存储格式，其内置高效索引，支持快速随机访问、向量检索、全文检索等。它包含两种格式：列式 File Format（对标 Parquet） 和 Table Format（对标 Iceberg），其中 Table Format 是在 File Format 基础上组织的数据集。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://sharkdtu.github.io/images/parquet-layout.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/parquet-point-lookup.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/parquet-wide-column.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/parquet-many-cols.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-layout.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-pages-demo.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-async-io.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-pages-demo2.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-layout.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-pages-demo3.png">
+<meta property="og:image" content="https://sharkdtu.github.io/images/lance-structure-encode.png">
+<meta property="og:updated_time" content="2025-08-12T08:27:39.753Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Lance-面向AI场景的数据存储格式">
+<meta name="twitter:description" content="Lance 是一种专为向量和多模态数据设计的数据存储格式，其内置高效索引，支持快速随机访问、向量检索、全文检索等。它包含两种格式：列式 File Format（对标 Parquet） 和 Table Format（对标 Iceberg），其中 Table Format 是在 File Format 基础上组织的数据集。">
+<meta name="twitter:image" content="https://sharkdtu.github.io/images/parquet-layout.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"hide"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: undefined,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Lance-面向AI场景的数据存储格式 | 守护之鲨 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=55745806";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">守护之鲨</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Sharkdtu's blog site</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Lance-面向AI场景的数据存储格式
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2025-08-10T20:10:45+08:00" content="2025-08-10">
+              2025-08-10
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/数据湖/" itemprop="url" rel="index">
+                    <span itemprop="name">数据湖</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+    
+      <div class="post-tags">
+        
+          <a href="/tags/big-data/" rel="tag">大数据</a>
+        
+          <a href="/tags/AI/" rel="tag">AI</a>
+        
+      </div>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Lance 是一种专为向量和多模态数据设计的数据存储格式，其内置高效索引，支持快速随机访问、向量检索、全文检索等。它包含两种格式：列式 File Format（对标 Parquet） 和 Table Format（对标 Iceberg），其中 Table Format 是在 File Format 基础上组织的数据集。<a id="more"></a></p>
+<blockquote>
+<p>注：本文大部分内容直接翻译自参考资料（最新到 Lance Format v2.1），夹带这一些自己的个人理解，如有错误，敬请指正。</p>
+</blockquote>
+<h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h2><p>AI 应用正迎来爆发式增长，然而现有的数据湖存储方案（如 Iceberg/Parquet）难以满足 AI Workloads（如 AI 训练/推理、Agent 开发等）的开发需求，主要存在以下几个问题：</p>
+<ul>
+<li>缺少对非结构化数据、多模态数据的支持</li>
+<li>难以实现高效的随机访问能力</li>
+<li>缺少原生的向量检索和全文检索等查询功能</li>
+</ul>
+<p>Lance 的设计目标就是解决上述问题。</p>
+<h2 id="2-传统列式存储的问题（以Parquet为例）"><a href="#2-传统列式存储的问题（以Parquet为例）" class="headerlink" title="2. 传统列式存储的问题（以Parquet为例）"></a>2. 传统列式存储的问题（以Parquet为例）</h2><p>首先简单介绍 Parquet 列式存储格式的布局，如下图所示。</p>
+<p><img src="/images/parquet-layout.png" width="770" height="380" align="center"></p>
+<ul>
+<li>Header：只有4个字节，本质是一个 magic number，通常为 PAR1。</li>
+<li>RowGroup：如果把一个 Parquet 文件看成一张表，那么对这张表按固定大小水平切分的部分就是 RowGroup，在分布式存储系统中，文件通常会被分块跨机器多副本存储，以提升存储可靠性，那么一个 RowGroup 就可以作为一个 Block，这样可以提升分布式并行读取效率。</li>
+<li>ColumnChunk：RowGroup 内部会按列垂直切分，每一列的数据分片就是一个个 ColumnChunk，这也是列式存储的关键，有益于高效压缩和按列读取。</li>
+<li>Page：ColumnChunk 内部还会继续按固定大小水平切分，形成一个个 Page，主要是为了让数据访问的粒度足够小，Page 作为最小的存储、编码、压缩单元。</li>
+<li>Page Index：为了快速索引指定 Page，达到快速读取的目的，例如谓词下推就是一种查询优化技术，通过查询条件，缩小读取范围，可有效减少数据的读取和传输量，目前仅支持 min-max、bloomfilter 索引。</li>
+<li>Footer：存储文件元数据信息，包含了 Schema 以及 RowGroup/ColumnChunk 的位置信息以及统计信息。数据读取首先读取 Footer，再索引到指定位置读取数据。之所以把元数据信息放 Footer，主要是为了让文件写入的操作在一趟内完成，因为写完数据后，位置信息和统计信息都有了，直接追加到文件尾部即可。</li>
+</ul>
+<h3 id="2-1-点查性能差"><a href="#2-1-点查性能差" class="headerlink" title="2.1. 点查性能差"></a>2.1. 点查性能差</h3><p>按主键列查询（写入时，该列有 Page 索引），Parquet 最多只支持到 Page 级别索引，查询的数据可能也会分散在多个 RowGroup（如下图所示），无法快速定位到单条数据。</p>
+<p><img src="/images/parquet-point-lookup.png" width="770" height="300" align="center"></p>
+<h3 id="2-2-列大小差距大时，访问性能不佳"><a href="#2-2-列大小差距大时，访问性能不佳" class="headerlink" title="2.2. 列大小差距大时，访问性能不佳"></a>2.2. 列大小差距大时，访问性能不佳</h3><p>在 ML/AI 场景，Embeddings、Tensors、文本、图片、音视频等二进制列通常是宽列，在数据多列且大小不均的情况下，选择合适的 RowGroup 大小比较困难，且会影响读取性能。</p>
+<p><img src="/images/parquet-wide-column.png" width="770" height="480" align="center"></p>
+<p>如上图所示：</p>
+<ul>
+<li>设置过大 row group size 时，row group 数量就更少，数据读写需要更多内存，读取并行度也会降低</li>
+<li>设置常规 row group size 时，因为宽列的存在，一个 row group 没几条数据，如果访问比较小的列，那么需要加载更多的 row group，带来更多的 io，影响读取性能</li>
+</ul>
+<h3 id="2-3-列非常多的情况下，元数据开销大"><a href="#2-3-列非常多的情况下，元数据开销大" class="headerlink" title="2.3. 列非常多的情况下，元数据开销大"></a>2.3. 列非常多的情况下，元数据开销大</h3><p>不少业务场景下，列非常多，尤其是 ML 场景，如果只访问部分列，Parquet 也需要加载全部 Footer 元数据信息，这对低延迟工作负载来说是一笔不小的开支，如果并行读多个文件，缓存多个文件的元数据会占用大量内存。</p>
+<p><img src="/images/parquet-many-cols.png" width="770" height="288" align="center"></p>
+<h3 id="2-4-其他"><a href="#2-4-其他" class="headerlink" title="2.4. 其他"></a>2.4. 其他</h3><ul>
+<li>仅支持通用编码类型，对特定数据的编码支持相对较少（无法自定义编码）</li>
+<li>缺乏对特定类型（例如 embedings、tensors,、blob 等）的原生支持</li>
+</ul>
+<h2 id="3-Lance-File-Format"><a href="#3-Lance-File-Format" class="headerlink" title="3. Lance File Format"></a>3. Lance File Format</h2><p>Lance v2 文件，列式存储格式的布局为 Pages - Column Descriptors - Footer，如下图所示：</p>
+<ul>
+<li>Data Pages：由一系列的 Buffers 组成，Buffer 主要为编码后的数据或元数据</li>
+<li>Column Descriptors：由三部分组成<ul>
+<li>Column Metadata：列元数据块，包含每列的页块、编码等信息</li>
+<li>Column Metadata Offset Table：列元数据索引，指向列元数据块</li>
+<li>Global Buffers Offset Table：全局元数据索引，指向全局元数据，例如全局字典</li>
+</ul>
+</li>
+<li>Footer：元数据的索引，指向除 Data Pages 以外的部分，占用固定大小存储（相比Parquet而言，Lance Footer足够小）</li>
+</ul>
+<p><img src="/images/lance-layout.png" width="770" height="484" align="center"></p>
+<h3 id="3-1-无-RowGroup-设计"><a href="#3-1-无-RowGroup-设计" class="headerlink" title="3.1. 无 RowGroup 设计"></a>3.1. 无 RowGroup 设计</h3><p>RowGroup 最初是为了分布式并行 scan 而设计（大文件分块存储，并行处理），Lance 设计者认为，拆解到多文件同样能达到分布式并行处理的能力（类似一个文件一个 RowGroup），所以直接抛弃 RowGroup 的设计，这样可以不用为设置多大的 RowGroup 而烦恼。</p>
+<p>在 Lance 文件中，不再按 RowGroup 水平切分，直接将每个列切分成多个 Pages，Page 的大小最好等于存储系统的最小读写单位（例如 S3 是 8MB），这样读写过程中，正好是按 Page 大小去读写存储系统。举个例子，假设需要写10M (1KW) 个记录，Page 大小使用 8MB，其中一列为 8 字节的 double，一列为 bool，那么 double 列需要写 10 个 Pages，bool 列只需要写 1 个 Page（一个 bit 存储一个 bool，1 个 Page 可以容纳 64M 个 bool）。</p>
+<p><img src="/images/lance-pages-demo.png" width="770" height="98" align="center"></p>
+<p>在文件 Scan 方面，Lance 这种无 RowGroup 的设计效率也更高，甚至在文件大小是 Parquet 的 2-3 倍时也能超越 Parquet。延续上面的例子，如果需要将 double 和 bool 列的数据全部读出来处理，首先，将读取 double 列的第一个 Page 和 bool 列的第一个 Page（只有一个），这两个 8MB Page 读取完成后，就可以得到 1M 个 double 值，10M 个 bool 值，逻辑上可以解码 1M 条记录，假设一次解码处理 10K 条记录，那么这读出来的两个 Page 就需要 100 个解码处理任务，在这些解码任务运行的同时，可以并行去读取 double 列剩余的 Pages，做到 IO 与解码计算解耦分离。</p>
+<p><img src="/images/lance-async-io.png" width="770" height="413" align="center"></p>
+<p>然而在传统的 Parquet 文件读取时，解码计算与 IO 是耦合的，例如读取并行度为 M（有 M 个 RowGroup），每条记录要读 N 列，那么 IO 请求并行度一定是 M*N，解码计算与 IO 存在相互制约，影响读取吞吐。</p>
+<h3 id="3-2-编码作为扩展"><a href="#3-2-编码作为扩展" class="headerlink" title="3.2. 编码作为扩展"></a>3.2. 编码作为扩展</h3><p>Lance 本身没有类型系统，每个页块（Page）包含多个 Buffers，当然，文件读写时需要将这些 Buffers 跟某种类型系统对应起来，Lance 使用 <a href="https://arrow.apache.org/docs/format/Columnar.html" target="_blank" rel="noopener">Arrow 类型系统</a>（列式内存格式），这样做的好处是不用设计一种新的类型系统，尽可能使格式规范简单明了。</p>
+<p>既然没有设计新的类型系统，所以 Lance 不限定编码格式（如字典编码、Bitpacking、Delta 编码等），完全由扩展处理，文件读写实现不需要事先知道任何类型的编码，数据生产者选择使用哪种编码以及编码工作的细节由插件决定，如果要使用新的编码，不需要调整文件存储布局和读写实现。</p>
+<p>具体做法是将编码描述直接存储到元数据块中，可以是全局编码、列级别编码、页级别的编码，如果开发某种新的编码，那么只需要发布一个 <code>.proto</code> 文件来描述编码的方式，并编写一个编码器/解码器，如果用户试图读取用这种编码编写的文件，而读取时不支持这种编码，那么就会收到一个有用的错误信息 “此文件使用 X 编码，未配置解码器”。</p>
+<h3 id="3-3-存储灵活性"><a href="#3-3-存储灵活性" class="headerlink" title="3.3. 存储灵活性"></a>3.3. 存储灵活性</h3><p>如下图所示，相同列的 Pages 不一定要连续存储 ，不同列的 Pages 个数可以不一样，不同 Page 的 item 条数可以不一样，甚至不同列的 item 条数也可以不一样，存储非常灵活紧凑。</p>
+<p><img src="/images/lance-pages-demo2.png" width="600" height="100" align="center"></p>
+<p>如下图，Lance 文件布局，每一列的元数据都在一个完全独立的块中，这意味着可以读取指定列而无需读取其他列的元数据，所以可以有数十万甚至数百万列，都不会影响性能。因为 Footer 足够小，通过 Footer 很快找到指定列的索引进而定位指定列。</p>
+<p><img src="/images/lance-layout.png" width="770" height="484" align="center"></p>
+<p>值得强调的是，Lance 文件中的 Data Pages 部分不仅仅有数据，也可能有元数据。实际存储时，数据与元数据可以流动存储，Writer 在写入时可以选择最合适的位置写入编码后的数据或元数据。举个例子，字典编码的列，如果某一列不同 Page 之间存在差异，那么 Writer 应将字典作为 Page 数据写入，如果某一列的字典可以预先提供，那么 Writer 应将字典作为列元数据写入，如果多个列有共同的字典，那么 Writer 应将字典作为全局元数据写入。类似地，统计信息（例如 zone map，min/max/null）也可以按类似方式流动存储，一般来说，统计信息通常作为索引，所以扩展增加新的索引变得非常容易，这在 Parquet 中是做不到的。</p>
+<p><img src="/images/lance-pages-demo3.png" width="770" height="375" align="center"></p>
+<h3 id="3-4-随机访问与扫描访问权衡"><a href="#3-4-随机访问与扫描访问权衡" class="headerlink" title="3.4. 随机访问与扫描访问权衡"></a>3.4. 随机访问与扫描访问权衡</h3><p>如前文所述，Lance 没有固定的编码，使用 Arrow 类型系统，假如没有编码，则是直接使用 Arrow IPC 列式格式存储，这样会因为编码压缩不足，导致存储文件非常大，扫描访问性能差，对于复杂类型的随机访问，如 list<string>，一列数据会被编码为多个 Buffers，随机读取指定行（例如 col[3]）的数据也需要经过多次 IO 操作读取不同 Buffer（这跟 Arrow 内存随机读取可不一样，内存读取不存在 IO）。事实上，Parquet 通过 Repetition 和 Definition 编码机制可以以更少的 Buffers 编码复杂类型的数据，压缩可以做到极致，文件扫描性能友好，但是随机读取指定行的数据需要先解压整个数据块，具有读放大效应。</string></p>
+<p><img src="/images/lance-structure-encode.png" width="770" height="284" align="center"></p>
+<p>为了权衡随机访问和扫描访问性能，Lance v2.1 设计了结构化编码，对于简单类型的随机访问，最多需要 1 次 IOP，对于任意复杂类型（包括任意嵌套）的随机访问，最多需要 2 次 IOP。具体地，写入时会根据值平均大小等启发式规则在两种结构化编码中二选其一：</p>
+<ul>
+<li>Full Zip 编码：适合“大/长/嵌套”的值（128 字节及以上），将 repetition level 和 definition level 编码为 1~4 字节的控制字，跟 value-buffer 粘一起存储，写入时会新增一个索引，指向每个值对应的控制字，那么随机访问时，先通过索引找到指定行的控制字，再解码对应的值，总共需 2 次 IOP，优点是比 Arrow IPC 列式格式有更高的压缩比，又能将随机访问的 IOP 控制在 2 次以内，但是相比 Parquet，需要增加索引元数据，会额外占用存储，牺牲一点扫描性能。</li>
+<li>Mini-block 编码：适合“小/短”的值，类似 Parquet 的做法，将 repetition/definition levels、values 切成小 chunk（4–8 KiB），然后通过非透明压缩存储，随机访问需要读取整个 chunk（通常只需一次 IOP），因为数据类型足够小，可以接受一定量的读取放大，优点是不损失扫描性能。</li>
+</ul>
+<h2 id="4-Lance-Table-Format"><a href="#4-Lance-Table-Format" class="headerlink" title="4. Lance Table Format"></a>4. Lance Table Format</h2><p>一份数据集不可能全部存储到一个 Lance 文件中，为此，Lance 团队在 File Format 基础上设计了 Table Format，用于存储数据集。以下是 Lance Table（也称之为 Lance Dataset） 的物理存储布局：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/path/to/dataset:</span><br><span class="line">    data/*.lance</span><br><span class="line">    _versions/*.manifest</span><br><span class="line">    _indices/&#123;UUID-*&#125;/index.idx</span><br><span class="line">    _deletions/*.&#123;arrow,bin&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>data：数据目录，里面包括多个 lance 数据文件</li>
+<li>_versions：清单（元数据）目录，一个版本一个，方便版本管理与历史追溯</li>
+<li>_indices：二级索引目录（清单文件为一级索引），每个子目录为一个索引</li>
+<li>_deletions：删除文件目录，每个文件保存了已经删除的行号信息</li>
+</ul>
+<p>如前文所述，Lance File Format 它不内置类型，不绑定编码，所以在 Lance Dataset 中，这些信息可以放到清单（Manifest）文件中。</p>
+<p>另外，统计值（如 zone-map）这类“索引性”数据也可以放到 Lance 文件外，这样可以实现动态索引功能（增加索引、重建索引等），而不用重写主数据文件。</p>
+<p>整体上来说，Lance Table Format 是建立在 Lance File Format 基础上的数据集，利用 Lance 文件存储的灵活性，将类型、编码、版本、索引、删除等信息外置，来满足 AI Workloads 的灵活需求。</p>
+<p>相比 Iceberg，它有什么优势呢？Iceberg 当前更多是面向分析查询场景，从以上功能角度来看，其实 Iceberg 也可以扩展支持到（支持 lance 数据文件、支持 lance 索引等），但是因为 Iceberg 已经相对成熟（事实上的数据湖表格式存储标准），新功能扩展比较谨慎，节奏上会比较保守。比较而言，Lance Table Format 就不会有这些历史包袱，对于当下 AI Workloads 爆发式需求，可以有针对性地灵活支持，如向量检索、文本检索、多模态数据存储查询等。</p>
+<h2 id="5-参考资料"><a href="#5-参考资料" class="headerlink" title="5. 参考资料"></a>5. 参考资料</h2><ul>
+<li><a href="https://blog.lancedb.com/lance-v2/" target="_blank" rel="noopener">Lance v2: A columnar container format for modern data</a></li>
+<li><a href="https://blog.lancedb.com/lance-file-2-1-smaller-and-simpler/" target="_blank" rel="noopener">Lance File 2.1: Smaller and Simpler</a></li>
+<li><a href="https://arxiv.org/html/2504.15247v1" target="_blank" rel="noopener">Lance: Efficient Random Access in Columnar Storage through Adaptive Structural Encodings</a></li>
+</ul>
+<p><span style="color:red"><em>转载请注明出处，本文永久链接：<a href="https://sharkdtu.github.io/posts/lance-format.html">https://sharkdtu.github.io/posts/lance-format.html</a></em></span></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div></div>
+  <button id="rewardButton" , disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}" style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onmouseout="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block;margin-right: 5px">
+        <img id="wechat_qr" src="/images/wechat.png" alt="sharkdtu WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block;margin-left: 5px">
+        <img id="alipay_qr" src="/images/alipay.png" alt="sharkdtu Alipay" style="width: 200px; max-width: 100%; display: inline-block">
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+
+      
+    </div>
+
+    <!--
+    <footer class="post-footer">
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/flink-schedule-balance.html" rel="next" title="Flink 均衡调度">
+                <i class="fa fa-chevron-left"></i> Flink 均衡调度
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+    -->
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="sharkdtu">
+          <p class="site-author-name" itemprop="name">sharkdtu</p>
+          <p class="site-description motion-element" itemprop="description">No pains, no gain.</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/rss2.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/tuxiaogang" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/sharkdtu" target="_blank" title="github">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-背景"><span class="nav-number">1.</span> <span class="nav-text">1. 背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-传统列式存储的问题（以Parquet为例）"><span class="nav-number">2.</span> <span class="nav-text">2. 传统列式存储的问题（以Parquet为例）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-点查性能差"><span class="nav-number">2.1.</span> <span class="nav-text">2.1. 点查性能差</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-列大小差距大时，访问性能不佳"><span class="nav-number">2.2.</span> <span class="nav-text">2.2. 列大小差距大时，访问性能不佳</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-列非常多的情况下，元数据开销大"><span class="nav-number">2.3.</span> <span class="nav-text">2.3. 列非常多的情况下，元数据开销大</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-其他"><span class="nav-number">2.4.</span> <span class="nav-text">2.4. 其他</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Lance-File-Format"><span class="nav-number">3.</span> <span class="nav-text">3. Lance File Format</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-无-RowGroup-设计"><span class="nav-number">3.1.</span> <span class="nav-text">3.1. 无 RowGroup 设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-编码作为扩展"><span class="nav-number">3.2.</span> <span class="nav-text">3.2. 编码作为扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-存储灵活性"><span class="nav-number">3.3.</span> <span class="nav-text">3.3. 存储灵活性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-随机访问与扫描访问权衡"><span class="nav-number">3.4.</span> <span class="nav-text">3.4. 随机访问与扫描访问权衡</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Lance-Table-Format"><span class="nav-number">4.</span> <span class="nav-text">4. Lance Table Format</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-参考资料"><span class="nav-number">5.</span> <span class="nav-text">5. 参考资料</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sharkdtu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+  </script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>
